@@ -10,7 +10,7 @@ const Footer = () => {
           <div className="space-y-4">
             <Link to="/" className="flex items-center">
               <img
-                src="/public/lovable-uploads/52b4b5fb-9157-4472-9ddb-2a78e49ab121.png"
+                src="/public/images/LogoWithoutBack.png"
                 alt="YooBoba Logo"
                 className="h-10 w-10 mr-2"
               />

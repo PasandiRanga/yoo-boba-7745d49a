@@ -1,33 +1,35 @@
-
 import fs from 'fs';
 import path from 'path';
 import { Pool } from 'pg';
 import { getDbConfig } from './config';
 
 const setupDatabase = async () => {
+  console.log('⏳ Connecting to database...');
+
   const config = getDbConfig();
   const pool = new Pool(config);
 
   try {
-    console.log('Setting up database...');
+    console.log('📂 Reading schema.sql...');
     
-    // Read schema SQL file
-    const schemaPath = path.join(__dirname, 'schema.sql');
+    const schemaPath = path.join(path.resolve(), 'src', 'lib', 'db', 'schema.sql');
+    console.log(`📄 Schema path: ${schemaPath}`);
+
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-    
-    // Execute schema SQL
+
+    console.log('🚀 Executing SQL...');
     await pool.query(schemaSql);
-    
-    console.log('Database setup complete!');
+
+    console.log('✅ Database setup complete!');
   } catch (error) {
-    console.error('Error setting up database:', error);
+    console.error('❌ Error setting up database:', error);
   } finally {
     await pool.end();
   }
 };
 
-// Run setup if this file is executed directly
-if (require.main === module) {
+// Run directly if not being imported (ESM-compatible way)
+if (import.meta.url === `file://${process.argv[1]}`) {
   setupDatabase();
 }
 
