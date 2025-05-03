@@ -21,7 +21,7 @@ export const initDb = (): Pool => {
 };
 
 // Execute a query and return the results
-export const query = async <T>(text: string, params?: any[]): Promise<T[]> => {
+export const query = async <T>(text: string, params?: unknown[]): Promise<T[]> => {
   const client = await getClient();
   try {
     const result = await client.query(text, params);
