@@ -1,73 +1,103 @@
-# Welcome to your Lovable project
 
-## Project info
+# YooBoba E-commerce Site
 
-**URL**: https://lovable.dev/projects/cd003c2c-a451-4caf-8693-9180868640b6
+This is an e-commerce website for YooBoba, a manufacturer of boba pearls and related products.
 
-## How can I edit this code?
+## Tech Stack
 
-There are several ways of editing your application.
+- React with TypeScript
+- Vite for build tooling
+- Tailwind CSS for styling
+- PostgreSQL for database
+- pg for database connectivity
 
-**Use Lovable**
+## Local Setup Instructions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/cd003c2c-a451-4caf-8693-9180868640b6) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js (v18+)
+- PostgreSQL database server
+- Git
 
-**Use your preferred IDE**
+### Step 1: Clone the Repository
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```bash
+git clone <your-repository-url>
+cd yooboba-ecommerce
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Step 2: Install Dependencies
 
-Follow these steps:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Step 3: Set Up Environment Variables
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Copy the `.env.example` file to `.env` and update the variables with your PostgreSQL database connection details:
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+cp .env.example .env
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Edit the `.env` file:
+
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=yooboba_db
+DB_USER=your_postgres_user
+DB_PASSWORD=your_postgres_password
+DB_SSL=false
+```
+
+### Step 4: Set Up the Database
+
+1. Create a new PostgreSQL database:
+
+```bash
+createdb yooboba_db
+```
+
+2. Run the database setup script:
+
+```bash
+npx ts-node src/lib/db/setup.ts
+```
+
+This will create the necessary tables and insert sample data.
+
+### Step 5: Start the Development Server
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Visit http://localhost:5173 to see the application.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Database Schema
 
-**Use GitHub Codespaces**
+The application uses the following database tables:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `products`: Stores product information
+- `customers`: Stores customer information
+- `addresses`: Stores shipping and billing addresses
+- `orders`: Stores order information
+- `order_items`: Stores items within each order
 
-## What technologies are used for this project?
+## Environment Variables
 
-This project is built with:
+- `DB_HOST`: PostgreSQL database host
+- `DB_PORT`: PostgreSQL database port
+- `DB_NAME`: PostgreSQL database name
+- `DB_USER`: PostgreSQL database user
+- `DB_PASSWORD`: PostgreSQL database password
+- `DB_SSL`: Whether to use SSL for database connection
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Building for Production
 
-## How can I deploy this project?
+```bash
+npm run build
+```
 
-Simply open [Lovable](https://lovable.dev/projects/cd003c2c-a451-4caf-8693-9180868640b6) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+The built files will be in the `dist` directory.
