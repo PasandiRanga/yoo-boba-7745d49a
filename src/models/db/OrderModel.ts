@@ -18,6 +18,34 @@ export interface DbOrder {
   updated_at: string;
 }
 
+export interface DbCustomer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  company: string | null;
+}
+
+export interface DbAddress {
+  id: string;
+  street1: string;
+  street2: string | null;
+  city: string;
+  state: string;
+  zip_code: string;
+  country: string;
+}
+
+export interface DbOrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 // Create an order in the database
 export const createOrderInDb = async (
   customer: Customer,
@@ -143,24 +171,24 @@ export const getOrderByIdFromDb = async (orderId: string): Promise<Order | null>
     const order = orderResult[0];
     
     // 2. Get customer
-    const customerResult = await query(
+    const customerResult = await query<DbCustomer>(
       `SELECT * FROM customers WHERE id = $1 LIMIT 1`,
       [order.customer_id]
     );
     
     // 3. Get addresses
-    const shippingAddressResult = await query(
+    const shippingAddressResult = await query<DbAddress>(
       `SELECT * FROM addresses WHERE id = $1 LIMIT 1`,
       [order.shipping_address_id]
     );
     
-    const billingAddressResult = await query(
+    const billingAddressResult = await query<DbAddress>(
       `SELECT * FROM addresses WHERE id = $1 LIMIT 1`,
       [order.billing_address_id]
     );
     
     // 4. Get order items
-    const orderItemsResult = await query(
+    const orderItemsResult = await query<DbOrderItem>(
       `SELECT * FROM order_items WHERE order_id = $1`,
       [orderId]
     );
@@ -173,11 +201,11 @@ export const getOrderByIdFromDb = async (orderId: string): Promise<Order | null>
         lastName: customerResult[0].last_name,
         email: customerResult[0].email,
         phone: customerResult[0].phone,
-        company: customerResult[0].company
+        company: customerResult[0].company || undefined
       },
       shippingAddress: {
         street1: shippingAddressResult[0].street1,
-        street2: shippingAddressResult[0].street2,
+        street2: shippingAddressResult[0].street2 || undefined,
         city: shippingAddressResult[0].city,
         state: shippingAddressResult[0].state,
         zipCode: shippingAddressResult[0].zip_code,
@@ -185,7 +213,7 @@ export const getOrderByIdFromDb = async (orderId: string): Promise<Order | null>
       },
       billingAddress: {
         street1: billingAddressResult[0].street1,
-        street2: billingAddressResult[0].street2,
+        street2: billingAddressResult[0].street2 || undefined,
         city: billingAddressResult[0].city,
         state: billingAddressResult[0].state,
         zipCode: billingAddressResult[0].zip_code,
