@@ -55,7 +55,7 @@ export const products: Product[] = [
     stock: 85,
     featured: true,
     attributes: {
-      flavor: "Brown Sugar",
+      flavor: "Brown Sugar boba",
       color: "Dark Brown",
       texture: "Soft and Chewy",
       cookingTime: "25 minutes",
