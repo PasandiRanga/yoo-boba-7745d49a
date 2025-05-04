@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
+// Import the slide animations CSS
+import "@/styles/slideAnimations.css";
 
 const Hero = () => {
   const imageContainerRef = useRef(null);
@@ -65,6 +67,7 @@ const Hero = () => {
     };
   }, []);
 
+
   // Effect for smooth image rotation when not scrolling
   useEffect(() => {
     let rotationInterval;
@@ -74,15 +77,21 @@ const Hero = () => {
       rotationInterval = setInterval(() => {
         // Set the next image to show
         const nextIndex = (currentImageIndex + 1) % images.length;
-        setNextImageIndex(nextIndex);
-        setIsTransitioning(true);
         
-        // After the fade-in animation, update the current index
+        // First prepare the next image in position (off-screen to the right)
+        setNextImageIndex(nextIndex);
+        
+        // After a small delay, start the transition animation
         setTimeout(() => {
-          setCurrentImageIndex(nextIndex);
-          setNextImageIndex(null);
-          setIsTransitioning(false);
-        }, 1000); // Match this with the CSS transition duration
+          setIsTransitioning(true);
+          
+          // After the slide transition animation completes, update the current index
+          setTimeout(() => {
+            setCurrentImageIndex(nextIndex);
+            setNextImageIndex(null);
+            setIsTransitioning(false);
+          }, 800); // Match this with the CSS transition duration
+        }, 50); // Small delay to ensure next image is ready
       }, 3000); // Change image every 3 seconds
     }
     
@@ -182,39 +191,37 @@ const Hero = () => {
           <div className="relative" ref={imageContainerRef}>
             <div className="relative h-[500px] sm:h-[500px] lg:h-[600px] lg:-mr-8 overflow-hidden">
               <div className="absolute bottom-150px right-0 w-1 h-1 bg-gradient-to-r from-yooboba-blue to-yooboba-pink rounded-full blur-3xl opacity-20"></div>
-              <div className="w-full h-full transform-gpu overflow-hidden">
+              <div className="image-container">
                 {/* Current image */}
                 <img
                   key={`current-${currentImageIndex}`}
                   src={images[currentImageIndex]}
                   alt={`Boba Pearls ${currentImageIndex + 1}`}
-                  className="absolute object-cover rounded-2xl w-full h-full origin-center transition-opacity duration-1000 opacity-100"
+                  className="sliding-image"
                   ref={imageRef}
-                  style={{ transformOrigin: 'center center' }}
+                  style={{ 
+                    transformOrigin: 'center center',
+                    transition: 'transform 800ms ease-in-out',
+                    transform: isTransitioning ? 'translateX(-100%)' : 'translateX(0)',
+                    zIndex: 5
+                  }}
                 />
                 
-                {/* Next image (for smooth transition) */}
+                {/* Next image (for slide transition) */}
                 {nextImageIndex !== null && (
                   <img
                     key={`next-${nextImageIndex}`}
                     src={images[nextImageIndex]}
                     alt={`Boba Pearls ${nextImageIndex + 1}`}
-                    className="absolute object-cover rounded-2xl w-full h-full origin-center transition-opacity duration-1000 opacity-0"
+                    className="sliding-image"
                     style={{ 
                       transformOrigin: 'center center',
-                      animation: 'fadeIn 1s ease-in-out forwards',
+                      transition: 'transform 800ms ease-in-out',
+                      transform: isTransitioning ? 'translateX(0)' : 'translateX(100%)',
                       zIndex: 10
                     }}
                   />
                 )}
-                
-                {/* Add a keyframe animation for fade in */}
-                <style>{`
-                  @keyframes fadeIn {
-                    0% { opacity: 0; }
-                    100% { opacity: 1; }
-                  }
-                `}</style>
               </div>
             </div>
           </div>

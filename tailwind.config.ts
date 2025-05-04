@@ -113,6 +113,10 @@ export default {
           '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(0)' },
         },
+        'slideOutLeft': {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
         'pearlMove': {
           '0%': { 
             transform: 'translateX(-100px) translateY(0)',
@@ -145,13 +149,14 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'float': 'float 6s ease-in-out infinite',
-        'slide-in-left': 'slideInLeft 1.5s ease-out forwards',
-        'slide-in-right': 'slideInRight 1.5s ease-out forwards',
+        'slide-in-left': 'slideInLeft 800ms ease-out forwards',
+        'slide-in-right': 'slideInRight 800ms ease-out forwards',
+        'slide-out-left': 'slideOutLeft 800ms ease-out forwards',
         'pearl-move': 'pearlMove 15s linear infinite',
         // New animation classes
         'reveal-text': 'reveal-text 0.8s ease forwards',
-        'zoom-in': 'zoom-in 0.3s ease-out forwards',
-        'zoom-out': 'zoom-out 0.3s ease-out forwards'
+        'zoom-in': 'zoom-in 0.5s ease-out forwards',
+        'zoom-out': 'zoom-out 0.5s ease-out forwards'
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

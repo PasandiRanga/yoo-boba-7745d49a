@@ -1,0 +1,39 @@
+/* Slide animation keyframes */
+@keyframes slideOutLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes slideInRight {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+/* Image container styling */
+.image-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sliding image styling */
+.sliding-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+  transition: transform 800ms ease-in-out;
+}
+
+/* Animation utility classes */
+.animate-slide-out-left {
+  animation: slideOutLeft 800ms ease-in-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 800ms ease-in-out forwards;
+}
