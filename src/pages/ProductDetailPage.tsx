@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductById } from "@/models/ProductModel";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ScrollAnimation from "@/components/animations/ScrollAnimation";
+import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import BobaAnimation from "@/components/animations/BobaAnimation";
 
 const ProductDetailPage = () => {

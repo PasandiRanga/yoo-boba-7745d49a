@@ -1,11 +1,10 @@
-
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import ScrollAnimation from "@/components/animations/ScrollAnimation";
+import ScrollAnimation from "@/components/animations/ScrollAnimations";
 
 const Hero = () => {
-  const parallaxRef = useRef<HTMLDivElement>(null);
+  const parallaxRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {

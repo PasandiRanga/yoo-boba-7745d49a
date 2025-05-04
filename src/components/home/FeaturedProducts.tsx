@@ -1,9 +1,8 @@
-
 import { getFeaturedProducts } from "@/models/ProductModel";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import ScrollAnimation from "@/components/animations/ScrollAnimation";
+import ScrollAnimation from "@/components/animations/ScrollAnimations";
 
 const FeaturedProducts = () => {
   const featuredProducts = getFeaturedProducts();

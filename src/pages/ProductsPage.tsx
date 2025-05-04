@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { products, getProductsByCategory } from "@/models/ProductModel";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
-import ScrollAnimation from "@/components/animations/ScrollAnimation";
+import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import BobaAnimation from "@/components/animations/BobaAnimation";
 
 const categories = [
