@@ -18,7 +18,7 @@ const BobaAnimation = () => {
     const bobasArray: Boba[] = [];
     const colors = ['#9B87F5', '#F870C5', '#5B6DF8', '#9B87F5', '#D6BCFA'];
     
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 5; i++) {
       bobasArray.push({
         id: i,
         size: Math.random() * 20 + 10, // Size between 10-30px

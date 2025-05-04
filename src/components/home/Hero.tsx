@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 
 const Hero = () => {
-  const parallaxRef = useRef<HTMLImageElement>(null);
+  const parallaxRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +26,49 @@ const Hero = () => {
         <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-yooboba-light rounded-tr-[100px] opacity-20"></div>
       </div>
 
+      {/* Continuously Moving Pearls Animation */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Left to Right pearls - Row 1 (Top) */}
+        <div className="absolute -left-16 top-1/6 w-32 h-32 rounded-full bg-yooboba-light opacity-70 animate-pearl-move"
+             style={{ animationDelay: "0s", animationDuration: "15s" }}></div>
+        <div className="absolute -left-12 top-1/6 w-24 h-24 rounded-full bg-yooboba-pink opacity-60 animate-pearl-move"
+             style={{ animationDelay: "7s", animationDuration: "12s" }}></div>
+        <div className="absolute -left-20 top-1/6 w-16 h-16 rounded-full bg-yooboba-purple opacity-40 animate-pearl-move"
+             style={{ animationDelay: "12s", animationDuration: "17s" }}></div>
+             
+        {/* Left to Right pearls - Row 2 */}
+        <div className="absolute -left-14 top-1/3 w-20 h-20 rounded-full bg-yooboba-blue opacity-60 animate-pearl-move"
+             style={{ animationDelay: "2s", animationDuration: "18s" }}></div>
+        <div className="absolute -left-16 top-1/3 w-28 h-28 rounded-full bg-yooboba-purple opacity-50 animate-pearl-move"
+             style={{ animationDelay: "9s", animationDuration: "13s" }}></div>
+        <div className="absolute -left-12 top-1/3 w-18 h-18 rounded-full bg-yooboba-light opacity-40 animate-pearl-move"
+             style={{ animationDelay: "15s", animationDuration: "16s" }}></div>
+             
+        {/* Left to Right pearls - Row 3 (Middle) */}
+        <div className="absolute -left-20 top-1/2 w-16 h-16 rounded-full bg-yooboba-pink opacity-40 animate-pearl-move"
+             style={{ animationDelay: "3s", animationDuration: "14s" }}></div>
+        <div className="absolute -left-14 top-1/2 w-22 h-22 rounded-full bg-yooboba-blue opacity-70 animate-pearl-move"
+             style={{ animationDelay: "8s", animationDuration: "19s" }}></div>
+        <div className="absolute -left-18 top-1/2 w-26 h-26 rounded-full bg-yooboba-light opacity-50 animate-pearl-move"
+             style={{ animationDelay: "14s", animationDuration: "15s" }}></div>
+             
+        {/* Left to Right pearls - Row 4 */}
+        <div className="absolute -left-12 top-2/3 w-24 h-24 rounded-full bg-yooboba-light opacity-50 animate-pearl-move"
+             style={{ animationDelay: "4s", animationDuration: "16s" }}></div>
+        <div className="absolute -left-16 top-2/3 w-20 h-20 rounded-full bg-yooboba-purple opacity-60 animate-pearl-move"
+             style={{ animationDelay: "10s", animationDuration: "13s" }}></div>
+        <div className="absolute -left-14 top-2/3 w-18 h-18 rounded-full bg-yooboba-pink opacity-40 animate-pearl-move"
+             style={{ animationDelay: "16s", animationDuration: "17s" }}></div>
+             
+        {/* Left to Right pearls - Row 5 (Bottom) */}
+        <div className="absolute -left-10 top-5/6 w-12 h-12 rounded-full bg-yooboba-light opacity-40 animate-pearl-move"
+             style={{ animationDelay: "5s", animationDuration: "12s" }}></div>
+        <div className="absolute -left-16 top-5/6 w-14 h-14 rounded-full bg-yooboba-blue opacity-80 animate-pearl-move"
+             style={{ animationDelay: "11s", animationDuration: "18s" }}></div>
+        <div className="absolute -left-20 top-5/6 w-16 h-16 rounded-full bg-yooboba-pink opacity-50 animate-pearl-move"
+             style={{ animationDelay: "17s", animationDuration: "14s" }}></div>
+      </div>
+      
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 lg:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <ScrollAnimation animation="animate-reveal-text" delay={300} className="max-w-xl">
@@ -65,7 +108,7 @@ const Hero = () => {
             <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] lg:-mr-8">
               <div className="absolute bottom-0 right-0 w-3/4 h-3/4 bg-gradient-to-r from-yooboba-blue to-yooboba-pink rounded-full blur-3xl opacity-20"></div>
               <ScrollAnimation 
-                animation="animate-zoom-swipe-up"
+                animation="animate-slide-in-right"
                 delay={200}
                 className="absolute z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4"
               >
@@ -77,7 +120,7 @@ const Hero = () => {
                 />
               </ScrollAnimation>
               <ScrollAnimation 
-                animation="animate-zoom-swipe-up"
+                animation="animate-slide-in-right"
                 delay={500}
                 className="absolute z-20 top-1/4 right-0 w-1/2 h-1/2"
               >
@@ -89,7 +132,7 @@ const Hero = () => {
                 />
               </ScrollAnimation>
               <ScrollAnimation 
-                animation="animate-zoom-swipe-up"
+                animation="animate-slide-in-left"
                 delay={800}
                 className="absolute z-30 bottom-1/4 left-0 w-1/3 h-1/3"
               >

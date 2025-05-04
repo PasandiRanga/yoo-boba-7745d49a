@@ -9,7 +9,6 @@ import { ShoppingCart, Plus, Minus, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
-import BobaAnimation from "@/components/animations/BobaAnimation";
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
@@ -63,7 +62,7 @@ const ProductDetailPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <BobaAnimation />
+
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <Link 

@@ -5,7 +5,6 @@ import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
-import BobaAnimation from "@/components/animations/BobaAnimation";
 
 const categories = [
   { id: "all", name: "All Products" },
@@ -29,7 +28,7 @@ const ProductsPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <BobaAnimation />
+     
       <main className="flex-grow">
         <section className="py-12 md:py-16 bg-gray-50">
           <div className="container mx-auto px-4 md:px-6">
