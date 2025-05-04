@@ -126,6 +126,19 @@ export default {
             transform: 'translateX(calc(100vw + 100px)) translateY(0)',
             opacity: '0.6'
           }
+        },
+        // New animations for scroll zoom effect
+        'reveal-text': {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        'zoom-in': {
+          '0%': { transform: 'scale(1)' },
+          '100%': { transform: 'scale(1.1)' }
+        },
+        'zoom-out': {
+          '0%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)' }
         }
       },
       animation: {
@@ -135,10 +148,17 @@ export default {
         'slide-in-left': 'slideInLeft 1.5s ease-out forwards',
         'slide-in-right': 'slideInRight 1.5s ease-out forwards',
         'pearl-move': 'pearlMove 15s linear infinite',
+        // New animation classes
+        'reveal-text': 'reveal-text 0.8s ease forwards',
+        'zoom-in': 'zoom-in 0.3s ease-out forwards',
+        'zoom-out': 'zoom-out 0.3s ease-out forwards'
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'yooboba-gradient': 'linear-gradient(90deg, #5B6DF8 0%, #9B87F5 50%, #F870C5 100%)',
+      },
+      transitionProperty: {
+        'transform': 'transform',
       }
     }
   },

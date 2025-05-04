@@ -85,11 +85,11 @@ const Navbar = () => {
                         YooBoba
                       </span>
                     </div>
-                    <SheetClose asChild>
+                    {/* <SheetClose asChild>
                       <Button variant="ghost" size="icon">
                         <X className="h-5 w-5" />
                       </Button>
-                    </SheetClose>
+                    </SheetClose> */}
                   </div>
                   
                   <div className="flex flex-col items-center py-8 space-y-6">
