@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -9,24 +8,24 @@ import { cn } from "@/lib/utils";
 const Navbar = () => {
   const { totalItems } = useCart();
   const [isOpen, setIsOpen] = useState(false);
-
+  
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
-
+  
   const navItems = [
     { label: "Home", path: "/" },
     { label: "Products", path: "/products" },
     { label: "About", path: "/about" },
     { label: "Contact", path: "/contact" },
   ];
-
+  
   return (
     <nav className="sticky top-0 z-50 bg-white bg-opacity-95 backdrop-blur-sm border-b border-gray-100">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center" onClick={closeMenu}>
-              <img 
+              <img
                 src="/public/images/LogoWithoutBack.png"
                 alt="YooBoba Logo" 
                 className="h-10 w-10 mr-2"
@@ -36,12 +35,12 @@ const Navbar = () => {
               </span>
             </Link>
           </div>
-
+          
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item, index) => (
-              <Link 
-                key={index} 
+              <Link
+                key={index}
                 to={item.path}
                 className="font-medium text-gray-600 hover:text-yooboba-purple transition-colors"
               >
@@ -49,7 +48,7 @@ const Navbar = () => {
               </Link>
             ))}
           </div>
-
+          
           <div className="flex items-center space-x-4">
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="icon" className="relative">
@@ -72,11 +71,11 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-
+      
       {/* Mobile Navigation */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-in-out flex flex-col pt-16",
+          "fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-in-out md:hidden flex flex-col pt-16",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
