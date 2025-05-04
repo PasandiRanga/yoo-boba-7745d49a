@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductById } from "@/models/ProductModel";
 import { useCart } from "@/context/CartContext";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ScrollAnimation from "@/components/animations/ScrollAnimation";
+import BobaAnimation from "@/components/animations/BobaAnimation";
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
@@ -16,6 +18,11 @@ const ProductDetailPage = () => {
   const { addItem } = useCart();
   
   const product = productId ? getProductById(productId) : null;
+
+  // Scroll to top when the component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (!product) {
     return (
@@ -57,6 +64,7 @@ const ProductDetailPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
+      <BobaAnimation />
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <Link 
@@ -69,16 +77,18 @@ const ProductDetailPage = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Product Image */}
-            <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-center">
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className="max-h-[500px] object-cover rounded-lg"
-              />
-            </div>
+            <ScrollAnimation animation="animate-zoom-in" delay={200}>
+              <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-center">
+                <img
+                  src={product.images[0]}
+                  alt={product.name}
+                  className="max-h-[500px] object-cover rounded-lg transition-transform duration-500 hover:scale-110"
+                />
+              </div>
+            </ScrollAnimation>
 
             {/* Product Details */}
-            <div>
+            <ScrollAnimation animation="animate-reveal-text" delay={400}>
               <h1 className="text-3xl md:text-4xl font-bold font-display">{product.name}</h1>
               <div className="mt-4">
                 <span className="text-2xl font-bold">${product.price.toFixed(2)}</span>
@@ -142,11 +152,11 @@ const ProductDetailPage = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollAnimation>
           </div>
 
           {/* Product Tabs */}
-          <div className="mt-16">
+          <ScrollAnimation animation="animate-zoom-in" delay={600} className="mt-16">
             <Tabs defaultValue="details">
               <TabsList className="grid w-full grid-cols-3 mb-8">
                 <TabsTrigger value="details">Details</TabsTrigger>
@@ -201,7 +211,7 @@ const ProductDetailPage = () => {
                 </ul>
               </TabsContent>
             </Tabs>
-          </div>
+          </ScrollAnimation>
         </div>
       </main>
       <Footer />
