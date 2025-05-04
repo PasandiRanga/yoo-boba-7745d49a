@@ -88,13 +88,13 @@ const mapDbProductToProduct = (dbProduct: DbProduct): Product => {
   return {
     id: dbProduct.id,
     name: dbProduct.name,
-    description: dbProduct.description || '',
-    price: Number(dbProduct.price), // Convert decimal to number
+    description: dbProduct.description,
+    price: dbProduct.price,
     stock: dbProduct.stock,
     category: dbProduct.category,
-    weight: dbProduct.weight || '',
-    images: dbProduct.images || [],
-    featured: dbProduct.featured,
-    attributes: dbProduct.attributes || {}
+    weight: dbProduct.weight,
+    images: dbProduct.images,
+    attributes: dbProduct.attributes,
+    featured: dbProduct.featured
   };
 };
