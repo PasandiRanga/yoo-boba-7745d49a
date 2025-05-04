@@ -1,16 +1,20 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 
 const Navbar = () => {
   const { totalItems } = useCart();
-  const [isOpen, setIsOpen] = useState(false);
-  
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
+  const [open, setOpen] = useState(false);
   
   const navItems = [
     { label: "Home", path: "/" },
@@ -24,7 +28,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center" onClick={closeMenu}>
+            <Link to="/" className="flex items-center">
               <img
                 src="/public/images/LogoWithoutBack.png"
                 alt="YooBoba Logo" 
@@ -60,36 +64,51 @@ const Navbar = () => {
                 )}
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={toggleMenu}
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+            
+            {/* Mobile Menu using Sheet component */}
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-sm p-0">
+                <div className="flex flex-col h-full">
+                  <div className="flex justify-between items-center p-4 border-b">
+                    <div className="flex items-center">
+                      <img
+                        src="/public/images/LogoWithoutBack.png"
+                        alt="YooBoba Logo" 
+                        className="h-8 w-8 mr-2"
+                      />
+                      <span className="text-xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent">
+                        YooBoba
+                      </span>
+                    </div>
+                    <SheetClose asChild>
+                      <Button variant="ghost" size="icon">
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </SheetClose>
+                  </div>
+                  
+                  <div className="flex flex-col items-center py-8 space-y-6">
+                    {navItems.map((item, index) => (
+                      <SheetClose key={index} asChild>
+                        <Link
+                          to={item.path}
+                          className="text-xl font-medium text-gray-800 hover:text-yooboba-purple transition-colors"
+                          onClick={() => setOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+                      </SheetClose>
+                    ))}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-        </div>
-      </div>
-      
-      {/* Mobile Navigation */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-in-out md:hidden flex flex-col pt-16",
-          isOpen ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="flex flex-col items-center py-8 space-y-8">
-          {navItems.map((item, index) => (
-            <Link
-              key={index}
-              to={item.path}
-              className="text-xl font-medium"
-              onClick={closeMenu}
-            >
-              {item.label}
-            </Link>
-          ))}
         </div>
       </div>
     </nav>
