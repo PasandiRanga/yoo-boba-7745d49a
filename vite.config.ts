@@ -29,8 +29,5 @@ export default defineConfig(({ mode }) => ({
         'cloudflare:sockets'
       ]
     }
-  },
-  optimizeDeps: {
-    exclude: ['pg', 'pg-native', 'pg-cloudflare', 'cloudflare:sockets']
   }
 }));
