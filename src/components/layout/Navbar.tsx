@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { ShoppingCart, Menu } from "lucide-react";
@@ -34,7 +35,7 @@ const navItems = [
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { cartItemsCount } = useCart();
+  const { totalItems: cartItemsCount } = useCart();
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">

@@ -18,8 +18,14 @@ export interface DbProduct {
   updated_at: Date;
 }
 
+// Check if in browser environment
+const isBrowser = typeof window !== 'undefined';
+
 // Get all products from the database
 export const getAllProductsFromDb = async (): Promise<Product[]> => {
+  // Early return with empty array if in browser
+  if (isBrowser) return [];
+  
   try {
     const products = await query<DbProduct>(`
       SELECT * FROM products 
@@ -37,6 +43,9 @@ export const getAllProductsFromDb = async (): Promise<Product[]> => {
 
 // Get featured products from the database
 export const getFeaturedProductsFromDb = async (): Promise<Product[]> => {
+  // Early return with empty array if in browser
+  if (isBrowser) return [];
+  
   try {
     const products = await query<DbProduct>(`
       SELECT * FROM products 
@@ -55,6 +64,9 @@ export const getFeaturedProductsFromDb = async (): Promise<Product[]> => {
 
 // Get products by category from the database
 export const getProductsByCategoryFromDb = async (category: string): Promise<Product[]> => {
+  // Early return with empty array if in browser
+  if (isBrowser) return [];
+  
   try {
     const products = await query<DbProduct>(
       `SELECT * FROM products 
@@ -73,6 +85,9 @@ export const getProductsByCategoryFromDb = async (category: string): Promise<Pro
 
 // Get product by ID from the database
 export const getProductByIdFromDb = async (id: string): Promise<Product | null> => {
+  // Early return with null if in browser
+  if (isBrowser) return null;
+  
   try {
     const products = await query<DbProduct>(
       `SELECT * FROM products 
