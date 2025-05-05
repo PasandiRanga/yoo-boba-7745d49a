@@ -70,9 +70,9 @@ const FeaturedProducts = () => {
         </div>
         
         <ScrollAnimation animation="animate-reveal-text" delay={600} className="mt-12 text-center">
-          <Button asChild variant="outline" size="lg" className="dark:text-white dark:border-gray-700 dark:hover:bg-gray-800">
+            <Button asChild variant="outline" size="lg" className="dark:text-white dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
             <Link to="/products">View All Products</Link>
-          </Button>
+            </Button>
         </ScrollAnimation>
       </div>
     </section>
