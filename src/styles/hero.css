@@ -1,0 +1,64 @@
+/* Add these to your CSS/Tailwind files */
+
+/* Dark mode styles for Hero */
+.dark .hero-gradient {
+    background-image: linear-gradient(to right, var(--color-yooboba-blue), var(--color-yooboba-pink));
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  
+  /* Glow effects for dark mode */
+  .dark .shadow-glow-sm {
+    box-shadow: 0 0 10px rgba(0, 255, 117, 0.2), 0 0 20px rgba(0, 255, 117, 0.1);
+  }
+  
+  .dark .shadow-glow-md {
+    box-shadow: 0 0 15px rgba(0, 255, 117, 0.3), 0 0 30px rgba(0, 255, 117, 0.15);
+  }
+  
+  .dark .shadow-glow-lg {
+    box-shadow: 0 0 20px rgba(0, 255, 117, 0.4), 0 0 40px rgba(0, 255, 117, 0.2);
+  }
+  
+  /* Dark mode image container styles */
+  .dark .image-container {
+    position: relative;
+  }
+  
+  .dark .image-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 80%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(0, 255, 117, 0.05) 0%, rgba(0, 0, 0, 0) 70%);
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  /* For the sliding animation in dark mode */
+  .dark .sliding-image {
+    filter: brightness(95%);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  
+  /* Add these variables to your Tailwind config */
+  :root {
+    --color-yooboba-blue: #00a3ff;
+    --color-yooboba-pink: #ff00aa;
+    --color-yooboba-purple: #aa00ff;
+    --color-yooboba-light: #e0f7fa;
+  }
+  
+  /* Dark mode custom colors that can be referenced */
+  .dark {
+    --color-yooboba-blue: #00c3ff;
+    --color-yooboba-pink: #ff40c0;
+    --color-yooboba-purple: #c040ff;
+    --color-yooboba-light: #b0e0e6;
+  }
