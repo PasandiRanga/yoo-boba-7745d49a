@@ -187,10 +187,3 @@
 .dark .product-card {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
-
-/* Currency toggle button styles */
-.currency-toggle {
-  @apply inline-flex items-center text-xs font-medium rounded-full px-2.5 py-1 transition-colors;
-  @apply bg-gray-100 text-gray-800 hover:bg-gray-200;
-  @apply dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700;
-}
