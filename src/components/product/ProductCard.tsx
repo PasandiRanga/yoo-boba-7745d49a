@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/context/CurrencyContext";
 
 interface ProductCardProps {
   product: Product;
@@ -13,7 +12,6 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
-  const { formatPrice } = useCurrency();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,6 +27,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
     });
   };
 
+  // Format price in Sri Lankan Rupees
+  const formattedPrice = new Intl.NumberFormat('si-LK', {
+    style: 'currency',
+    currency: 'LKR',
+    minimumFractionDigits: 2
+  }).format(product.price);
+
   return (
     <Link to={`/products/${product.id}`}>
       <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg group product-card bg-gradient-to-br from-pink-50 to-white dark:from-pink-900/20 dark:to-gray-900/80 dark:text-white">
@@ -42,13 +47,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <CardContent className="p-6">
           <div className="space-y-2">
             <h3 className="font-semibold text-lg">{product.name}</h3>
-            <p className="text-sm text-muted-foreground line-clamp-2 dark:text-gray-300">
+            <p className="text-sm text-muted-foreground line-clamp-2">
               {product.description}
             </p>
           </div>
           <div className="mt-4 flex items-center justify-between">
             <div className="font-semibold">
-              {formatPrice(product.price)}
+              {formattedPrice}
               <span className="ml-2 text-xs text-muted-foreground">
                 {product.weight}
               </span>
