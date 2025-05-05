@@ -13,15 +13,24 @@ export interface DbProduct {
   images: string[];
   attributes: Record<string, any>;
   featured: boolean;
+  available: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
+// Check if in browser environment
+const isBrowser = typeof window !== 'undefined';
+
 // Get all products from the database
 export const getAllProductsFromDb = async (): Promise<Product[]> => {
+  // Early return with empty array if in browser
+  if (isBrowser) return [];
+  
   try {
     const products = await query<DbProduct>(`
-      SELECT * FROM products ORDER BY created_at DESC
+      SELECT * FROM products 
+      WHERE available = TRUE 
+      ORDER BY created_at DESC
     `);
     
     return products.map(mapDbProductToProduct);
@@ -34,9 +43,15 @@ export const getAllProductsFromDb = async (): Promise<Product[]> => {
 
 // Get featured products from the database
 export const getFeaturedProductsFromDb = async (): Promise<Product[]> => {
+  // Early return with empty array if in browser
+  if (isBrowser) return [];
+  
   try {
     const products = await query<DbProduct>(`
-      SELECT * FROM products WHERE featured = TRUE ORDER BY created_at DESC
+      SELECT * FROM products 
+      WHERE featured = TRUE AND available = TRUE 
+      ORDER BY created_at DESC 
+      LIMIT 3
     `);
     
     return products.map(mapDbProductToProduct);
@@ -49,9 +64,14 @@ export const getFeaturedProductsFromDb = async (): Promise<Product[]> => {
 
 // Get products by category from the database
 export const getProductsByCategoryFromDb = async (category: string): Promise<Product[]> => {
+  // Early return with empty array if in browser
+  if (isBrowser) return [];
+  
   try {
     const products = await query<DbProduct>(
-      `SELECT * FROM products WHERE category = $1 ORDER BY created_at DESC`,
+      `SELECT * FROM products 
+       WHERE category = $1 AND available = TRUE 
+       ORDER BY created_at DESC`,
       [category]
     );
     
@@ -65,9 +85,14 @@ export const getProductsByCategoryFromDb = async (category: string): Promise<Pro
 
 // Get product by ID from the database
 export const getProductByIdFromDb = async (id: string): Promise<Product | null> => {
+  // Early return with null if in browser
+  if (isBrowser) return null;
+  
   try {
     const products = await query<DbProduct>(
-      `SELECT * FROM products WHERE id = $1 LIMIT 1`,
+      `SELECT * FROM products 
+       WHERE id = $1 AND available = TRUE 
+       LIMIT 1`,
       [id]
     );
     
@@ -85,6 +110,9 @@ export const getProductByIdFromDb = async (id: string): Promise<Product | null> 
 
 // Map database product to Product model
 const mapDbProductToProduct = (dbProduct: DbProduct): Product => {
+  // Extract specs from attributes if they exist
+  const { specs, ...otherAttributes } = dbProduct.attributes;
+
   return {
     id: dbProduct.id,
     name: dbProduct.name,
@@ -94,7 +122,11 @@ const mapDbProductToProduct = (dbProduct: DbProduct): Product => {
     category: dbProduct.category,
     weight: dbProduct.weight,
     images: dbProduct.images,
-    attributes: dbProduct.attributes,
-    featured: dbProduct.featured
+    attributes: {
+      ...otherAttributes,
+      specs: specs || {}
+    },
+    featured: dbProduct.featured,
+    available: dbProduct.available
   };
 };
