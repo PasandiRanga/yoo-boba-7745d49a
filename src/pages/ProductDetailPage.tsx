@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductById } from "@/models/ProductModel";
@@ -24,7 +25,7 @@ const ProductDetailPage = () => {
 
   if (!product) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
         <Navbar />
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
@@ -59,15 +60,22 @@ const ProductDetailPage = () => {
     });
   };
 
+  // Format price in Sri Lankan Rupees
+  const formattedPrice = new Intl.NumberFormat('si-LK', {
+    style: 'currency',
+    currency: 'LKR',
+    minimumFractionDigits: 2
+  }).format(product.price);
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
       <Navbar />
 
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <Link 
             to="/products" 
-            className="inline-flex items-center text-yooboba-purple mb-6 hover:underline"
+            className="inline-flex items-center text-yooboba-purple dark:text-yooboba-light mb-6 hover:underline"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Products
@@ -76,7 +84,7 @@ const ProductDetailPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Product Image */}
             <ScrollAnimation animation="animate-zoom-in" delay={200}>
-              <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-center">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 flex items-center justify-center">
                 <img
                   src={product.images[0]}
                   alt={product.name}
@@ -89,11 +97,11 @@ const ProductDetailPage = () => {
             <ScrollAnimation animation="animate-reveal-text" delay={400}>
               <h1 className="text-3xl md:text-4xl font-bold font-display">{product.name}</h1>
               <div className="mt-4">
-                <span className="text-2xl font-bold">${product.price.toFixed(2)}</span>
-                <span className="ml-2 text-gray-500">/ {product.weight}</span>
+                <span className="text-2xl font-bold">{formattedPrice}</span>
+                <span className="ml-2 text-gray-500 dark:text-gray-400">/ {product.weight}</span>
               </div>
 
-              <p className="mt-6 text-gray-700">{product.description}</p>
+              <p className="mt-6 text-gray-700 dark:text-gray-300">{product.description}</p>
 
               <div className="mt-8 space-y-6">
                 <div>
@@ -130,22 +138,22 @@ const ProductDetailPage = () => {
               </div>
 
               <div className="mt-8">
-                <Separator />
+                <Separator className="dark:bg-gray-700" />
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Weight</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Weight</p>
                     <p className="font-medium">{product.weight}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Category</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Category</p>
                     <p className="font-medium capitalize">{product.category}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Texture</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Texture</p>
                     <p className="font-medium">{product.attributes.texture}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Flavor</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Flavor</p>
                     <p className="font-medium">{product.attributes.flavor}</p>
                   </div>
                 </div>
@@ -161,7 +169,7 @@ const ProductDetailPage = () => {
                 <TabsTrigger value="instructions">Instructions</TabsTrigger>
                 <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
               </TabsList>
-              <TabsContent value="details" className="p-6 bg-gray-50 rounded-lg">
+              <TabsContent value="details" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4">Product Details</h3>
                 <p>{product.description}</p>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -183,7 +191,7 @@ const ProductDetailPage = () => {
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="instructions" className="p-6 bg-gray-50 rounded-lg">
+              <TabsContent value="instructions" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4">Cooking Instructions</h3>
                 <p className="mb-4">
                   <strong>Cooking Time:</strong> {product.attributes.cookingTime}
@@ -200,7 +208,7 @@ const ProductDetailPage = () => {
                   <li>Soak in simple syrup or honey for added flavor.</li>
                 </ol>
               </TabsContent>
-              <TabsContent value="ingredients" className="p-6 bg-gray-50 rounded-lg">
+              <TabsContent value="ingredients" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4">Ingredients</h3>
                 <ul className="list-disc list-inside">
                   {product.attributes.ingredients?.map((ingredient, index) => (

@@ -170,11 +170,20 @@
 }
 
 .product-card:hover .product-card-image {
-  transform: scale(1.1);
+  transform: scale(1.1) translateY(-8px);
 }
 
 /* Parallax effect */
 .parallax {
   transform: translateY(var(--scrollY, 0));
   transition: transform 0.1s ease;
+}
+
+/* Dark mode specific styles */
+.dark .hero-gradient {
+  opacity: 0.8;
+}
+
+.dark .product-card {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }

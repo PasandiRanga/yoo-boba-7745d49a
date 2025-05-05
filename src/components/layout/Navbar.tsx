@@ -11,6 +11,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const { totalItems } = useCart();
@@ -24,7 +25,7 @@ const Navbar = () => {
   ];
   
   return (
-    <nav className="sticky top-0 z-50 bg-white bg-opacity-95 backdrop-blur-sm border-b border-gray-100">
+    <nav className="sticky top-0 z-50 bg-background border-b border-gray-100 dark:border-gray-800">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -46,7 +47,7 @@ const Navbar = () => {
               <Link
                 key={index}
                 to={item.path}
-                className="font-medium text-gray-600 hover:text-yooboba-purple transition-colors"
+                className="font-medium text-gray-600 dark:text-gray-300 hover:text-yooboba-purple transition-colors"
               >
                 {item.label}
               </Link>
@@ -54,6 +55,8 @@ const Navbar = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
+            
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
@@ -85,11 +88,6 @@ const Navbar = () => {
                         YooBoba
                       </span>
                     </div>
-                    {/* <SheetClose asChild>
-                      <Button variant="ghost" size="icon">
-                        <X className="h-5 w-5" />
-                      </Button>
-                    </SheetClose> */}
                   </div>
                   
                   <div className="flex flex-col items-center py-8 space-y-6">
@@ -97,7 +95,7 @@ const Navbar = () => {
                       <SheetClose key={index} asChild>
                         <Link
                           to={item.path}
-                          className="text-xl font-medium text-gray-800 hover:text-yooboba-purple transition-colors"
+                          className="text-xl font-medium text-gray-800 dark:text-gray-200 hover:text-yooboba-purple transition-colors"
                           onClick={() => setOpen(false)}
                         >
                           {item.label}

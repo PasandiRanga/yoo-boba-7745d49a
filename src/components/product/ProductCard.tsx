@@ -27,14 +27,21 @@ const ProductCard = ({ product }: ProductCardProps) => {
     });
   };
 
+  // Format price in Sri Lankan Rupees
+  const formattedPrice = new Intl.NumberFormat('si-LK', {
+    style: 'currency',
+    currency: 'LKR',
+    minimumFractionDigits: 2
+  }).format(product.price);
+
   return (
     <Link to={`/products/${product.id}`}>
-      <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg group product-card">
-        <div className="aspect-square overflow-hidden bg-gray-100">
+      <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg group product-card bg-gradient-to-br from-pink-50 to-white dark:from-pink-900/20 dark:to-gray-900/80 dark:text-white">
+        <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
           <img
             src={product.images[0]}
             alt={product.name}
-            className="h-full w-full object-cover product-card-image"
+            className="h-full w-full object-cover product-card-image transition-transform duration-500 group-hover:scale-110 group-hover:translate-y-[-8px]"
           />
         </div>
         <CardContent className="p-6">
@@ -46,16 +53,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
           <div className="mt-4 flex items-center justify-between">
             <div className="font-semibold">
-              ${product.price.toFixed(2)}
+              {formattedPrice}
               <span className="ml-2 text-xs text-muted-foreground">
                 {product.weight}
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
               {product.stock > 0 ? (
-                <span className="text-green-600">In Stock</span>
+                <span className="text-green-600 dark:text-green-400">In Stock</span>
               ) : (
-                <span className="text-red-600">Out of Stock</span>
+                <span className="text-red-600 dark:text-red-400">Out of Stock</span>
               )}
             </div>
           </div>
