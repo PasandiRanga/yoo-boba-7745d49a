@@ -9,7 +9,6 @@ export interface Product {
   weight: string;
   stock: number;
   featured: boolean;
-  available?: boolean;
   attributes: {
     flavor?: string;
     color?: string;
@@ -17,7 +16,6 @@ export interface Product {
     cookingTime?: string;
     storageInstructions?: string;
     ingredients?: string[];
-    specs?: Record<string, any>;
   };
 }
 
@@ -161,9 +159,4 @@ export const getProductsByCategory = (category: string): Product[] => {
 
 export const getFeaturedProducts = (): Product[] => {
   return products.filter(product => product.featured);
-};
-
-// New function to get available products
-export const getAvailableProducts = (): Product[] => {
-  return products.filter(product => product.available !== false);
 };
