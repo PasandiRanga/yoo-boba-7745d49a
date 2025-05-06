@@ -121,6 +121,36 @@
   }
 }
 
+/* Bubble Tea Loading Animations */
+@keyframes fillCup {
+  0% { height: 0%; }
+  100% { height: 100%; }
+}
+
+@keyframes rise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.animate-fillCup {
+  animation: fillCup 4s ease-in-out forwards;
+}
+
+.animate-rise {
+  animation: rise 4s infinite ease-in-out;
+}
+
+.animate-riseDelay1 {
+  animation: rise 4s infinite ease-in-out;
+  animation-delay: 0.5s;
+}
+
+.animate-riseDelay2 {
+  animation: rise 4s infinite ease-in-out;
+  animation-delay: 1s;
+}
+
+/* Existing animations */
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }

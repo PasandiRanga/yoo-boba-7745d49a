@@ -5,12 +5,25 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/product/ProductCard";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const ProductsPage = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Scroll to top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
   }, []);
+
+  if (isLoading) {
+    return <LoadingSpinner fullScreen={true} />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
