@@ -12,7 +12,6 @@ const ContactPage = () => {
     name: "",
     email: "",
     phone: "",
-    company: "",
     subject: "",
     message: "",
   });
@@ -40,7 +39,6 @@ const ContactPage = () => {
         name: "",
         email: "",
         phone: "",
-        company: "",
         subject: "",
         message: "",
       });
@@ -74,8 +72,8 @@ const ContactPage = () => {
               <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700">
                 <h2 className="text-2xl font-bold font-display mb-6 dark:text-white">Send Us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-1">
                       <Label htmlFor="name" className="dark:text-gray-300">Full Name *</Label>
                       <Input
                         id="name"
@@ -86,7 +84,7 @@ const ContactPage = () => {
                         className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
                       />
                     </div>
-                    <div>
+                    <div className="md:col-span-1">
                       <Label htmlFor="email" className="dark:text-gray-300">Email *</Label>
                       <Input
                         id="email"
@@ -98,22 +96,12 @@ const ContactPage = () => {
                         className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
                       />
                     </div>
-                    <div>
+                    <div className="md:col-span-1">
                       <Label htmlFor="phone" className="dark:text-gray-300">Phone Number</Label>
                       <Input
                         id="phone"
                         name="phone"
                         value={formData.phone}
-                        onChange={handleChange}
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="company" className="dark:text-gray-300">Company</Label>
-                      <Input
-                        id="company"
-                        name="company"
-                        value={formData.company}
                         onChange={handleChange}
                         className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
                       />
