@@ -1,0 +1,9 @@
+
+@keyframes moveRight {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(200%); }
+}
+
+.animate-truck {
+  animation: moveRight 10s linear infinite;
+}
