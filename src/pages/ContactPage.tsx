@@ -132,11 +132,13 @@ const ContactPage = () => {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-yooboba-gradient hover:opacity-90 dark:opacity-90 dark:hover:opacity-100"
-                    size="lg"
+                    variant="sendMessage"
+                    className="w-full"
+                    size="xl"
                     disabled={loading}
+                    isLoading={loading}
                   >
-                    {loading ? "Sending..." : "Send Message"}
+                    Send Message
                   </Button>
                 </form>
               </div>
