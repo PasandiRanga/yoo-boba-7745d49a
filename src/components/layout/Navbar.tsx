@@ -12,6 +12,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import ThemeToggle from "./ThemeToggle";
+import CurrencyToggle from "./CurrencyToggle";
 
 const Navbar = () => {
   const { totalItems } = useCart();
@@ -56,6 +57,7 @@ const Navbar = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <CurrencyToggle />
             <div className="mr-2">
               <ThemeToggle />
             </div>
@@ -103,6 +105,7 @@ const Navbar = () => {
                       </span>
                     </div>
                     <div className="flex items-center space-x-4">
+                      <CurrencyToggle />
                       <ThemeToggle />
                       <SheetClose asChild>
                         <Button 

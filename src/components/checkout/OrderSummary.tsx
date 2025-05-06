@@ -1,6 +1,7 @@
 
 import { CartItem } from "@/context/CartContext";
 import { Separator } from "@/components/ui/separator";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface OrderSummaryProps {
   items: CartItem[];
@@ -8,6 +9,7 @@ interface OrderSummaryProps {
 }
 
 const OrderSummary = ({ items, subtotal }: OrderSummaryProps) => {
+  const { formatPrice } = useCurrency();
   const shipping = subtotal > 100 ? 0 : 15;
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + shipping + tax;
@@ -31,12 +33,12 @@ const OrderSummary = ({ items, subtotal }: OrderSummaryProps) => {
               <div>
                 <p className="font-medium">{item.name}</p>
                 <p className="text-sm text-gray-500">
-                  {item.quantity} × ${item.price.toFixed(2)}
+                  {item.quantity} × {formatPrice(item.price)}
                 </p>
               </div>
             </div>
             <div className="font-medium">
-              ${(item.price * item.quantity).toFixed(2)}
+              {formatPrice(item.price * item.quantity)}
             </div>
           </div>
         ))}
@@ -48,7 +50,7 @@ const OrderSummary = ({ items, subtotal }: OrderSummaryProps) => {
       <div className="space-y-2">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between">
           <span>Shipping</span>
@@ -56,17 +58,17 @@ const OrderSummary = ({ items, subtotal }: OrderSummaryProps) => {
             {shipping === 0 ? (
               <span className="text-green-600">Free</span>
             ) : (
-              `$${shipping.toFixed(2)}`
+              formatPrice(shipping)
             )}
           </span>
         </div>
         <div className="flex justify-between">
           <span>Tax (8%)</span>
-          <span>${tax.toFixed(2)}</span>
+          <span>{formatPrice(tax)}</span>
         </div>
         <div className="flex justify-between text-lg font-bold mt-4 pt-4 border-t">
           <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          <span>{formatPrice(total)}</span>
         </div>
       </div>
     </div>

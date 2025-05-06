@@ -6,9 +6,11 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, Trash, Plus, Minus } from "lucide-react";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const CartPage = () => {
   const { items, removeItem, updateQuantity, subtotal, clearCart } = useCart();
+  const { formatPrice } = useCurrency();
 
   const handleQuantityChange = (id: string, newQty: number) => {
     if (newQty >= 1 && newQty <= 10) {
@@ -76,7 +78,7 @@ const CartPage = () => {
                       <div className="md:hidden text-sm text-gray-500 mb-1">
                         Price:
                       </div>
-                      ${item.price.toFixed(2)}
+                      {formatPrice(item.price)}
                     </div>
 
                     <div className="col-span-2 flex justify-center">
@@ -128,7 +130,7 @@ const CartPage = () => {
                       </div>
                       <div className="flex items-center">
                         <span className="font-medium">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {formatPrice(item.price * item.quantity)}
                         </span>
                         <Button
                           variant="ghost"
@@ -161,7 +163,7 @@ const CartPage = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
@@ -169,18 +171,18 @@ const CartPage = () => {
                       {shipping === 0 ? (
                         <span className="text-green-600">Free</span>
                       ) : (
-                        `$${shipping.toFixed(2)}`
+                        formatPrice(shipping)
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax (8%)</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>{formatPrice(tax)}</span>
                   </div>
                   
                   <div className="border-t pt-3 mt-3 flex justify-between font-semibold">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
                 
@@ -194,7 +196,7 @@ const CartPage = () => {
                 </Button>
                 
                 <div className="mt-4 text-xs text-gray-500">
-                  <p>Free shipping on orders over $100</p>
+                  <p>Free shipping on orders over {formatPrice(100)}</p>
                   <p>Taxes calculated at checkout</p>
                 </div>
               </div>
