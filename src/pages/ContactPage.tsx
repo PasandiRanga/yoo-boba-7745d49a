@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import BobaSendingToast from "@/components/ui/bobaSendingToast";
+import FloatingBubbles from "@/components/animations/floatingBubbles";
+
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -49,9 +51,11 @@ const ContactPage = () => {
     <div className="flex flex-col min-h-screen dark:bg-gray-900">
       <Navbar />
       <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 dark:from-yooboba-blue/5 dark:via-yooboba-purple/5 dark:to-yooboba-pink/5 dark:bg-gray-900 py-16 md:py-24">
-          <div className="container mx-auto px-4 md:px-6">
+        {/* Hero Section with Floating Bubbles */}
+        <section className="bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 dark:from-yooboba-blue/20 dark:via-yooboba-purple/20 dark:to-yooboba-pink/20 py-16 md:py-24 relative overflow-hidden">
+          
+          
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold font-display mb-6 dark:text-white">
                 Contact Us
@@ -64,7 +68,7 @@ const ContactPage = () => {
         </section>
 
         {/* Contact Form & Information */}
-        <section className="py-16 dark:bg-gray-900">
+        <section className="py-16 dark:bg-gray-900/60">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               {/* Contact Form */}
@@ -235,7 +239,7 @@ const ContactPage = () => {
         </section>
 
         {/* Map Section */}
-        <section className="py-16 bg-gray-50 dark:bg-gray-800">
+        <section className="py-16 bg-gray-50 dark:bg-gray-800/90">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-3xl font-bold font-display mb-4 dark:text-white">Find Us</h2>

@@ -1,22 +1,23 @@
-
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import FloatingBubbles from "@/components/animations/floatingBubbles";
 
 const AboutPage = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen dark:bg-gray-900">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 py-16 md:py-24">
+        <section className="bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 py-16 md:py-24 dark:from-yooboba-blue/20 dark:via-yooboba-purple/20 dark:to-yooboba-pink/20 relative overflow-visible">
+         
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold font-display mb-6">
+              <h1 className="text-4xl md:text-5xl font-bold font-display mb-6 dark:text-white">
                 About YooBoba
               </h1>
-              <p className="text-xl text-gray-700 leading-relaxed">
+              <p className="text-xl text-gray-700 leading-relaxed dark:text-gray-300">
                 We're passionate about creating the perfect boba pearls for bubble tea shops and enthusiasts around the world.
               </p>
             </div>
@@ -24,18 +25,18 @@ const AboutPage = () => {
         </section>
 
         {/* Our Story */}
-        <section className="py-16">
+        <section className="py-16 dark:bg-gray-900">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl font-bold font-display mb-6">Our Story</h2>
-                <p className="text-gray-700 mb-4">
+                <h2 className="text-3xl font-bold font-display mb-6 dark:text-white">Our Story</h2>
+                <p className="text-gray-700 mb-4 dark:text-gray-300">
                   Founded in 2015, YooBoba began with a simple mission: to create the perfect boba pearls for bubble tea enthusiasts worldwide. Our founder, a bubble tea aficionado, was frustrated with inconsistent quality and decided to solve the problem.
                 </p>
-                <p className="text-gray-700 mb-4">
+                <p className="text-gray-700 mb-4 dark:text-gray-300">
                   Starting in a small kitchen with experiments on tapioca flour and brown sugar, we perfected our recipes over years of testing. As word spread about our premium pearls, local bubble tea shops began requesting our products.
                 </p>
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-300">
                   Today, YooBoba supplies premium boba pearls to thousands of bubble tea shops across the country, while maintaining our commitment to quality, innovation, and exceptional customer service.
                 </p>
               </div>
@@ -47,7 +48,7 @@ const AboutPage = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-yooboba-gradient rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-yooboba-gradient rounded-full flex items-center justify-center text-white font-bold shadow-lg dark:shadow-gray-800/50">
                   <div className="text-center">
                     <div className="text-xl">Since</div>
                     <div className="text-3xl">2015</div>
@@ -59,42 +60,42 @@ const AboutPage = () => {
         </section>
 
         {/* Our Values */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-gray-50 dark:bg-gray-800">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center max-w-3xl mx-auto mb-12">
-              <h2 className="text-3xl font-bold font-display mb-4">Our Values</h2>
-              <p className="text-gray-600">
+              <h2 className="text-3xl font-bold font-display mb-4 dark:text-white">Our Values</h2>
+              <p className="text-gray-600 dark:text-gray-300">
                 The core principles that guide everything we do at YooBoba.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-16 h-16 bg-yooboba-light rounded-full flex items-center justify-center text-2xl mb-6">
+              <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow dark:bg-gray-700 dark:hover:shadow-gray-700/50">
+                <div className="w-16 h-16 bg-yooboba-light rounded-full flex items-center justify-center text-2xl mb-6 dark:bg-yooboba-dark">
                   🌱
                 </div>
-                <h3 className="text-xl font-semibold mb-4">Quality First</h3>
-                <p className="text-gray-600">
+                <h3 className="text-xl font-semibold mb-4 dark:text-white">Quality First</h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   We never compromise on quality. From ingredient selection to manufacturing processes, excellence is our standard.
                 </p>
               </div>
               
-              <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-16 h-16 bg-yooboba-light rounded-full flex items-center justify-center text-2xl mb-6">
+              <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow dark:bg-gray-700 dark:hover:shadow-gray-700/50">
+                <div className="w-16 h-16 bg-yooboba-light rounded-full flex items-center justify-center text-2xl mb-6 dark:bg-yooboba-dark">
                   🔬
                 </div>
-                <h3 className="text-xl font-semibold mb-4">Innovation</h3>
-                <p className="text-gray-600">
+                <h3 className="text-xl font-semibold mb-4 dark:text-white">Innovation</h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   We're constantly developing new flavors, textures, and products to help our customers stay ahead in the bubble tea industry.
                 </p>
               </div>
               
-              <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-16 h-16 bg-yooboba-light rounded-full flex items-center justify-center text-2xl mb-6">
+              <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow dark:bg-gray-700 dark:hover:shadow-gray-700/50">
+                <div className="w-16 h-16 bg-yooboba-light rounded-full flex items-center justify-center text-2xl mb-6 dark:bg-yooboba-dark">
                   🌎
                 </div>
-                <h3 className="text-xl font-semibold mb-4">Sustainability</h3>
-                <p className="text-gray-600">
+                <h3 className="text-xl font-semibold mb-4 dark:text-white">Sustainability</h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   We're committed to environmentally responsible practices in our sourcing, manufacturing, and packaging.
                 </p>
               </div>
@@ -103,7 +104,7 @@ const AboutPage = () => {
         </section>
 
         {/* Manufacturing Process */}
-        <section className="py-16">
+        <section className="py-16 dark:bg-gray-900">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div className="order-2 md:order-1">
@@ -139,18 +140,18 @@ const AboutPage = () => {
                 </div>
               </div>
               <div className="order-1 md:order-2">
-                <h2 className="text-3xl font-bold font-display mb-6">Our Manufacturing Process</h2>
-                <p className="text-gray-700 mb-4">
+                <h2 className="text-3xl font-bold font-display mb-6 dark:text-white">Our Manufacturing Process</h2>
+                <p className="text-gray-700 mb-4 dark:text-gray-300">
                   At YooBoba, we combine traditional techniques with modern technology to create the perfect boba pearls. Our manufacturing process involves several carefully monitored steps:
                 </p>
-                <ol className="list-decimal pl-5 space-y-3 text-gray-700 mb-6">
-                  <li><span className="font-medium">Ingredient Selection:</span> We source premium tapioca starch and natural sweeteners.</li>
-                  <li><span className="font-medium">Mixing & Forming:</span> Our proprietary mixing process ensures consistent texture.</li>
-                  <li><span className="font-medium">Cooking:</span> Precision cooking techniques for the perfect chewy texture.</li>
-                  <li><span className="font-medium">Cooling & Packaging:</span> Rapid cooling preserves freshness before airtight packaging.</li>
-                  <li><span className="font-medium">Quality Control:</span> Every batch undergoes rigorous testing before shipping.</li>
+                <ol className="list-decimal pl-5 space-y-3 text-gray-700 mb-6 dark:text-gray-300">
+                  <li><span className="font-medium dark:text-white">Ingredient Selection:</span> We source premium tapioca starch and natural sweeteners.</li>
+                  <li><span className="font-medium dark:text-white">Mixing & Forming:</span> Our proprietary mixing process ensures consistent texture.</li>
+                  <li><span className="font-medium dark:text-white">Cooking:</span> Precision cooking techniques for the perfect chewy texture.</li>
+                  <li><span className="font-medium dark:text-white">Cooling & Packaging:</span> Rapid cooling preserves freshness before airtight packaging.</li>
+                  <li><span className="font-medium dark:text-white">Quality Control:</span> Every batch undergoes rigorous testing before shipping.</li>
                 </ol>
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-gray-300">
                   This meticulous process ensures that every YooBoba pearl delivers the perfect texture and flavor that bubble tea enthusiasts crave.
                 </p>
               </div>
@@ -159,7 +160,7 @@ const AboutPage = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-yooboba-gradient text-white">
+        <section className="py-16 bg-yooboba-gradient text-white dark:bg-yooboba-gradient-dark">
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-3xl font-bold font-display mb-4">
@@ -172,7 +173,7 @@ const AboutPage = () => {
                 <Button 
                   asChild
                   size="lg" 
-                  className="bg-white text-yooboba-purple hover:bg-gray-100"
+                  className="bg-white text-yooboba-purple hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
                 >
                   <Link to="/products">
                     Browse Products
@@ -182,7 +183,7 @@ const AboutPage = () => {
                   asChild
                   variant="outline" 
                   size="lg" 
-                  className="border-2 border-white text-white hover:bg-white/10"
+                  className="border-2 border-white text-white hover:bg-white/10 dark:border-gray-300 dark:text-gray-300 dark:hover:bg-gray-700/50"
                 >
                   <Link to="/contact">
                     Contact Us
