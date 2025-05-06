@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/context/CurrencyContext";
-import { DollarSign, IndianRupee } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CurrencyToggle = () => {
@@ -19,7 +19,7 @@ const CurrencyToggle = () => {
             className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             {currency === "LKR" ? (
-              <IndianRupee className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+              <span className="text-gray-700 dark:text-gray-300 font-medium">රු</span>
             ) : (
               <DollarSign className="h-5 w-5 text-gray-700 dark:text-gray-300" />
             )}
