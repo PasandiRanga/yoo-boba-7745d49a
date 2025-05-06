@@ -25,12 +25,12 @@ const StyledCardWrapper = styled.div`
   }
   
   .card2:hover {
-    transform: scale(0.98);
+    transform: scale(0.995);
     border-radius: 0.35rem;
   }
   
   .card:hover {
-    box-shadow: 0px 0px 0.35rem 0.35rem rgba(248, 112, 197, 0.30);
+    box-shadow: 0px 0px 0.07rem 0.07rem rgba(248, 112, 197, 0.07);
   }
 `;
 
@@ -57,10 +57,10 @@ const FeaturedProducts = () => {
               threshold={0.1}
               delay={200 * index}
             >
-              <StyledCardWrapper className="bg-gradient-to-r from-pink-100 to-pink-200 dark:from-pink-900/40 dark:to-purple-900/40 rounded-lg">
+              <StyledCardWrapper className="bg-gradient-to-r from-[#5B6DF8] via-[#9B87F5] to-[#F870C5] rounded-lg dark:from-pink-900/40 dark:to-purple-900/40">
                 <div className="card">
                   <div className="card2">
-                    <div className="p-1">
+                    <div className="p-0.5">
                       <ProductCard product={product} />
                     </div>
                   </div>
@@ -71,9 +71,10 @@ const FeaturedProducts = () => {
         </div>
         
         <ScrollAnimation animation="animate-reveal-text" delay={600} className="mt-12 text-center">
-            <Button asChild variant="outline" size="lg" className="dark:text-white dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-            <Link to="/products">View All Products</Link>
-            </Button>
+        <Link to="/products">
+          <Button variant="slide" size="lg">View All Products</Button>
+        </Link>
+
         </ScrollAnimation>
       </div>
     </section>

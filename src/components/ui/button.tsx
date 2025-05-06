@@ -17,8 +17,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        sendMessage: 
+        sendMessage:
           "relative overflow-hidden bg-gradient-to-b from-white to-gray-100 dark:from-gray-800 dark:to-gray-900 text-gray-800 dark:text-white border-2 border-transparent shadow-lg hover:scale-[1.02] active:scale-100 transition-all duration-300 hover:shadow-xl font-semibold text-base min-w-[200px] h-16 px-5 py-4 rounded-xl before:absolute before:inset-[7px] before:bg-gradient-to-t before:from-white before:to-gray-100 dark:before:from-gray-800 dark:before:to-gray-900 before:rounded-lg before:-z-10 before:blur-[0.5px] after:content-[''] after:absolute after:inset-0 after:rounded-xl after:border-[2.5px] after:border-transparent after:bg-gradient-to-b after:from-white after:to-gray-100 dark:after:from-gray-800 dark:after:to-gray-900 after:bg-origin-border after:bg-clip-padding after:box-border after:z-0 hover:after:scale-[1.05,1.1] after:transition-all after:duration-300",
+        slide:
+          "relative overflow-hidden rounded-full font-bold text-lg px-8 py-4 bg-yooboba-blue text-white hover:text-black dark:hover:text-white",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -82,6 +84,29 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         </Comp>
       );
     }
+    
+    // For slide variant button
+    if (variant === "slide") {
+      return (
+        <Comp
+          className={cn(
+            buttonVariants({ variant, size, className }),
+            "group relative overflow-hidden"
+          )}
+          ref={ref}
+          {...props}
+        >
+          <span className="relative z-10">
+            {children}
+          </span>
+          <span className="absolute inset-0 overflow-hidden pointer-events-none">
+            <span className="absolute left-0 top-0 h-full w-[120%] -translate-x-[10%] skew-x-[30deg] bg-gradient-to-r from-yooboba-purple via-yooboba-blue to-yooboba-pink transition-transform duration-300 group-hover:translate-x-full" />
+          </span>
+        </Comp>
+      );
+    }
+    
+    
     
     // Default button rendering
     return (
