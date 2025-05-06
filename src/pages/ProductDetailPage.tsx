@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductById } from "@/models/ProductModel";
@@ -10,11 +9,13 @@ import { ShoppingCart, Plus, Minus, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
+  const { formatPrice } = useCurrency();
   
   const product = productId ? getProductById(productId) : null;
 
@@ -60,13 +61,6 @@ const ProductDetailPage = () => {
     });
   };
 
-  // Format price in Sri Lankan Rupees
-  const formattedPrice = new Intl.NumberFormat('si-LK', {
-    style: 'currency',
-    currency: 'LKR',
-    minimumFractionDigits: 2
-  }).format(product.price);
-
   return (
     <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
       <Navbar />
@@ -97,7 +91,7 @@ const ProductDetailPage = () => {
             <ScrollAnimation animation="animate-reveal-text" delay={400}>
               <h1 className="text-3xl md:text-4xl font-bold font-display">{product.name}</h1>
               <div className="mt-4">
-                <span className="text-2xl font-bold">{formattedPrice}</span>
+                <span className="text-2xl font-bold">{formatPrice(product.price)}</span>
                 <span className="ml-2 text-gray-500 dark:text-gray-400">/ {product.weight}</span>
               </div>
 

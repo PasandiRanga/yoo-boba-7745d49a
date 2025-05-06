@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
+  const { formatPrice } = useCurrency();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -26,13 +28,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
       weight: product.weight
     });
   };
-
-  // Format price in Sri Lankan Rupees
-  const formattedPrice = new Intl.NumberFormat('si-LK', {
-    style: 'currency',
-    currency: 'LKR',
-    minimumFractionDigits: 2
-  }).format(product.price);
 
   return (
     <Link to={`/products/${product.id}`}>
@@ -53,7 +48,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
           <div className="mt-4 flex items-center justify-between">
             <div className="font-semibold">
-              {formattedPrice}
+              {formatPrice(product.price)}
               <span className="ml-2 text-xs text-muted-foreground">
                 {product.weight}
               </span>
