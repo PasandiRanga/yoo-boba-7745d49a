@@ -19,7 +19,7 @@ const CurrencyToggle = () => {
             className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             {currency === "LKR" ? (
-              <span className="text-gray-700 dark:text-gray-300 font-medium">Rs</span>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">රු</span>
             ) : (
               <DollarSign className="h-5 w-5 text-gray-700 dark:text-gray-300" />
             )}
