@@ -1,3 +1,4 @@
+
 import { getFeaturedProducts } from "@/models/ProductModel";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ const StyledCardWrapper = styled.div`
   .card2 {
     width: 100%;
     height: 100%;
-    background-color: transparent; /* Changed from #1a1a1a to transparent */
+    background-color: transparent;
     border-radius: 0.35rem;
     transition: all .2s;
   }
@@ -29,7 +30,7 @@ const StyledCardWrapper = styled.div`
   }
   
   .card:hover {
-    box-shadow: 0px 0px 0.35rem 0.35rem rgba(0, 255, 117, 0.30);
+    box-shadow: 0px 0px 0.35rem 0.35rem rgba(248, 112, 197, 0.30);
   }
 `;
 
@@ -56,7 +57,7 @@ const FeaturedProducts = () => {
               threshold={0.1}
               delay={200 * index}
             >
-              <StyledCardWrapper className="bg-gradient-to-r from-yooboba-blue to-yooboba-pink rounded-lg">
+              <StyledCardWrapper className="bg-gradient-to-r from-pink-100 to-pink-200 dark:from-pink-900/40 dark:to-purple-900/40 rounded-lg">
                 <div className="card">
                   <div className="card2">
                     <div className="p-1">
