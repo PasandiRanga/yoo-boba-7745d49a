@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import BobaSendingToast from "@/components/ui/bobaSendingToast";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +17,7 @@ const ContactPage = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -28,22 +29,20 @@ const ContactPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowToast(true);
+  };
 
-    // Simulate form submission
-    setTimeout(() => {
-      toast({
-        title: "Message Sent!",
-        description: "We'll get back to you as soon as possible.",
-      });
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-      });
-      setLoading(false);
-    }, 1500);
+  const handleToastComplete = () => {
+    // Reset the form after toast animation completes
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      subject: "",
+      message: "",
+    });
+    setLoading(false);
+    setShowToast(false);
   };
 
   return (
@@ -254,6 +253,15 @@ const ContactPage = () => {
         </section>
       </main>
       <Footer />
+
+      {/* Boba Sending Toast Modal */}
+      {showToast && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="max-w-md w-full">
+            <BobaSendingToast onComplete={handleToastComplete} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
