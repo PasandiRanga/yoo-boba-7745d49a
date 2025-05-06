@@ -9,7 +9,6 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeProvider";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { LoadingProvider } from "@/context/LoadingContext";
-import LoadingSpinner from "@/components/ui/loading-spinner";
 
 import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
@@ -18,6 +17,7 @@ import CartPage from "@/pages/CartPage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
+import BuildYourBrandPage from "@/pages/BuildYourBrandPage";
 import NotFound from "@/pages/NotFound";
 
 // Create a new QueryClient instance inside the component to ensure proper React context
@@ -49,6 +49,7 @@ const App = () => {
                       <Route path="/checkout" element={<CheckoutPage />} />
                       <Route path="/about" element={<AboutPage />} />
                       <Route path="/contact" element={<ContactPage />} />
+                      <Route path="/build-your-brand" element={<BuildYourBrandPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </BrowserRouter>
