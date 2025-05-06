@@ -1,3 +1,4 @@
+import React from 'react';
 
 const testimonials = [
   {
@@ -25,38 +26,38 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-16 bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10">
+    <section className="py-16 bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 dark:from-yooboba-blue/5 dark:via-yooboba-purple/5 dark:to-yooboba-pink/5 dark:bg-gray-900">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold font-display mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold font-display mb-4 dark:text-white">
             What Our Customers Say
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Don't just take our word for it. Here's what bubble tea shop owners say about YooBoba.
           </p>
         </div>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm hover:shadow-md dark:shadow-gray-900/30 dark:hover:shadow-gray-900/50 transition-shadow border border-gray-100 dark:border-gray-700"
             >
               <div className="flex items-center mb-6">
                 <div className="flex-shrink-0 mr-4">
                   <img
                     src={testimonial.avatar}
                     alt={testimonial.author}
-                    className="h-12 w-12 rounded-full object-cover"
+                    className="h-12 w-12 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-600"
                   />
                 </div>
                 <div>
-                  <h4 className="font-semibold">{testimonial.author}</h4>
-                  <p className="text-sm text-gray-600">{testimonial.title}</p>
+                  <h4 className="font-semibold dark:text-white">{testimonial.author}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.title}</p>
                 </div>
               </div>
-              <p className="text-gray-700 italic">"{testimonial.quote}"</p>
-              <div className="mt-4 flex text-yooboba-purple">
+              <p className="text-gray-700 dark:text-gray-300 italic">"{testimonial.quote}"</p>
+              <div className="mt-4 flex text-yooboba-purple dark:text-pink-400">
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
