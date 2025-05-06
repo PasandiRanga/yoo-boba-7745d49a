@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -55,7 +56,9 @@ const Navbar = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <ThemeToggle />
+            <div className="mr-2">
+              <ThemeToggle />
+            </div>
             
             <Link to="/cart" className="relative">
               <Button 
@@ -99,15 +102,18 @@ const Navbar = () => {
                         YooBoba
                       </span>
                     </div>
-                    <SheetClose asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                      </Button>
-                    </SheetClose>
+                    <div className="flex items-center space-x-4">
+                      <ThemeToggle />
+                      <SheetClose asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                          <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                        </Button>
+                      </SheetClose>
+                    </div>
                   </div>
                   
                   <div className="flex flex-col items-center py-8 space-y-6">

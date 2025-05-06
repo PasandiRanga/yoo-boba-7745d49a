@@ -1,24 +1,15 @@
 
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AnimatedSwitch } from "@/components/ui/switch";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   
   return (
-    <Button 
-      variant="ghost" 
-      size="icon" 
-      onClick={toggleTheme} 
-      className="rounded-full"
+    <AnimatedSwitch 
+      checked={theme === "dark"} 
+      onChange={toggleTheme} 
       aria-label="Toggle theme"
-    >
-      {theme === "dark" ? (
-        <Sun className="h-5 w-5" />
-      ) : (
-        <Moon className="h-5 w-5" />
-      )}
-    </Button>
+    />
   );
 }
