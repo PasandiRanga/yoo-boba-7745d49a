@@ -28,7 +28,7 @@ const setupDatabase = async () => {
   }
 };
 
-// Run directly if not being imported (ESM-compatible way)
+// Run directly if not being imported
 if (import.meta.url === `file://${process.argv[1]}`) {
   setupDatabase();
 }

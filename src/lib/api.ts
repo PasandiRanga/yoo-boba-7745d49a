@@ -1,4 +1,5 @@
-
+//api.ts
+// This file contains API functions that interact with the database or local data.
 import { products, Product, getProductById as getLocalProductById } from '@/models/ProductModel';
 import { 
   getAllProductsFromDb, 
@@ -8,7 +9,7 @@ import {
 } from '@/models/db/ProductModel';
 
 // Check if we should use database or local data
-const useDatabase = () => {
+const shouldUseDatabase = () => {
   try {
     // Check for environment variables that would indicate DB connection
     return Boolean(process.env.DB_HOST);
@@ -20,7 +21,7 @@ const useDatabase = () => {
 // API functions that decide whether to use DB or local data
 
 export const getAllProducts = async (): Promise<Product[]> => {
-  if (useDatabase()) {
+  if (shouldUseDatabase()) {
     const dbProducts = await getAllProductsFromDb();
     return dbProducts.length > 0 ? dbProducts : products;
   }
@@ -28,7 +29,7 @@ export const getAllProducts = async (): Promise<Product[]> => {
 };
 
 export const getFeaturedProducts = async (): Promise<Product[]> => {
-  if (useDatabase()) {
+  if (shouldUseDatabase()) {
     const dbProducts = await getFeaturedProductsFromDb();
     return dbProducts.length > 0 ? dbProducts : products.filter(p => p.featured);
   }
@@ -36,7 +37,7 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
 };
 
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
-  if (useDatabase()) {
+  if (shouldUseDatabase()) {
     const dbProducts = await getProductsByCategoryFromDb(category);
     return dbProducts.length > 0 ? dbProducts : products.filter(p => p.category === category);
   }
@@ -44,7 +45,7 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
 };
 
 export const getProductById = async (id: string): Promise<Product | null> => {
-  if (useDatabase()) {
+  if (shouldUseDatabase()) {
     const dbProduct = await getProductByIdFromDb(id);
     return dbProduct || getLocalProductById(id);
   }
