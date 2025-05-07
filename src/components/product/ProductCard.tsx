@@ -11,7 +11,7 @@ import styled from "styled-components";
 
 // Styled gradient card wrapper
 const StyledCardWrapper = styled.div`
-.card {
+  .card {
     width: 100%;
     height: 100%;
     border-radius: 0.35rem;
@@ -36,7 +36,6 @@ const StyledCardWrapper = styled.div`
   }
 `;
 
-
 interface ProductCardProps {
   product: Product;
 }
@@ -54,7 +53,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       name: product.name,
       price: product.price,
       quantity: 1,
-      image: product.images[0],
+      image: product.imageUrls?.[0] || '/placeholder.svg',
       weight: product.weight
     });
   };
@@ -67,7 +66,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg group product-card bg-gradient-to-br from-pink-50 to-white dark:from-pink-900/20 dark:to-gray-900/80 dark:text-white">
               <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
                 <img
-                  src={product.images[0]}
+                  src={product.imageUrls?.[0] || '/placeholder.svg'}
                   alt={product.name}
                   className="h-full w-full object-cover product-card-image transition-transform duration-500 group-hover:scale-110 group-hover:translate-y-[-8px]"
                 />
@@ -111,7 +110,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </StyledCardWrapper>
     </Link>
   );
-  
 };
 
 export default ProductCard;
