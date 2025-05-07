@@ -1,11 +1,11 @@
-
-import { getFeaturedProducts } from "@/models/ProductModel";
+import { fetchFeaturedProducts } from "@/services/productService";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { Product } from "@/models/ProductModel";
 
 // Styled gradient card wrapper
 const StyledCardWrapper = styled.div`
@@ -35,8 +35,43 @@ const StyledCardWrapper = styled.div`
 `;
 
 const FeaturedProducts = () => {
-  const featuredProducts = getFeaturedProducts();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadFeaturedProducts = async () => {
+      try {
+        setLoading(true);
+        const products = await fetchFeaturedProducts();
+        setFeaturedProducts(products);
+      } catch (err) {
+        console.error("Failed to fetch featured products:", err);
+        setError("Failed to load featured products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFeaturedProducts();
+  }, []);
+
+  if (loading) return (
+    <section className="py-16 bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 md:px-6 text-center">
+        Loading featured products...
+      </div>
+    </section>
+  );
   
+  if (error) return (
+    <section className="py-16 bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 md:px-6 text-center text-red-500">
+        {error}
+      </div>
+    </section>
+  );
+
   return (
     <section className="py-16 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 md:px-6">
@@ -49,32 +84,35 @@ const FeaturedProducts = () => {
           </p>
         </ScrollAnimation>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredProducts.map((product, index) => (
-            <ScrollAnimation
-              key={product.id}
-              animation="animate-zoom-in"
-              threshold={0.1}
-              delay={200 * index}
-            >
-              <StyledCardWrapper className="bg-gradient-to-r from-[#5B6DF8] via-[#9B87F5] to-[#F870C5] rounded-lg dark:from-pink-900/40 dark:to-purple-900/40">
-                <div className="card">
-                  <div className="card2">
-                    <div className="p-0.5">
-                      <ProductCard product={product} />
+        {featuredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredProducts.map((product, index) => (
+              <ScrollAnimation
+                key={product.id}
+                animation="animate-zoom-in"
+                threshold={0.1}
+                delay={200 * index}
+              >
+                <StyledCardWrapper className="bg-gradient-to-r from-[#5B6DF8] via-[#9B87F5] to-[#F870C5] rounded-lg dark:from-pink-900/40 dark:to-purple-900/40">
+                  <div className="card">
+                    <div className="card2">
+                      <div className="p-0.5">
+                        <ProductCard product={product} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </StyledCardWrapper>
-            </ScrollAnimation>
-          ))}
-        </div>
+                </StyledCardWrapper>
+              </ScrollAnimation>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center dark:text-white">No featured products available at this time.</p>
+        )}
         
         <ScrollAnimation animation="animate-reveal-text" delay={600} className="mt-12 text-center">
-        <Link to="/products">
-          <Button variant="slide" size="lg">View All Products</Button>
-        </Link>
-
+          <Link to="/products">
+            <Button variant="slide" size="lg">View All Products</Button>
+          </Link>
         </ScrollAnimation>
       </div>
     </section>

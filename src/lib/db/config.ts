@@ -11,11 +11,11 @@ export interface DbConfig {
 // Get database configuration from environment variables
 export const getDbConfig = (): DbConfig => {
   return {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    database: process.env.DB_NAME || 'yooboba_db',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'pasandi',
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    host: import.meta.env.VITE_DB_HOST || 'localhost',
+    port: parseInt(import.meta.env.VITE_DB_PORT || '5432', 10),
+    database: import.meta.env.VITE_DB_NAME || 'yooboba_db',
+    user: import.meta.env.VITE_DB_USER || 'postgres',
+    password: import.meta.env.VITE_DB_PASSWORD || '',
+    ssl: import.meta.env.VITE_DB_SSL === 'true' ? { rejectUnauthorized: false } : false
   };
 };

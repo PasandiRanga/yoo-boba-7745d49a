@@ -1,36 +1,67 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getProductById } from "@/models/ProductModel";
+import { Product } from "@/models/ProductModel";
+import { fetchProductById } from "@/services/productService";
 import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, ArrowLeft } from "lucide-react";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import { useCurrency } from "@/context/CurrencyContext";
 
 const ProductDetailPage = () => {
-  const { productId } = useParams();
+  const { productId } = useParams<{ productId: string }>();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
-  
-  const product = productId ? getProductById(productId) : null;
 
-  // Scroll to top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    
+    const loadProduct = async () => {
+      if (!productId) {
+        setError("No product ID provided");
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        const productData = await fetchProductById(productId);
+        setProduct(productData);
+      } catch (err) {
+        console.error(`Error fetching product with ID ${productId}:`, err);
+        setError("Failed to load product details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!product) {
+    loadProduct();
+  }, [productId]);
+
+  // Loading state
+  if (loading) {
+    return <LoadingSpinner fullScreen={true} />;
+  }
+
+  // Error state or product not found
+  if (error || !product) {
     return (
       <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
         <Navbar />
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+            <h1 className="text-2xl font-bold mb-4">
+              {error || "Product Not Found"}
+            </h1>
             <p className="mb-6">Sorry, we couldn't find the product you're looking for.</p>
             <Button asChild>
               <Link to="/products">Back to Products</Link>
@@ -56,7 +87,7 @@ const ProductDetailPage = () => {
       name: product.name,
       price: product.price,
       quantity: quantity,
-      image: product.images[0],
+      image: product.imageUrls[0],
       weight: product.weight
     });
   };
@@ -80,7 +111,7 @@ const ProductDetailPage = () => {
             <ScrollAnimation animation="animate-zoom-in" delay={200}>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 flex items-center justify-center">
                 <img
-                  src={product.images[0]}
+                  src={product.imageUrls[0]}
                   alt={product.name}
                   className="max-h-[500px] object-cover rounded-lg transition-transform duration-500 hover:scale-110"
                 />
@@ -144,11 +175,11 @@ const ProductDetailPage = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Texture</p>
-                    <p className="font-medium">{product.attributes.texture}</p>
+                    <p className="font-medium">{product.details.texture}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Flavor</p>
-                    <p className="font-medium">{product.attributes.flavor}</p>
+                    <p className="font-medium">{product.details.flavor}</p>
                   </div>
                 </div>
               </div>
@@ -169,15 +200,15 @@ const ProductDetailPage = () => {
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-medium">Color</h4>
-                    <p>{product.attributes.color}</p>
+                    <p>{product.details.color}</p>
                   </div>
                   <div>
                     <h4 className="font-medium">Texture</h4>
-                    <p>{product.attributes.texture}</p>
+                    <p>{product.details.texture}</p>
                   </div>
                   <div>
                     <h4 className="font-medium">Flavor</h4>
-                    <p>{product.attributes.flavor}</p>
+                    <p>{product.details.flavor}</p>
                   </div>
                   <div>
                     <h4 className="font-medium">Weight</h4>
@@ -188,10 +219,10 @@ const ProductDetailPage = () => {
               <TabsContent value="instructions" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4">Cooking Instructions</h3>
                 <p className="mb-4">
-                  <strong>Cooking Time:</strong> {product.attributes.cookingTime}
+                  <strong>Cooking Time:</strong> {product.details.cookingTime}
                 </p>
                 <p className="mb-4">
-                  <strong>Storage:</strong> {product.attributes.storageInstructions}
+                  <strong>Storage:</strong> {product.details.storageInstructions}
                 </p>
                 <ol className="list-decimal list-inside space-y-2">
                   <li>Bring water to a boil in a large pot.</li>
@@ -205,7 +236,7 @@ const ProductDetailPage = () => {
               <TabsContent value="ingredients" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4">Ingredients</h3>
                 <ul className="list-disc list-inside">
-                  {product.attributes.ingredients?.map((ingredient, index) => (
+                  {product.details.ingredients?.map((ingredient, index) => (
                     <li key={index}>{ingredient}</li>
                   ))}
                 </ul>
