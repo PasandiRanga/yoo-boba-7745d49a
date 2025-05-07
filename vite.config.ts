@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     exclude: ['pg'], // Prevent Vite from bundling pg incorrectly
-    include: ['pg/pg-browser.js'],
+    // include: ['pg/pg-browser.js'],
   },
   ssr: {
     noExternal: ['pg'], // Ensure pg is processed by Vite for SSR
