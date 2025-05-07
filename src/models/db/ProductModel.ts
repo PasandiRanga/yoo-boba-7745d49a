@@ -1,5 +1,4 @@
-
-import { query } from '@/lib/db';
+import { query } from '@/lib/db/db';
 import { Product } from '../ProductModel';
 
 // Get all products from database

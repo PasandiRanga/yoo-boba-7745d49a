@@ -1,14 +1,11 @@
-import { useEffect, useState } from "react";
-import { getFeaturedProducts } from "@/lib/api";
+
+import { getFeaturedProducts } from "@/models/ProductModel";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import React from 'react';
 import styled from 'styled-components';
-import { Product } from "@/models/ProductModel";
-import { useLoadingIndicator } from "@/hooks/useLoadingIndicator";
-import LoadingSpinner from "@/components/ui/loading-spinner";
 
 // Styled gradient card wrapper
 const StyledCardWrapper = styled.div`
@@ -38,33 +35,7 @@ const StyledCardWrapper = styled.div`
 `;
 
 const FeaturedProducts = () => {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useLoadingIndicator(isLoading);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const products = await getFeaturedProducts();
-        setFeaturedProducts(products);
-      } catch (error) {
-        console.error("Error fetching featured products:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="py-16 flex justify-center items-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  const featuredProducts = getFeaturedProducts();
   
   return (
     <section className="py-16 bg-gray-50 dark:bg-gray-900">
@@ -103,6 +74,7 @@ const FeaturedProducts = () => {
         <Link to="/products">
           <Button variant="slide" size="lg">View All Products</Button>
         </Link>
+
         </ScrollAnimation>
       </div>
     </section>
