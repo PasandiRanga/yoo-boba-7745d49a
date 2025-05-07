@@ -1,294 +1,322 @@
-
 import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Coffee, Building, Phone, Mail, MapPin, Package } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
 import BackToTopButton from "@/components/ui/back-to-top";
-
-// Define form schema with validation
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  organizationName: z.string().min(2, { message: "Organization name is required." }),
-  category: z.string().min(1, { message: "Please select a category." }),
-  contactNumber: z.string().min(10, { message: "Please enter a valid contact number." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  address: z.string().min(5, { message: "Please enter a valid address." }),
-  minimumOrder: z.string().min(1, { message: "Minimum order quantity is required." }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import FloatingBubbles from "@/components/animations/floatingBubbles";
 
 const BYOBPage = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      organizationName: "",
-      category: "",
-      contactNumber: "",
-      email: "",
-      address: "",
-      minimumOrder: "",
-    },
+  const [formData, setFormData] = useState({
+    name: "",
+    organizationName: "",
+    category: "",
+    contactNumber: "",
+    email: "",
+    address: "",
+    minimumOrder: ""
   });
 
-  const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     
     // Simulate form submission
-    try {
-      // In a real application, you would send this data to your backend
-      console.log("Form data:", data);
+    setTimeout(() => {
+      console.log("Form submitted:", formData);
+      setLoading(false);
       
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast.success("Your request has been submitted successfully! We'll get back to you soon.");
-      form.reset();
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.");
-      console.error("Form submission error:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+      // Reset form after submission
+      setFormData({
+        name: "",
+        organizationName: "",
+        category: "",
+        contactNumber: "",
+        email: "",
+        address: "",
+        minimumOrder: ""
+      });
+    }, 1500);
   };
 
   return (
-    <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
+    <div className="flex flex-col min-h-screen dark:bg-gray-900">
       <Navbar />
-      
       <main className="flex-grow">
-        <section className="py-12 md:py-16 bg-gray-50 dark:bg-gray-800/50">
+        {/* Hero Section with Floating Bubbles */}
+        <section className="bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 dark:from-yooboba-blue/20 dark:via-yooboba-purple/20 dark:to-yooboba-pink/20 py-16 md:py-24 relative overflow-hidden">
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <div className="max-w-3xl mx-auto text-center">
+              <h1 className="text-4xl md:text-5xl font-bold font-display mb-6 dark:text-white">
+                Build Your Own Brand
+              </h1>
+              <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+                Elevate Your Business with Premium Boba Supplies
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Form & Information Section */}
+        <section className="py-16 dark:bg-gray-900/60">
           <div className="container mx-auto px-4 md:px-6">
-            <h1 className="text-3xl md:text-4xl font-bold font-display mb-8 text-center">
-              Build Your Own Brand with YooBoba
-            </h1>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mt-10">
-              {/* Left side - Description */}
-              <div className="flex flex-col justify">
-                <h2 className="text-2xl md:text-3xl font-bold mb-6 bg-yooboba-gradient bg-clip-text text-transparent dark:bg-gradient-to-r dark:from-yooboba-blue dark:to-yooboba-pink">
-                  Elevate Your Business with Premium Boba Supplies
-                </h2>
-                
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Partner with YooBoba to bring the authentic bubble tea experience to your customers. 
-                  Our customizable solutions are perfect for cafes, restaurants, hotels, and more.
-                </p>
-                
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  We offer:
-                </p>
-                
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <span className="mr-2 text-yooboba-purple dark:text-yooboba-blue">✓</span>
-                    <span>Premium quality tapioca pearls and popping boba</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2 text-yooboba-purple dark:text-yooboba-blue">✓</span>
-                    <span>Custom branding opportunities</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2 text-yooboba-purple dark:text-yooboba-blue">✓</span>
-                    <span>Competitive wholesale pricing</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2 text-yooboba-purple dark:text-yooboba-blue">✓</span>
-                    <span>Training and support for your team</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2 text-yooboba-purple dark:text-yooboba-blue">✓</span>
-                    <span>Reliable delivery and consistent supply</span>
-                  </li>
-                </ul>
-                
-                <p className="text-gray-600 dark:text-gray-300">
-                  Fill out the form and our team will get in touch with you to discuss how we can help grow your business.
-                </p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              {/* Contact Form */}
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700">
+                <h2 className="text-2xl font-bold font-display mb-6 dark:text-white">Request Wholesale Information</h2>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="name" className="dark:text-gray-300">Full Name *</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="organizationName" className="dark:text-gray-300">Organization Name *</Label>
+                      <Input
+                        id="organizationName"
+                        name="organizationName"
+                        value={formData.organizationName}
+                        onChange={handleChange}
+                        required
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="category" className="dark:text-gray-300">Business Category *</Label>
+                      <Select 
+                        onValueChange={(value) => handleSelectChange("category", value)}
+                        value={formData.category}
+                      >
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-700">
+                          <SelectItem value="cafe">Cafe</SelectItem>
+                          <SelectItem value="hotel">Hotel</SelectItem>
+                          <SelectItem value="restaurant">Restaurant</SelectItem>
+                          <SelectItem value="villa">Villa</SelectItem>
+                          <SelectItem value="miniBar">Mini Bar</SelectItem>
+                          <SelectItem value="catering">Catering</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="contactNumber" className="dark:text-gray-300">Contact Number *</Label>
+                      <Input
+                        id="contactNumber"
+                        name="contactNumber"
+                        value={formData.contactNumber}
+                        onChange={handleChange}
+                        required
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email" className="dark:text-gray-300">Email Address *</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="address" className="dark:text-gray-300">Business Address *</Label>
+                    <Textarea
+                      id="address"
+                      name="address"
+                      rows={3}
+                      value={formData.address}
+                      onChange={handleChange}
+                      required
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="minimumOrder" className="dark:text-gray-300">Minimum Order Quantity (MOQ) *</Label>
+                    <Input
+                      id="minimumOrder"
+                      name="minimumOrder"
+                      value={formData.minimumOrder}
+                      onChange={handleChange}
+                      required
+                      placeholder="e.g., 10 cases"
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                    />
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    variant="sendMessage"
+                    className="w-full"
+                    size="xl"
+                    disabled={loading}
+                    isLoading={loading}
+                  >
+                    Send Request
+                  </Button>
+                </form>
               </div>
-              
-              {/* Right side - Cafe Animation and Form */}
+
+              {/* Information Card */}
               <div>
-                {/* Cafe Animation */}
-                <div className="relative h-64 mb-8 overflow-hidden rounded-lg shadow-lg">
-                  <div className="cafe-animation absolute inset-0 w-full h-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center">
-                    <div className="cafe-scene p-4">
-                      {/* Storefront */}
-                      <div className="cafe-building w-48 h-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg mx-auto relative">
-                        {/* Store Sign */}
-                        <div className="absolute -top-6 left-0 right-0 h-6 bg-yooboba-purple dark:bg-yooboba-blue rounded-t-lg flex items-center justify-center">
-                          <span className="text-xs text-white font-bold">YOUR BOBA CAFE</span>
-                        </div>
-                        
-                        {/* Door */}
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-16 bg-gray-800 dark:bg-gray-600 rounded-t-lg"></div>
-                        
-                        {/* Windows */}
-                        <div className="absolute top-4 left-4 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-sm"></div>
-                        <div className="absolute top-4 right-4 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-sm"></div>
-                        
-                        {/* Boba Cup Animation */}
-                        <div className="absolute -right-8 bottom-2 w-8 h-12 bg-gradient-to-b from-purple-300 to-purple-400 dark:from-purple-600 dark:to-purple-700 rounded-lg opacity-80 animate-bounce"></div>
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm dark:shadow-gray-900/30 mb-8 border border-gray-100 dark:border-gray-700">
+                  <h2 className="text-2xl font-bold font-display mb-6 dark:text-white">Partnership Benefits</h2>
+                  <div className="space-y-6">
+                    <div className="flex items-start">
+                      <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-3 mr-4 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                       </div>
-                      
-                      {/* Ground */}
-                      <div className="w-full h-8 bg-gradient-to-r from-green-200 to-green-300 dark:from-green-900 dark:to-green-800 rounded-lg mt-2"></div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1 dark:text-white">Premium Quality Products</h3>
+                        <p className="text-gray-600 dark:text-gray-400">Authentic tapioca pearls and popping boba with superior taste and texture</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-3 mr-4 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1 dark:text-white">Competitive Pricing</h3>
+                        <p className="text-gray-600 dark:text-gray-400">Wholesale rates that help maximize your profit margins</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-3 mr-4 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1 dark:text-white">Custom Branding</h3>
+                        <p className="text-gray-600 dark:text-gray-400">Create your unique identity with customized packaging options</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-3 mr-4 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1 dark:text-white">Training & Support</h3>
+                        <p className="text-gray-600 dark:text-gray-400">Comprehensive training materials and ongoing support for your team</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-3 mr-4 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1 dark:text-white">Reliable Supply Chain</h3>
+                        <p className="text-gray-600 dark:text-gray-400">Consistent delivery and supply to ensure your business runs smoothly</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                {/* Form */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                  <h3 className="text-xl font-semibold mb-4">Request Wholesale Information</h3>
-                  
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Your Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="John Doe" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="organizationName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Organization Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Your Business" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700">
+                  <h2 className="text-2xl font-bold font-display mb-6 dark:text-white">Perfect For</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="flex flex-col items-center p-4 bg-yooboba-light/50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <div className="mb-3 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
                       </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Business Category</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="cafe">Cafe</SelectItem>
-                                <SelectItem value="hotel">Hotel</SelectItem>
-                                <SelectItem value="restaurant">Restaurant</SelectItem>
-                                <SelectItem value="villa">Villa</SelectItem>
-                                <SelectItem value="miniBar">Mini Bar</SelectItem>
-                                <SelectItem value="catering">Catering</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="contactNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Contact Number</FormLabel>
-                              <FormControl>
-                                <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email Address</FormLabel>
-                              <FormControl>
-                                <Input type="email" placeholder="you@example.com" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <span className="font-medium dark:text-white">Cafes</span>
+                    </div>
+                    <div className="flex flex-col items-center p-4 bg-yooboba-light/50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <div className="mb-3 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
                       </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Business Address</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="123 Business Ave, City, State, ZIP" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="minimumOrder"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Minimum Order Quantity (MOQ)</FormLabel>
-                            <FormControl>
-                              <Input type="text" placeholder="e.g., 10 cases" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        variant="sendMessage"
-                        className="w-full"
-                        isLoading={isSubmitting}
-                      >
-                        Send Request
-                      </Button>
-                    </form>
-                  </Form>
+                      <span className="font-medium dark:text-white">Hotels</span>
+                    </div>
+                    <div className="flex flex-col items-center p-4 bg-yooboba-light/50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <div className="mb-3 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                        </svg>
+                      </div>
+                      <span className="font-medium dark:text-white">Restaurants</span>
+                    </div>
+                    <div className="flex flex-col items-center p-4 bg-yooboba-light/50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <div className="mb-3 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                        </svg>
+                      </div>
+                      <span className="font-medium dark:text-white">Mini Bars</span>
+                    </div>
+                    <div className="flex flex-col items-center p-4 bg-yooboba-light/50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <div className="mb-3 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 22V12h6v10"></path>
+                        </svg>
+                      </div>
+                      <span className="font-medium dark:text-white">Villas</span>
+                    </div>
+                    <div className="flex flex-col items-center p-4 bg-yooboba-light/50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <div className="mb-3 text-yooboba-purple dark:text-pink-400">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                      </div>
+                      <span className="font-medium dark:text-white">Catering</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
       </main>
-      
       <Footer />
       <BackToTopButton />
     </div>
