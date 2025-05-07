@@ -1,24 +1,36 @@
 
 import { useState, useEffect } from "react";
-import { products } from "@/models/ProductModel";
+import { getAllProducts } from "@/lib/api";
+import { Product } from "@/models/ProductModel";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/product/ProductCard";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { useLoadingIndicator } from "@/hooks/useLoadingIndicator";
 
 const ProductsPage = () => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Scroll to top when the component mounts
+  useLoadingIndicator(isLoading);
+
+  // Fetch products and scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
     
-    return () => clearTimeout(timer);
+    const fetchProducts = async () => {
+      try {
+        const fetchedProducts = await getAllProducts();
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProducts();
   }, []);
 
   if (isLoading) {
