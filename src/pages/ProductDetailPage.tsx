@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Product } from "@/models/ProductModel";
@@ -12,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import { useCurrency } from "@/context/CurrencyContext";
+import BackToTopButton from "@/components/ui/back-to-top";
 
 const ProductDetailPage = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -69,6 +71,7 @@ const ProductDetailPage = () => {
           </div>
         </main>
         <Footer />
+        <BackToTopButton />
       </div>
     );
   }
@@ -246,6 +249,7 @@ const ProductDetailPage = () => {
         </div>
       </main>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 };

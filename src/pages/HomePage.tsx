@@ -8,6 +8,7 @@ import Testimonials from "@/components/home/Testimonials";
 import CTASection from "@/components/home/CTASection";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import BackToTopButton from "@/components/ui/back-to-top";
 
 const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +40,7 @@ const HomePage = () => {
         <CTASection />
       </main>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 };
