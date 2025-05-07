@@ -1,33 +1,7 @@
-import React, { useEffect, useState } from "react";
-import styled, { keyframes, css } from "styled-components";
+import React from "react";
+import styled from "styled-components";
 
-interface LoadingSpinnerProps {
-  visible?: boolean;
-  duration?: number; // Optional fade duration in ms
-}
-
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  visible = true,
-  duration = 500,
-}) => {
-  const [show, setShow] = useState(visible);
-
-  useEffect(() => {
-    if (!visible) {
-      const timeout = setTimeout(() => setShow(false), duration);
-      return () => clearTimeout(timeout);
-    } else {
-      setShow(true);
-    }
-  }, [visible, duration]);
-
-  if (!show) return null;
-
-  const fadeStyle = {
-    opacity: visible ? 1 : 0,
-    transition: `opacity ${duration}ms ease-in-out`,
-  };
-
+const LoadingSpinner: React.FC = () => {
   const bubbles = Array.from({ length: 40 }, (_, i) => {
     const left = Math.random() * 100;
     const size = 8 + Math.random() * 8;
@@ -45,7 +19,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   });
 
   return (
-    <div style={{ ...styles.container, ...fadeStyle }}>
+    <div style={styles.container}>
       {bubbles.map((b) => (
         <div
           key={b.id}
@@ -92,105 +66,107 @@ const CenterWrapper = styled.div`
   align-items: center;
 `;
 
-const bounce = keyframes`
-  0% {
-    top: 30px;
-    height: 10px;
-    border-radius: 50px 50px 25px 25px;
-    transform: scaleX(1.7);
-  }
-  40% {
-    height: 25px;
-    border-radius: 50%;
-    transform: scaleX(1);
-  }
-  100% {
-    top: 0%;
-  }
-`;
-
-const shadowPulse = keyframes`
-  0% {
-    transform: scaleX(1.5);
-  }
-  40% {
-    transform: scaleX(1);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scaleX(0.2);
-    opacity: 0.4;
-  }
-`;
+const Loader = () => {
+  return (
+    <StyledWrapper>
+      <div className="typing-indicator">
+        <div className="typing-circle" />
+        <div className="typing-circle" />
+        <div className="typing-circle" />
+        <div className="typing-shadow" />
+        <div className="typing-shadow" />
+        <div className="typing-shadow" />
+      </div>
+    </StyledWrapper>
+  );
+};
 
 const StyledWrapper = styled.div`
   .typing-indicator {
-    width: 100px;
-    height: 60px;
+    width: 150px;
+    height:100px;
     position: relative;
     z-index: 4;
   }
 
   .typing-circle {
-    width: 25px;
-    height: 25px;
+    width: 18px;
+    height: 18px;
     position: absolute;
     border-radius: 50%;
-    background-color: #7e22ce;
-    left: 25%;
+    background-color: #7e22ce; /* Purple */
+    left: 15%;
     transform-origin: 50%;
-    animation: ${bounce} 0.5s alternate infinite ease;
+    animation: typing-circle7124 0.5s alternate infinite ease;
+  }
+
+  @keyframes typing-circle7124 {
+    0% {
+      top: 30px;
+      height: 10px;
+      border-radius: 50px 50px 25px 25px;
+      transform: scaleX(1.7);
+    }
+    40% {
+      height: 16px;
+      border-radius: 50%;
+      transform: scaleX(1);
+    }
+    100% {
+      top: 0%;
+    }
   }
 
   .typing-circle:nth-child(2) {
-    left: 50%;
+    left: 45%;
     animation-delay: 0.2s;
   }
 
   .typing-circle:nth-child(3) {
     left: auto;
-    right: 0%;
+    right: 15%;
     animation-delay: 0.3s;
   }
 
   .typing-shadow {
-    width: 12px;
+    width: 10px;
     height: 6px;
     border-radius: 50%;
-    background-color: rgba(126, 34, 206, 0.2);
+    background-color: rgba(126, 34, 206, 0.2); /* Purple shadow */
     position: absolute;
     top: 50px;
     transform-origin: 50%;
     z-index: 3;
-    left: 25%;
+    left: 15%;
     filter: blur(1px);
-    animation: ${shadowPulse} 0.5s alternate infinite ease;
+    animation: typing-shadow046 0.5s alternate infinite ease;
+  }
+
+  @keyframes typing-shadow046 {
+    0% {
+      transform: scaleX(1.5);
+    }
+    40% {
+      transform: scaleX(1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scaleX(0.2);
+      opacity: 0.4;
+    }
   }
 
   .typing-shadow:nth-child(4) {
-    left: 50%;
+    left: 45%;
     animation-delay: 0.2s;
   }
 
   .typing-shadow:nth-child(5) {
     left: auto;
-    right: 0%;
+    right: 15%;
     animation-delay: 0.3s;
   }
 `;
-
-const Loader = () => (
-  <StyledWrapper>
-    <div className="typing-indicator">
-      <div className="typing-circle" />
-      <div className="typing-circle" />
-      <div className="typing-circle" />
-      <div className="typing-shadow" />
-      <div className="typing-shadow" />
-      <div className="typing-shadow" />
-    </div>
-  </StyledWrapper>
-);
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
@@ -210,11 +186,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     animationIterationCount: "infinite",
   },
   loadingText: {
-    marginTop: "12px",
+    marginTop: "2px",
     textAlign: "center",
-    fontWeight: 600,
-    fontSize: "1.125rem", // ~18px
-    color: "#ec4899",
+    fontWeight: "bold",
+    fontSize: "1.2rem",
+    color: "#ec4899", // Tailwind's pink-500
   },
 };
 
