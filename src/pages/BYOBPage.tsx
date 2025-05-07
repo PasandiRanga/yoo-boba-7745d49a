@@ -77,7 +77,7 @@ const BYOBPage = () => {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mt-10">
               {/* Left side - Description */}
-              <div className="flex flex-col justify-center">
+              <div className="flex flex-col justify">
                 <h2 className="text-2xl md:text-3xl font-bold mb-6 bg-yooboba-gradient bg-clip-text text-transparent dark:bg-gradient-to-r dark:from-yooboba-blue dark:to-yooboba-pink">
                   Elevate Your Business with Premium Boba Supplies
                 </h2>
