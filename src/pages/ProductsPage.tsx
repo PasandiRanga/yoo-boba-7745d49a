@@ -6,6 +6,8 @@ import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/product/ProductCard";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import BackToTopButton from "@/components/ui/back-to-top";
+
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -92,6 +94,7 @@ const ProductsPage = () => {
         </section>
       </main>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 };

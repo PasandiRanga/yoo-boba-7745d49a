@@ -20,7 +20,7 @@ const StyledWrapper = styled.div`
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background-color: rgb(20, 20, 20);
+    background-image: linear-gradient(135deg, #5B6DF8, #9B87F5, #F870C5);
     border: none;
     font-weight: 600;
     display: flex;
@@ -31,6 +31,11 @@ const StyledWrapper = styled.div`
     transition-duration: 0.3s;
     overflow: hidden;
     position: relative;
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      background-image: linear-gradient(135deg, pink, purple);
+    }
   }
 
   .svgIcon {
@@ -46,7 +51,6 @@ const StyledWrapper = styled.div`
     width: 140px;
     border-radius: 50px;
     transition-duration: 0.3s;
-    background-color: rgb(181, 160, 255);
     align-items: center;
   }
 
@@ -70,6 +74,7 @@ const StyledWrapper = styled.div`
     transition-duration: 0.3s;
   }
 `;
+
 
 const BackToTopButton = () => {
   const [isVisible, setIsVisible] = useState(false);
