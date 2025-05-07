@@ -1,77 +1,21 @@
-import { pool } from './db/index';
-import { Product } from '../models/ProductModel';
+// import { Product } from '../models/ProductModel';
 
-export const fetchProducts = async (): Promise<Product[]> => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT 
-        id, 
-        name, 
-        description, 
-        price, 
-        image_urls as "imageUrls", 
-        category, 
-        weight, 
-        stock, 
-        featured, 
-        details
-      FROM products
-    `);
-    return rows;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    throw error;
-  }
-};
+// const API_BASE_URL = 'http://localhost:4000/api';
 
-export const fetchProductById = async (id: string): Promise<Product | null> => {
-  try {
-    const { rows } = await pool.query(
-      `
-      SELECT 
-        id, 
-        name, 
-        description, 
-        price, 
-        image_urls as "imageUrls", 
-        category, 
-        weight, 
-        stock, 
-        featured, 
-        details
-      FROM products
-      WHERE id = $1
-      `,
-      [id]
-    );
-    return rows[0] || null;
-  } catch (error) {
-    console.error(`Error fetching product with id ${id}:`, error);
-    throw error;
-  }
-};
+// export const fetchProducts = async (): Promise<Product[]> => {
+//   const response = await fetch(`${API_BASE_URL}/products`);
+//   if (!response.ok) throw new Error('Failed to fetch products');
+//   return response.json();
+// };
 
-export const fetchFeaturedProducts = async (): Promise<Product[]> => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT 
-        id, 
-        name, 
-        description, 
-        price, 
-        image_urls as "imageUrls", 
-        category, 
-        weight, 
-        stock, 
-        featured, 
-        details
-      FROM products
-      WHERE featured = true
-      LIMIT 6
-    `);
-    return rows;
-  } catch (error) {
-    console.error('Error fetching featured products:', error);
-    throw error;
-  }
-};
+// export const fetchProductById = async (id: string): Promise<Product | null> => {
+//   const response = await fetch(`${API_BASE_URL}/products/${id}`);
+//   if (!response.ok) throw new Error('Failed to fetch product');
+//   return response.json();
+// };
+
+// export const fetchFeaturedProducts = async (): Promise<Product[]> => {
+//   const response = await fetch(`${API_BASE_URL}/products/featured`);
+//   if (!response.ok) throw new Error('Failed to fetch featured products');
+//   return response.json();
+// };

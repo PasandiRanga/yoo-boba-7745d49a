@@ -2,7 +2,7 @@
 import { Product } from '@/models/ProductModel';
 
 // Base API URL - adjust this to your actual API endpoint
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 // Fetch all products
 export const fetchProducts = async (): Promise<Product[]> => {
