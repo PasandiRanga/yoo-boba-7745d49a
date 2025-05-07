@@ -1,5 +1,5 @@
 
-import { query, transaction } from '@/lib/db/index';
+import { query, transaction } from '@/lib/db';
 import { Order, Customer, Address, OrderItem } from '@/models/OrderModel';
 
 export interface DbOrder {
@@ -229,7 +229,7 @@ export const getOrderByIdFromDb = async (orderId: string): Promise<Order | null>
       tax: order.tax,
       shipping: order.shipping,
       total: order.total,
-      status: order.status as 'pending' | 'completed' | 'cancelled',
+      status: order.status as any,
       paymentMethod: order.payment_method,
       paymentStatus: order.payment_status as any,
       createdAt: order.created_at,
