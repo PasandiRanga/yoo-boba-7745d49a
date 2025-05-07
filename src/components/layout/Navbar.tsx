@@ -21,6 +21,7 @@ const Navbar = () => {
   const navItems = [
     { label: "Home", path: "/" },
     { label: "Buy Now", path: "/products" },
+    { label: "BYOB", path: "/byob" },
     { label: "About", path: "/about" },
     { label: "Contact", path: "/contact" },
   ];
