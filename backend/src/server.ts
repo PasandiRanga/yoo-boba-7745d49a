@@ -9,9 +9,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Configure CORS to allow requests from any origin in development
+// Configure CORS to allow requests from frontend (localhost:8080)
 app.use(cors({
-  origin: '*',
+  origin: ['http://localhost:8080', 'https://localhost:8080', '*'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -24,6 +24,11 @@ app.use('/api/products', productRoutes);
 // Basic health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
+
+// Root endpoint for testing
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'YooBoba API is running' });
 });
 
 app.listen(PORT, () => {
