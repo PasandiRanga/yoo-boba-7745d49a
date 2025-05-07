@@ -4,8 +4,8 @@ import { pool } from '../db/index';
 export const getAllProducts = async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`
-      SELECT id, name, description, price, image_urls as "imageUrls",
-             category, weight, stock, featured, details
+      SELECT id, name, description, price, images as "imageUrls",
+             category, weight, stock, featured, attributes as "details"
       FROM products
     `);
     res.json(rows);
@@ -19,8 +19,8 @@ export const getProductById = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const { rows } = await pool.query(`
-      SELECT id, name, description, price, image_urls as "imageUrls",
-             category, weight, stock, featured, details
+      SELECT id, name, description, price, images as "imageUrls",
+             category, weight, stock, featured, attributes as "details"
       FROM products
       WHERE id = $1
     `, [id]);
@@ -39,8 +39,8 @@ export const getProductById = async (req: Request, res: Response) => {
 export const getFeaturedProducts = async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`
-      SELECT id, name, description, price, image_urls as "imageUrls",
-             category, weight, stock, featured, details
+      SELECT id, name, description, price, images as "imageUrls",
+             category, weight, stock, featured, attributes as "details"
       FROM products
       WHERE featured = true
       LIMIT 6
