@@ -2,12 +2,11 @@ import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import BobaSendingToast from "@/components/ui/bobaSendingToast";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
-
+import StyledInput from "@/components/ui/styledInput";
+import StyledTextarea from "@/components/ui/styledTextArea";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -53,8 +52,7 @@ const ContactPage = () => {
       <main className="flex-grow">
         {/* Hero Section with Floating Bubbles */}
         <section className="bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 dark:from-yooboba-blue/20 dark:via-yooboba-purple/20 dark:to-yooboba-pink/20 py-16 md:py-24 relative overflow-hidden">
-          
-          
+          <FloatingBubbles />
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold font-display mb-6 dark:text-white">
@@ -77,60 +75,60 @@ const ContactPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-1">
-                      <Label htmlFor="name" className="dark:text-gray-300">Full Name *</Label>
-                      <Input
+                      <Label htmlFor="name" className="dark:text-gray-300 mb-2 block">Full Name *</Label>
+                      <StyledInput
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                        placeholder="John Doe"
                       />
                     </div>
                     <div className="md:col-span-1">
-                      <Label htmlFor="email" className="dark:text-gray-300">Email *</Label>
-                      <Input
+                      <Label htmlFor="email" className="dark:text-gray-300 mb-2 block">Email *</Label>
+                      <StyledInput
                         id="email"
                         name="email"
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                        placeholder="email@example.com"
                       />
                     </div>
                     <div className="md:col-span-1">
-                      <Label htmlFor="phone" className="dark:text-gray-300">Phone Number</Label>
-                      <Input
+                      <Label htmlFor="phone" className="dark:text-gray-300 mb-2 block">Phone Number</Label>
+                      <StyledInput
                         id="phone"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                        placeholder="(555) 123-4567"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="subject" className="dark:text-gray-300">Subject *</Label>
-                    <Input
+                    <Label htmlFor="subject" className="dark:text-gray-300 mb-2 block">Subject *</Label>
+                    <StyledInput
                       id="subject"
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                      placeholder="What's this about?"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="message" className="dark:text-gray-300">Message *</Label>
-                    <Textarea
+                    <Label htmlFor="message" className="dark:text-gray-300 mb-2 block">Message *</Label>
+                    <StyledTextarea
                       id="message"
                       name="message"
                       rows={5}
                       value={formData.message}
                       onChange={handleChange}
                       required
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                      placeholder="Tell us more about your inquiry..."
                     />
                   </div>
                   <Button
