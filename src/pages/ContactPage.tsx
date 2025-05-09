@@ -61,7 +61,7 @@ const ContactPage = () => {
                 Contact Us
               </h1>
               <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
-                Have questions about our products? Need a custom order? We'd love to hear from you.
+                Have questions about our products? Need a custom order? We'd love to hear from you!
               </p>
             </div>
           </div>

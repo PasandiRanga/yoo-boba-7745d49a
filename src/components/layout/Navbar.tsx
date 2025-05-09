@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import ThemeToggle from "./ThemeToggle";
 import CurrencyToggle from "./CurrencyToggle";
+import SignInDialog from "@/components/signin/signInDialog";
 
 const Navbar = () => {
   const { totalItems } = useCart();
@@ -63,6 +63,10 @@ const Navbar = () => {
               <ThemeToggle />
             </div>
             
+            {/* Sign In Button and Dialog */}
+            <SignInDialog />
+            
+            {/* Cart Button */}
             <Link to="/cart" className="relative">
               <Button 
                 variant="ghost" 
@@ -133,6 +137,13 @@ const Navbar = () => {
                         </Link>
                       </SheetClose>
                     ))}
+                    
+                    {/* Sign In Link in mobile menu */}
+                    <SheetClose asChild>
+                      <div className="py-4">
+                        <SignInDialog />
+                      </div>
+                    </SheetClose>
                   </div>
                 </div>
               </SheetContent>

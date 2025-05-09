@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/context/ThemeProvider";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { LoadingProvider } from "@/context/LoadingContext";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import SignUp from "@/components/signin/signUp";
 
 import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
@@ -20,6 +21,7 @@ import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import BYOBPage from "@/pages/BYOBPage";
 import NotFound from "@/pages/NotFound";
+
 
 // Create a new QueryClient instance inside the component to ensure proper React context
 const App = () => {
@@ -51,6 +53,8 @@ const App = () => {
                       <Route path="/about" element={<AboutPage />} />
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/byob" element={<BYOBPage />} />
+                      <Route path="/signup" element={<SignUp />} />
+
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </BrowserRouter>

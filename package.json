@@ -55,6 +55,7 @@
     "express": "^5.1.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
+    "next": "^15.3.2",
     "next-themes": "^0.3.0",
     "pg": "^8.15.6",
     "pg-browser": "^1.0.8",
