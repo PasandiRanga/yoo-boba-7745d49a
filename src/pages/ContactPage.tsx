@@ -98,7 +98,7 @@ const ContactPage = () => {
                       />
                     </div>
                     <div className="md:col-span-1">
-                      <Label htmlFor="phone" className="dark:text-gray-300 mb-2 block">Phone Number</Label>
+                      <Label htmlFor="phone" className="dark:text-gray-300 mb-2 block">Contact Number</Label>
                       <StyledInput
                         id="phone"
                         name="phone"
