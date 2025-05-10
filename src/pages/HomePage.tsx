@@ -24,9 +24,8 @@ const HomePage = () => {
     
     return () => clearTimeout(timer);
   }, []);
-
   if (isLoading) {
-    return <LoadingSpinner fullScreen={true} />;
+    return <LoadingSpinner />;
   }
 
   return (
