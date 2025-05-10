@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { Customer } from "@/models/CustomerModel";
 import { createCustomer } from "@/services/customerService";
+import StyledInput from "@/components/ui/styledInput";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -144,9 +145,29 @@ const SignUpPage = () => {
 
   return (
     <div className="flex min-h-screen w-full bg-gray-50 dark:bg-gray-900">
-      {/* Left Section - Branding */}
-      <div className="hidden md:flex md:w-1/2 flex-col justify-between bg-gradient-to-br from-purple-600 to-pink-500 p-8 text-white">
-        <div>
+      {/* Left Section - Branding with Half Logo */}
+      <div className="hidden md:flex md:w-1/2 flex-col justify-between bg-gradient-to-br from-purple-600 to-pink-500 p-8 text-white relative overflow-hidden opacity-90">
+        {/* Half logo appearing to come out from the left edge */}
+        <div className="absolute -left-64 top-1/2 transform -translate-y-1/2">
+          <img
+            src="./../../../public/images/LogoWithBack.png"
+            alt="YooBoba Logo" 
+            className="h-128 w-128 object-contain"
+          />
+        </div>
+        
+        {/* Added branded text and description */}
+        <div className="absolute right-20 top-1/2 transform -translate-y-1/2 text-center z-10">
+          <h1 className="text-5xl font-extrabold mb-2 tracking-tight" style={{ fontFamily: "'Pacifico', cursive" }}>
+            Yoo Boba
+          </h1>
+          <p className="text-lg font-light max-w-xs">
+            Delight in our premium tapioca pearls, perfectly chewy and sweet, 
+            handcrafted daily for the ultimate boba experience.
+          </p>
+        </div>
+        
+        <div className="z-10">
           <button 
             onClick={goBack}
             className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors mb-8"
@@ -154,33 +175,15 @@ const SignUpPage = () => {
             <ArrowLeft size={20} />
             <span>Back to Home</span>
           </button>
-          
-          <div className="mt-16">
-            {/* Company Logo */}
-            <div className="flex items-center gap-3 mb-12">
-            <img
-                src="/images/LogoWithBack.png"
-                alt="YooBoba Logo" 
-                className="h-12 w-12 mr-2 group-hover:scale-105 transition-transform"
-              />
-              <h1 className="text-3xl font-bold">Yoo Boba</h1>
-            </div>
-            
-            {/* Slogan */}
-            <h2 className="text-4xl font-bold mb-6">Join our community today</h2>
-            <p className="text-xl opacity-90 max-w-md">
-              Create an account and start enjoying all the benefits our platform has to offer.
-            </p>
-          </div>
         </div>
         
-        <div className="mb-8">
+        <div className="mb-8 text-center z-10">
           <p className="opacity-80">© 2025 Yoo Boba. All rights reserved.</p>
         </div>
       </div>
       
       {/* Right Section - Form */}
-      <div className="w-full md:w-1/2 p-6 md:p-12 flex items-center justify-center">
+      <div className="w-full md:w-1/2 p-5 md:p-12 flex items-center justify-center">
         <div className="w-full max-w-md">
           {/* Mobile-only back button */}
           <button 
@@ -191,7 +194,7 @@ const SignUpPage = () => {
             <span>Back to Home</span>
           </button>
           
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Create Account</h2>
+          <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-white">Create Account</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
             Fill in the details below to get started
           </p>
@@ -203,19 +206,18 @@ const SignUpPage = () => {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-2.5">
             <div className="flex gap-4">
               <div className="flex-1">
                 <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   First Name
                 </label>
-                <input 
-                  id="first_name"
+                <StyledInput
+                  type="text"
                   name="first_name"
+                  id="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
-                  type="text"
-                  className={`w-full px-4 py-2 border ${errors.first_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
                   placeholder="First name"
                 />
                 {errors.first_name && (
@@ -226,13 +228,12 @@ const SignUpPage = () => {
                 <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Last Name
                 </label>
-                <input 
-                  id="last_name"
+                <StyledInput
+                  type="text"
                   name="last_name"
+                  id="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
-                  type="text"
-                  className={`w-full px-4 py-2 border ${errors.last_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
                   placeholder="Last name"
                 />
                 {errors.last_name && (
@@ -245,13 +246,12 @@ const SignUpPage = () => {
               <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Contact Number
               </label>
-              <input 
-                id="contactNumber"
+              <StyledInput
+                type="tel"
                 name="contactNumber"
+                id="contactNumber"
                 value={formData.contactNumber}
                 onChange={handleChange}
-                type="tel"
-                className={`w-full px-4 py-2 border ${errors.contactNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
                 placeholder="Enter your contact number"
               />
               {errors.contactNumber && (
@@ -263,13 +263,12 @@ const SignUpPage = () => {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email Address
               </label>
-              <input 
-                id="email"
+              <StyledInput
+                type="email"
                 name="email"
+                id="email"
                 value={formData.email}
                 onChange={handleChange}
-                type="email"
-                className={`w-full px-4 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
                 placeholder="Enter your email"
               />
               {errors.email && (
@@ -281,13 +280,12 @@ const SignUpPage = () => {
               <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Address
               </label>
-              <input 
-                id="address"
+              <StyledInput
+                type="text"
                 name="address"
+                id="address"
                 value={formData.address}
                 onChange={handleChange}
-                type="text"
-                className={`w-full px-4 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
                 placeholder="Enter your address"
               />
               {errors.address && (
@@ -299,13 +297,12 @@ const SignUpPage = () => {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Password
               </label>
-              <input 
-                id="password"
+              <StyledInput
+                type="password"
                 name="password"
+                id="password"
                 value={formData.password}
                 onChange={handleChange}
-                type="password"
-                className={`w-full px-4 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
                 placeholder="Create a password"
               />
               {errors.password && (
@@ -317,13 +314,12 @@ const SignUpPage = () => {
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Confirm Password
               </label>
-              <input 
-                id="confirmPassword"
+              <StyledInput
+                type="password"
                 name="confirmPassword"
+                id="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                type="password"
-                className={`w-full px-4 py-2 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white`}
                 placeholder="Confirm your password"
               />
               {errors.confirmPassword && (

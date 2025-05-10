@@ -34,7 +34,7 @@ const StyledInput = ({
         autoComplete="off"
         placeholder={placeholder}
         className={`
-          w-full border-none outline-none rounded-2xl p-4 text-base
+          w-full border-none outline-none rounded-2xl p-2.5 text-base
           transition-all duration-300 ease-in-out
           ${isFocused ? 'transform scale-105' : ''}
           
