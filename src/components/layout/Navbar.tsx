@@ -24,6 +24,7 @@ import SignInDialog from "@/components/signin/signInDialog";
 const Navbar = () => {
   const { totalItems } = useCart();
   const [open, setOpen] = useState(false);
+  const [profileExpanded, setProfileExpanded] = useState(false);
   const [user, setUser] = useState(null);
   
   useEffect(() => {
@@ -80,72 +81,75 @@ const Navbar = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <CurrencyToggle />
-            <div className="mr-2">
-              <ThemeToggle />
+            {/* Desktop Controls */}
+            <div className="hidden md:flex items-center space-x-4">
+              <CurrencyToggle />
+              <div className="mr-2">
+                <ThemeToggle />
+              </div>
+              
+              {/* Profile Menu or Sign In Button - Desktop */}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <User className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                      <span className="sr-only">User profile</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <div className="px-2 py-1.5 text-sm font-medium">
+                      {user.first_name}
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/orders" className="cursor-pointer flex items-center">
+                        <Package className="mr-2 h-4 w-4" />
+                        Orders
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <SignInDialog />
+              )}
+              
+              {/* Cart Button - Desktop */}
+              <Link to="/cart" className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <ShoppingCart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-yooboba-purple dark:bg-yooboba-blue text-white text-xs rounded-full h-5 w-5 flex items-center justify-center dark:shadow-glow-sm">
+                      {totalItems}
+                    </span>
+                  )}
+                </Button>
+              </Link>
             </div>
             
-            {/* Profile Menu or Sign In Button */}
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <User className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                    <span className="sr-only">User profile</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <div className="px-2 py-1.5 text-sm font-medium">
-                    {user.name || user.email}
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/orders" className="cursor-pointer flex items-center">
-                      <Package className="mr-2 h-4 w-4" />
-                      Orders
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleLogout}
-                    className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <SignInDialog />
-            )}
-            
-            {/* Cart Button */}
-            <Link to="/cart" className="relative">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <ShoppingCart className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-yooboba-purple dark:bg-yooboba-blue text-white text-xs rounded-full h-5 w-5 flex items-center justify-center dark:shadow-glow-sm">
-                    {totalItems}
-                  </span>
-                )}
-              </Button>
-            </Link>
-            
-            {/* Mobile Menu using Sheet component */}
+            {/* Mobile Menu Button - ONLY visible on mobile */}
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
                 <Button 
@@ -154,6 +158,7 @@ const Navbar = () => {
                   className="md:hidden hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                  <span className="sr-only">Menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent 
@@ -172,21 +177,18 @@ const Navbar = () => {
                         YooBoba
                       </span>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <CurrencyToggle />
-                      <ThemeToggle />
-                      <SheetClose asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="hover:bg-gray-100 dark:hover:bg-gray-800"
-                        >
-                          <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                        </Button>
-                      </SheetClose>
-                    </div>
+                    <SheetClose asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                      </Button>
+                    </SheetClose>
                   </div>
                   
+                  {/* Mobile Navigation Items */}
                   <div className="flex flex-col items-center py-8 space-y-6">
                     {navItems.map((item, index) => (
                       <SheetClose key={index} asChild>
@@ -201,51 +203,96 @@ const Navbar = () => {
                       </SheetClose>
                     ))}
                     
-                    {/* User Profile Options or Sign In for mobile */}
-                    {user ? (
-                      <div className="flex flex-col items-center space-y-4 mt-4 border-t border-gray-100 dark:border-gray-800 pt-6 w-full">
-                        <div className="text-center mb-2">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Signed in as</p>
-                          <p className="font-medium">{user.name || user.email}</p>
-                        </div>
-                        
-                        <SheetClose asChild>
-                          <Link
-                            to="/profile"
-                            className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
-                          >
-                            <User className="h-5 w-5" />
-                            <span>Profile</span>
-                          </Link>
-                        </SheetClose>
-                        
-                        <SheetClose asChild>
-                          <Link
-                            to="/orders"
-                            className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
-                          >
-                            <Package className="h-5 w-5" />
-                            <span>Orders</span>
-                          </Link>
-                        </SheetClose>
-                        
-                        <SheetClose asChild>
-                          <button
-                            onClick={handleLogout}
-                            className="flex items-center space-x-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            <LogOut className="h-5 w-5" />
-                            <span>Logout</span>
-                          </button>
-                        </SheetClose>
+                    {/* Cart Link - Mobile */}
+                    <SheetClose asChild>
+                      <Link
+                        to="/cart"
+                        className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
+                        onClick={() => setOpen(false)}
+                      >
+                        <ShoppingCart className="h-5 w-5" />
+                        <span>Cart {totalItems > 0 && `(${totalItems})`}</span>
+                      </Link>
+                    </SheetClose>
+                    
+                    {/* Theme and Currency Toggles - Mobile */}
+                    <div className="flex items-center space-x-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 w-3/4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Theme:</span>
+                        <ThemeToggle />
                       </div>
-                    ) : (
-                      <SheetClose asChild>
-                        <div className="py-4">
-                          <SignInDialog />
-                        </div>
-                      </SheetClose>
-                    )}
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Currency:</span>
+                        <CurrencyToggle />
+                      </div>
+                    </div>
+                    
+                    {/* User Profile Options or Sign In for mobile */}
+                    <div className="flex flex-col items-center space-y-4 mt-4 border-t border-gray-100 dark:border-gray-800 pt-6 w-full">
+                      {user ? (
+                        <>
+                          <div className="w-full px-6">
+                            <button 
+                              onClick={() => setProfileExpanded(!profileExpanded)}
+                              className="w-full flex items-center justify-between text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue py-2"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <User className="h-5 w-5" />
+                                <span className="font-medium">{user.first_name || user.email}</span>
+                              </div>
+                              <svg 
+                                className={`w-5 h-5 transition-transform duration-200 ${profileExpanded ? 'transform rotate-180' : ''}`} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            
+                            {profileExpanded && (
+                              <div className="mt-2 ml-7 flex flex-col space-y-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                                <SheetClose asChild>
+                                  <Link
+                                    to="/profile"
+                                    className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
+                                  >
+                                    <User className="h-4 w-4" />
+                                    <span>Profile</span>
+                                  </Link>
+                                </SheetClose>
+                                
+                                <SheetClose asChild>
+                                  <Link
+                                    to="/orders"
+                                    className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
+                                  >
+                                    <Package className="h-4 w-4" />
+                                    <span>Orders</span>
+                                  </Link>
+                                </SheetClose>
+                                
+                                <SheetClose asChild>
+                                  <button
+                                    onClick={handleLogout}
+                                    className="flex items-center space-x-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                  >
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Logout</span>
+                                  </button>
+                                </SheetClose>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <SheetClose asChild>
+                          <div className="py-4">
+                            <SignInDialog />
+                          </div>
+                        </SheetClose>
+                      )}
+                    </div>
                   </div>
                 </div>
               </SheetContent>
