@@ -5,10 +5,13 @@ import {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-  getCustomerOrders
+  getCustomerOrders,
+  loginCustomer
 } from '../controllers/customerController';
 
 const router = Router();
+//Login 
+router.post('/login', loginCustomer);
 
 // GET routes
 router.get('/', getAllCustomers);
@@ -23,5 +26,8 @@ router.put('/:id', updateCustomer);
 
 // DELETE route
 router.delete('/:id', deleteCustomer);
+
+
+
 
 export default router;

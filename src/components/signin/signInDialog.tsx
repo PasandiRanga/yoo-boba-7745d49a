@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { User, AlertCircle } from "lucide-react";
+import { loginCustomer } from "@/services/customerService";
+import { useNavigate } from 'react-router-dom';
+
+// Removed the invalid useNavigate call here
 
 // Import the StyledInput component
 const StyledInput = ({
@@ -59,6 +63,7 @@ const StyledInput = ({
 };
 
 const SignInDialog = () => {
+  const navigate = useNavigate(); // ⬅️ Moved inside the component
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -93,56 +98,56 @@ const SignInDialog = () => {
   
   // Add form validation function
   const validateForm = () => {
+    console.log("Validate form called");
     const newErrors: { email: string; password: string } = { email: "", password: "" };
     
-    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
+
     // Password validation
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return !newErrors.email && !newErrors.password;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setGeneralError("");
-    
-    // Validate the form before submission
-    if (!validateForm()) {
-      return;
-    }
-    
-    // Add loading state during form submission
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      try {
-        console.log("Form submitted:", formData);
-        // Here you would typically handle authentication with an API
-        // For demo purposes, let's simulate an authentication error
-        
-        // Uncomment this to simulate an authentication error
-        // throw new Error("Invalid email or password");
-        
-        // On success, you would redirect or close the dialog
-        setIsOpen(false);
-      } catch (error) {
-        // Set general error message
-        setGeneralError(error.message || "Authentication failed. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    }, 1000);
-  };
+  const handleSubmit = async (e) => {
+  console.log("Handle submit called");
+  e.preventDefault();
+  setGeneralError("");
+  console.log(!validateForm())
+  if (!validateForm()){
+    return;
+  }
+
+
+  // setIsLoading(true);
+  console.log("Before the try catch");
+
+  try {
+    console.log("Form data before login:", formData);
+    const { token, customer } = await loginCustomer(formData.email, formData.password);
+    console.log("Login response:", { token, customer });
+    // Save token and customer data
+    localStorage.setItem("token", token);
+    localStorage.setItem("customer", JSON.stringify(customer));
+
+    console.log("Login successful:", customer);
+
+    // ✅ Redirect to home page with optional state
+    window.location.href = "/";
+  } catch (error) {
+    setGeneralError(error.message || "Authentication failed. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const navigateToSignUp = () => {
     // Navigate to signUp.tsx in the same folder

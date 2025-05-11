@@ -12,18 +12,23 @@ import BackToTopButton from "@/components/ui/back-to-top";
 
 const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  // Scroll to top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
-    
-    // Simulate loading time
+
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2000);
-    
+
+    const storedUser = localStorage.getItem("customer");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
     return () => clearTimeout(timer);
   }, []);
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -32,6 +37,11 @@ const HomePage = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
+        {user && (
+          <div className="p-4 text-sm text-gray-700 dark:text-gray-300">
+            Welcome back, <strong>{user.name || user.email}</strong>!
+          </div>
+        )}
         <Hero />
         <Features />
         <FeaturedProducts />

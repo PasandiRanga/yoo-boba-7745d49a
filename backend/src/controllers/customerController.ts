@@ -1,6 +1,61 @@
 import { Request, Response } from 'express';
 import { pool } from '../db/index';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Replace with environment variable in production
+
+
+export const loginCustomer = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  try {
+    // Fetch user by email
+    const { rows } = await pool.query(`
+      SELECT customerid, first_name, last_name, emailaddress, password 
+      FROM customers 
+      WHERE emailaddress = $1
+    `, [email]);
+
+    if (rows.length === 0) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const user = rows[0];
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        customerid: user.customerid,
+        email: user.emailaddress,
+        name: `${user.first_name} ${user.last_name}`
+      },
+      JWT_SECRET,
+      { expiresIn: '2h' } // token expiration time
+    );
+
+    res.json({
+      message: 'Login successful',
+      token,
+      customer: {
+        id: user.customerid,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.emailaddress
+      }
+    });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 
 export const getAllCustomers = async (_req: Request, res: Response) => {

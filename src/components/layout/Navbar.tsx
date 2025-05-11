@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Menu, X } from "lucide-react";
+import { ShoppingCart, Menu, X, User, LogOut, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -10,6 +10,13 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import ThemeToggle from "./ThemeToggle";
 import CurrencyToggle from "./CurrencyToggle";
 import SignInDialog from "@/components/signin/signInDialog";
@@ -17,6 +24,21 @@ import SignInDialog from "@/components/signin/signInDialog";
 const Navbar = () => {
   const { totalItems } = useCart();
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem("customer");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+  
+  const handleLogout = () => {
+    localStorage.removeItem("customer");
+    setUser(null);
+    // Redirect to homepage or reload page if needed
+    window.location.href = "/";
+  };
   
   const navItems = [
     { label: "Home", path: "/" },
@@ -63,8 +85,49 @@ const Navbar = () => {
               <ThemeToggle />
             </div>
             
-            {/* Sign In Button and Dialog */}
-            <SignInDialog />
+            {/* Profile Menu or Sign In Button */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <User className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                    <span className="sr-only">User profile</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <div className="px-2 py-1.5 text-sm font-medium">
+                    {user.name || user.email}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/orders" className="cursor-pointer flex items-center">
+                      <Package className="mr-2 h-4 w-4" />
+                      Orders
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <SignInDialog />
+            )}
             
             {/* Cart Button */}
             <Link to="/cart" className="relative">
@@ -138,12 +201,51 @@ const Navbar = () => {
                       </SheetClose>
                     ))}
                     
-                    {/* Sign In Link in mobile menu */}
-                    <SheetClose asChild>
-                      <div className="py-4">
-                        <SignInDialog />
+                    {/* User Profile Options or Sign In for mobile */}
+                    {user ? (
+                      <div className="flex flex-col items-center space-y-4 mt-4 border-t border-gray-100 dark:border-gray-800 pt-6 w-full">
+                        <div className="text-center mb-2">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Signed in as</p>
+                          <p className="font-medium">{user.name || user.email}</p>
+                        </div>
+                        
+                        <SheetClose asChild>
+                          <Link
+                            to="/profile"
+                            className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
+                          >
+                            <User className="h-5 w-5" />
+                            <span>Profile</span>
+                          </Link>
+                        </SheetClose>
+                        
+                        <SheetClose asChild>
+                          <Link
+                            to="/orders"
+                            className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
+                          >
+                            <Package className="h-5 w-5" />
+                            <span>Orders</span>
+                          </Link>
+                        </SheetClose>
+                        
+                        <SheetClose asChild>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center space-x-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <LogOut className="h-5 w-5" />
+                            <span>Logout</span>
+                          </button>
+                        </SheetClose>
                       </div>
-                    </SheetClose>
+                    ) : (
+                      <SheetClose asChild>
+                        <div className="py-4">
+                          <SignInDialog />
+                        </div>
+                      </SheetClose>
+                    )}
                   </div>
                 </div>
               </SheetContent>
