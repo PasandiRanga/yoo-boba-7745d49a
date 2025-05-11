@@ -4,9 +4,7 @@ import { User, AlertCircle } from "lucide-react";
 import { loginCustomer } from "@/services/customerService";
 import { useNavigate } from 'react-router-dom';
 
-// Removed the invalid useNavigate call here
-
-// Import the StyledInput component
+// StyledInput component
 const StyledInput = ({
   type = "text",
   name,
@@ -63,7 +61,7 @@ const StyledInput = ({
 };
 
 const SignInDialog = () => {
-  const navigate = useNavigate(); // ⬅️ Moved inside the component
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -94,12 +92,16 @@ const SignInDialog = () => {
         [name]: ""
       }));
     }
+    
+    // Also clear general error when user makes changes
+    if (generalError) {
+      setGeneralError("");
+    }
   };
   
   // Add form validation function
   const validateForm = () => {
-    console.log("Validate form called");
-    const newErrors: { email: string; password: string } = { email: "", password: "" };
+    const newErrors = { email: "", password: "" };
     
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -117,40 +119,41 @@ const SignInDialog = () => {
   };
 
   const handleSubmit = async (e) => {
-  console.log("Handle submit called");
-  e.preventDefault();
-  setGeneralError("");
-  console.log(!validateForm())
-  if (!validateForm()){
-    return;
-  }
+    e.preventDefault();
+    setGeneralError("");
+    
+    if (!validateForm()) {
+      return;
+    }
 
+    setIsLoading(true);
 
-  // setIsLoading(true);
-  console.log("Before the try catch");
+    try {
+      const response = await loginCustomer(formData.email, formData.password);
+      
+      // Save token and customer data
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("customer", JSON.stringify(response.customer));
 
-  try {
-    console.log("Form data before login:", formData);
-    const { token, customer } = await loginCustomer(formData.email, formData.password);
-    console.log("Login response:", { token, customer });
-    // Save token and customer data
-    localStorage.setItem("token", token);
-    localStorage.setItem("customer", JSON.stringify(customer));
-
-    console.log("Login successful:", customer);
-
-    // ✅ Redirect to home page with optional state
-    window.location.href = "/";
-  } catch (error) {
-    setGeneralError(error.message || "Authentication failed. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+      // Close the dialog and redirect to home page
+      setIsOpen(false);
+      window.location.href = "/";
+      
+    } catch (error) {
+      // Handle specific error messages from the backend
+      if (error.message && error.message.includes('401')) {
+        setGeneralError("Invalid email or password. Please try again.");
+      } else if (error.message && error.message.includes('500')) {
+        setGeneralError("Server error. Please try again later.");
+      } else {
+        setGeneralError(error.message || "Authentication failed. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const navigateToSignUp = () => {
-    // Navigate to signUp.tsx in the same folder
     window.location.href = "./signUp";
     setIsOpen(false);
   };

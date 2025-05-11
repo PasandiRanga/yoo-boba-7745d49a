@@ -113,7 +113,7 @@ export const fetchCustomersByMembership = async (level: string): Promise<Custome
 };
 
 // Verify customer authentication
-export async function loginCustomer(email: string, password: string) {
+export async function loginCustomer(email, password) {
   try {
     const response = await fetch(`${API_URL}/customers/login`, {
       method: 'POST',
@@ -122,12 +122,15 @@ export async function loginCustomer(email: string, password: string) {
       },
       body: JSON.stringify({ email, password }),
     });
-
+    
+    const data = await response.json();
+    
     if (!response.ok) {
-      throw new Error(`Login failed: ${response.status}`);
+      // Extract the error message from the response
+      throw new Error(data.message || `Login failed: ${response.status}`);
     }
-
-    return await response.json();
+    
+    return data;
   } catch (error) {
     console.error("Error logging in customer:", error);
     throw error;
