@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Product } from "@/models/ProductModel";
@@ -7,13 +6,22 @@ import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Plus, Minus, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Plus, Minus, ArrowLeft, AlertTriangle } from "lucide-react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import { useCurrency } from "@/context/CurrencyContext";
 import BackToTopButton from "@/components/ui/back-to-top";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ProductDetailPage = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -21,6 +29,11 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariant, setSelectedVariant] = useState<{
+    weight: string;
+    price: number;
+    stock: number;
+  } | null>(null);
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
 
@@ -38,6 +51,11 @@ const ProductDetailPage = () => {
         setLoading(true);
         const productData = await fetchProductById(productId);
         setProduct(productData);
+        
+        // Set initial selected variant
+        if (productData.variants && productData.variants.length > 0) {
+          setSelectedVariant(productData.variants[0]);
+        }
       } catch (err) {
         console.error(`Error fetching product with ID ${productId}:`, err);
         setError("Failed to load product details. Please try again later.");
@@ -49,9 +67,16 @@ const ProductDetailPage = () => {
     loadProduct();
   }, [productId]);
 
+  // Update quantity when selected variant changes to ensure it's not more than stock
+  useEffect(() => {
+    if (selectedVariant && quantity > selectedVariant.stock) {
+      setQuantity(Math.max(1, selectedVariant.stock));
+    }
+  }, [selectedVariant, quantity]);
+
   // Loading state
   if (loading) {
-    return <LoadingSpinner fullScreen={true} />;
+    return <LoadingSpinner/>;
   }
 
   // Error state or product not found
@@ -77,23 +102,44 @@ const ProductDetailPage = () => {
   }
 
   const incrementQuantity = () => {
-    setQuantity(prev => (prev < 10 ? prev + 1 : prev));
+    console.log("Increment clicked");
+    if (selectedVariant && quantity < Math.min(10, selectedVariant.stock)) {
+      setQuantity(prev => prev + 1);
+    }
   };
 
   const decrementQuantity = () => {
+    console.log("Decrement clicked");
     setQuantity(prev => (prev > 1 ? prev - 1 : prev));
   };
 
+  const handleWeightChange = (weight: string) => {
+    const variant = product.variants.find(v => v.weight === weight);
+    if (variant) {
+      setSelectedVariant(variant);
+      
+      // Reset quantity if it exceeds the stock of new variant
+      if (quantity > variant.stock) {
+        setQuantity(Math.max(1, variant.stock));
+      }
+    }
+  };
+
   const handleAddToCart = () => {
+    if (!selectedVariant) return;
+    
     addItem({
-      id: product.id,
+      id: product.product_id,
       name: product.name,
-      price: product.price,
+      price: selectedVariant.price,
       quantity: quantity,
       image: product.imageUrls[0],
-      weight: product.weight
+      weight: selectedVariant.weight
     });
   };
+
+  const isLowStock = selectedVariant && selectedVariant.stock <= 10;
+  const isOutOfStock = selectedVariant && selectedVariant.stock === 0;
 
   return (
     <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
@@ -123,15 +169,65 @@ const ProductDetailPage = () => {
 
             {/* Product Details */}
             <ScrollAnimation animation="animate-reveal-text" delay={400}>
-              <h1 className="text-3xl md:text-4xl font-bold font-display">{product.name}</h1>
-              <div className="mt-4">
-                <span className="text-2xl font-bold">{formatPrice(product.price)}</span>
-                <span className="ml-2 text-gray-500 dark:text-gray-400">/ {product.weight}</span>
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold font-display">{product.name}</h1>
               </div>
+              
+              {selectedVariant && (
+                <div className="mt-4">
+                  <span className="text-2xl font-bold">{formatPrice(selectedVariant.price)}</span>
+                  <span className="ml-2 text-gray-500 dark:text-gray-400">/ {selectedVariant.weight}</span>
+                </div>
+              )}
 
               <p className="mt-6 text-gray-700 dark:text-gray-300">{product.description}</p>
 
               <div className="mt-8 space-y-6">
+                {/* Weight Selection */}
+                <div>
+                  <p className="font-medium mb-2">Size Options</p>
+                  <Select 
+                    value={selectedVariant?.weight} 
+                    onValueChange={handleWeightChange}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select weight" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {product.variants.map((variant) => (
+                        <SelectItem 
+                          key={variant.weight} 
+                          value={variant.weight}
+                          disabled={variant.stock === 0}
+                        >
+                          {variant.weight} - {formatPrice(variant.price)}
+                          {variant.stock === 0 && " (Out of Stock)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Stock Status */}
+                {isLowStock && !isOutOfStock && (
+                  <div>
+                    <p className="text-sm flex items-center text-amber-600 dark:text-amber-400">
+                      <AlertTriangle className="h-4 w-4 mr-1" />
+                      Only {selectedVariant.stock} left in stock
+                    </p>
+                  </div>
+                )}
+
+                {isOutOfStock && (
+                  <Alert variant="destructive" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      This size is currently out of stock. Please select a different size or check back later.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Quantity Selector */}
                 <div>
                   <p className="font-medium mb-2">Quantity</p>
                   <div className="flex items-center">
@@ -139,7 +235,7 @@ const ProductDetailPage = () => {
                       variant="outline" 
                       size="icon" 
                       onClick={decrementQuantity}
-                      disabled={quantity <= 1}
+                      disabled={quantity <= 1 || isOutOfStock}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -148,7 +244,10 @@ const ProductDetailPage = () => {
                       variant="outline" 
                       size="icon" 
                       onClick={incrementQuantity}
-                      disabled={quantity >= 10}
+                      disabled={
+                        isOutOfStock || 
+                        (selectedVariant && quantity >= Math.min(10, selectedVariant.stock))
+                      }
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -159,9 +258,10 @@ const ProductDetailPage = () => {
                   className="w-full bg-yooboba-gradient hover:opacity-90" 
                   size="lg"
                   onClick={handleAddToCart}
+                  disabled={isOutOfStock}
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to Cart
+                  {isOutOfStock ? "Out of Stock" : "Add to Cart"}
                 </Button>
               </div>
 
@@ -170,7 +270,7 @@ const ProductDetailPage = () => {
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Weight</p>
-                    <p className="font-medium">{product.weight}</p>
+                    <p className="font-medium">{selectedVariant?.weight || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Category</p>
@@ -214,8 +314,8 @@ const ProductDetailPage = () => {
                     <p>{product.details.flavor}</p>
                   </div>
                   <div>
-                    <h4 className="font-medium">Weight</h4>
-                    <p>{product.weight}</p>
+                    <h4 className="font-medium">Available Sizes</h4>
+                    <p>{product.variants.map(v => v.weight).join(", ")}</p>
                   </div>
                 </div>
               </TabsContent>

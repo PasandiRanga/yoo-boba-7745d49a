@@ -37,8 +37,9 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  console.log({ productId: product.product_id });
   return (
-    <Link to={`/products/${product.id}`}>
+    <Link to={`/products/${product.product_id}`}>
       <StyledCardWrapper className="bg-gradient-to-r from-[#5B6DF8] via-[#9B87F5] to-[#F870C5] rounded-lg dark:from-pink-900/40 dark:to-purple-900/40">
         <div className="card">
           <div className="card2">

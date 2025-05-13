@@ -22,6 +22,7 @@ const ProductsPage = () => {
       try {
         setIsLoading(true);
         const productsData = await fetchProducts();
+        console.log(productsData);
         setProducts(productsData);
       } catch (err) {
         console.error("Failed to fetch products:", err);
@@ -76,7 +77,7 @@ const ProductsPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.map((product, index) => (
                   <ScrollAnimation
-                    key={product.id}
+                    key={product.product_id}
                     animation="animate-zoom-in"
                     threshold={0.1}
                     delay={100 * index}
