@@ -38,7 +38,7 @@ const ProductsPage = () => {
   }, []);
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen={true} />;
+    return <LoadingSpinner />;
   }
 
   if (error) {

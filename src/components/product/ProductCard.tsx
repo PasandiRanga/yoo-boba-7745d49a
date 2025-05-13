@@ -1,17 +1,13 @@
-
 import { Link } from "react-router-dom";
 import { Product } from "@/models/ProductModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { ShoppingCart } from "lucide-react";
-import { useCart } from "@/context/CartContext";
-import { useCurrency } from "@/context/CurrencyContext";
-
+import { ArrowRight } from "lucide-react";
 import styled from "styled-components";
 
 // Styled gradient card wrapper
 const StyledCardWrapper = styled.div`
-.card {
+  .card {
     width: 100%;
     height: 100%;
     border-radius: 0.35rem;
@@ -36,29 +32,11 @@ const StyledCardWrapper = styled.div`
   }
 `;
 
-
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { addItem } = useCart();
-  const { formatPrice } = useCurrency();
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      image: product.imageUrls[0],
-      weight: product.weight
-    });
-  };
-
   return (
     <Link to={`/products/${product.id}`}>
       <StyledCardWrapper className="bg-gradient-to-r from-[#5B6DF8] via-[#9B87F5] to-[#F870C5] rounded-lg dark:from-pink-900/40 dark:to-purple-900/40">
@@ -79,30 +57,36 @@ const ProductCard = ({ product }: ProductCardProps) => {
                     {product.description}
                   </p>
                 </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="font-semibold">
-                    {formatPrice(product.price)}
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {product.weight}
-                    </span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {product.stock > 0 ? (
-                      <span className="text-green-600 dark:text-green-400">In Stock</span>
-                    ) : (
-                      <span className="text-red-600 dark:text-red-400">Out of Stock</span>
-                    )}
+                <div className="mt-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center">
+                      <span className="font-medium text-xs">Flavor:</span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {product.details.flavor}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-medium text-xs">Color:</span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {product.details.color}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-medium text-xs">Texture:</span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {product.details.texture}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="p-6 pt-0">
                 <Button
-                  onClick={handleAddToCart}
                   variant="default"
                   className="w-full bg-yooboba-gradient hover:opacity-90"
                 >
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Add to Cart
+                  View Details
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardFooter>
             </Card>
@@ -111,7 +95,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </StyledCardWrapper>
     </Link>
   );
-  
 };
 
 export default ProductCard;
