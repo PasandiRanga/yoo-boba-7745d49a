@@ -1,6 +1,6 @@
-
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, ReactNode, useState, useContext, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
+import { useCartStorage } from "@/hooks/useCartStorage";
 
 export interface CartItem {
   id: string;
@@ -24,7 +24,13 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { storedItems, storeItems } = useCartStorage();
+  const [items, setItems] = useState<CartItem[]>(storedItems);
+
+  // Save to localStorage whenever items change
+  useEffect(() => {
+    storeItems(items);
+  }, [items, storeItems]);
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => {
