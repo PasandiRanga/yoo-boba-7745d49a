@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from "react";
 
 type CurrencyType = "LKR" | "USD";
 
@@ -14,50 +14,71 @@ interface CurrencyContextType {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
-  const [currency, setCurrency] = useState<CurrencyType>("LKR");
-  const [exchangeRate, setExchangeRate] = useState<number>(320); // Default fallback rate 1 USD = 320 LKR
+  // Use localStorage to persist currency preference
+  const savedCurrency = typeof window !== 'undefined' ? 
+    (localStorage.getItem('currency') as CurrencyType || "LKR") : "LKR";
+  
+  const [currency, setCurrency] = useState<CurrencyType>(savedCurrency);
+  const [exchangeRate, setExchangeRate] = useState<number>(320); // Default fallback rate
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Use ref instead of state for tracking fetch status
   useEffect(() => {
-    // Fetch exchange rate when component mounts
+    let isMounted = true;
+    
+    const fetchExchangeRate = async () => {
+      if (isLoading) return; // Prevent duplicate requests
+      
+      try {
+        setIsLoading(true);
+        // Using ExchangeRate API to get real-time LKR to USD exchange rate
+        const response = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+        const data = await response.json();
+        
+        if (isMounted && data && data.rates && data.rates.LKR) {
+          setExchangeRate(data.rates.LKR);
+        }
+      } catch (error) {
+        console.error("Error fetching exchange rate:", error);
+        // Keep the fallback rate if fetch fails
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     fetchExchangeRate();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoading]); // Include isLoading in the dependency array
+
+  // Save currency preference to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currency', currency);
+    }
+  }, [currency]);
+
+  // Memoize toggleCurrency to maintain stable reference
+  const toggleCurrency = useCallback(() => {
+    setCurrency(prev => prev === "LKR" ? "USD" : "LKR");
   }, []);
 
-  const fetchExchangeRate = async () => {
-    try {
-      setIsLoading(true);
-      // Using ExchangeRate API to get real-time LKR to USD exchange rate
-      const response = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
-      const data = await response.json();
-      
-      if (data && data.rates && data.rates.LKR) {
-        setExchangeRate(data.rates.LKR);
-        console.log("Exchange rate fetched:", data.rates.LKR);
-      }
-    } catch (error) {
-      console.error("Error fetching exchange rate:", error);
-      // Keep the fallback rate if fetch fails
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const toggleCurrency = () => {
-    setCurrency(currency === "LKR" ? "USD" : "LKR");
-  };
-
-  // Convert price based on the selected currency
-  const convertPrice = (price: number): number => {
+  // Memoize convertPrice to maintain stable reference
+  const convertPrice = useCallback((price: number): number => {
     if (currency === "LKR") {
       return price;
     } else {
       return price / exchangeRate;
     }
-  };
+  }, [currency, exchangeRate]);
 
-  // Format price with the appropriate currency symbol
-  const formatPrice = (price: number): string => {
-    const convertedPrice = convertPrice(price);
+  // Memoize formatPrice to maintain stable reference
+  const formatPrice = useCallback((price: number): string => {
+    const convertedPrice = currency === "LKR" ? price : price / exchangeRate;
     
     if (currency === "LKR") {
       return new Intl.NumberFormat('si-LK', {
@@ -72,23 +93,26 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
         minimumFractionDigits: 2
       }).format(convertedPrice);
     }
-  };
+  }, [currency, exchangeRate]);
+
+  // Create a stable context value object with useMemo
+  const contextValue = useMemo(() => ({
+    currency,
+    exchangeRate,
+    toggleCurrency,
+    convertPrice,
+    formatPrice,
+    isLoading
+  }), [currency, exchangeRate, toggleCurrency, convertPrice, formatPrice, isLoading]);
 
   return (
-    <CurrencyContext.Provider
-      value={{
-        currency,
-        exchangeRate,
-        toggleCurrency,
-        convertPrice,
-        formatPrice,
-        isLoading
-      }}
-    >
+    <CurrencyContext.Provider value={contextValue}>
       {children}
     </CurrencyContext.Provider>
   );
 };
+
+// Rest of the export remains the same
 
 export const useCurrency = () => {
   const context = useContext(CurrencyContext);

@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useState, useContext, useEffect } from "react";
+import { createContext, ReactNode, useState, useContext, useEffect, useCallback, useMemo } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { useCartStorage } from "@/hooks/useCartStorage";
 
@@ -36,28 +36,24 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { storedItems, storeItems } = useCartStorage();
   const [items, setItems] = useState<CartItem[]>(storedItems);
-  const [selectedItems, setSelectedItems] = useState<SelectedItems>({});
-
-  // Initialize selected items when component mounts or items change
-  useEffect(() => {
+  const [selectedItems, setSelectedItems] = useState<SelectedItems>(() => {
+    // Initialize selected items state once when component mounts
     const initialSelectedState: SelectedItems = {};
-    items.forEach(item => {
-      // By default, all items are selected if they don't have a selection state yet
-      if (selectedItems[item.id] === undefined) {
-        initialSelectedState[item.id] = true;
-      } else {
-        initialSelectedState[item.id] = selectedItems[item.id];
-      }
+    storedItems.forEach(item => {
+      initialSelectedState[item.id] = true;
     });
-    setSelectedItems(initialSelectedState);
-  }, [items, selectedItems]);
+    return initialSelectedState;
+  });
 
   // Save to localStorage whenever items change
   useEffect(() => {
     storeItems(items);
   }, [items, storeItems]);
 
-  const addItem = (item: CartItem) => {
+  // This useEffect was causing the infinite loop - we'll handle selection differently
+  // Instead of using useEffect to manage selected items, we'll handle it in our item operations
+  
+  const addItem = useCallback((item: CartItem) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id);
       if (existingItem) {
@@ -84,9 +80,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       });
       return [...prevItems, item];
     });
-  };
+  }, []);
 
-  const removeItem = (id: string) => {
+  const removeItem = useCallback((id: string) => {
     setItems((prevItems) => {
       const itemToRemove = prevItems.find((i) => i.id === id);
       if (itemToRemove) {
@@ -104,83 +100,110 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       delete updated[id];
       return updated;
     });
-  };
+  }, []);
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id ? { ...item, quantity } : item
       )
     );
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
     setSelectedItems({});
     toast({
       title: "Cart cleared",
       description: "All items have been removed from your cart",
     });
-  };
+  }, []);
 
   // Toggle item selection
-  const toggleItemSelection = (id: string) => {
+  const toggleItemSelection = useCallback((id: string) => {
     setSelectedItems(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
-  };
+  }, []);
 
   // Toggle select all
-  const toggleSelectAll = (isSelected: boolean) => {
-    const newSelectedState: SelectedItems = {};
-    items.forEach(item => {
-      newSelectedState[item.id] = isSelected;
+  const toggleSelectAll = useCallback((isSelected: boolean) => {
+    setSelectedItems(prev => {
+      const newSelectedState = {...prev};
+      items.forEach(item => {
+        newSelectedState[item.id] = isSelected;
+      });
+      return newSelectedState;
     });
-    setSelectedItems(newSelectedState);
-  };
+  }, [items]);
 
   // Get only selected items
-  const getSelectedItems = (): CartItem[] => {
+  const getSelectedItems = useCallback((): CartItem[] => {
     return items.filter(item => selectedItems[item.id]);
-  };
+  }, [items, selectedItems]);
 
-  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+  // Calculate derived values with useMemo to prevent recalculations
+  const totalItems = useMemo(() => 
+    items.reduce((acc, item) => acc + item.quantity, 0), 
+    [items]
+  );
 
-  const subtotal = items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
+  const subtotal = useMemo(() => 
+    items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+    [items]
   );
 
   // Calculate selected items subtotal
-  const selectedSubtotal = items.reduce((total, item) => {
-    if (selectedItems[item.id]) {
-      return total + (item.price * item.quantity);
-    }
-    return total;
-  }, 0);
+  const selectedSubtotal = useMemo(() => 
+    items.reduce((total, item) => {
+      if (selectedItems[item.id]) {
+        return total + (item.price * item.quantity);
+      }
+      return total;
+    }, 0),
+    [items, selectedItems]
+  );
 
   // Count selected items
-  const selectedItemsCount = Object.values(selectedItems).filter(Boolean).length;
+  const selectedItemsCount = useMemo(() => 
+    Object.values(selectedItems).filter(Boolean).length,
+    [selectedItems]
+  );
+
+  // Create a stable context value
+  const contextValue = useMemo(() => ({
+    items,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    totalItems,
+    subtotal,
+    selectedItems,
+    toggleItemSelection,
+    toggleSelectAll,
+    selectedSubtotal,
+    getSelectedItems,
+    selectedItemsCount
+  }), [
+    items,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    totalItems,
+    subtotal,
+    selectedItems,
+    toggleItemSelection,
+    toggleSelectAll,
+    selectedSubtotal,
+    getSelectedItems,
+    selectedItemsCount
+  ]);
 
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        subtotal,
-        selectedItems,
-        toggleItemSelection,
-        toggleSelectAll,
-        selectedSubtotal,
-        getSelectedItems,
-        selectedItemsCount
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );
