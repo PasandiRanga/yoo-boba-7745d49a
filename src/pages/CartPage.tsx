@@ -4,10 +4,12 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Trash, Plus, Minus } from "lucide-react";
+import { ShoppingCart, Trash } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
+import React from 'react';
+import { IncrementController, DecrementController } from "@/components/ui/quantityController";
 
 // Styled Checkbox component with Yooboba gradient
 const CustomCheckbox = ({ checked, onChange, className = "" }) => {
@@ -141,15 +143,19 @@ const CartPage = () => {
   const { formatPrice } = useCurrency();
   const [selectedItems, setSelectedItems] = useState({});
   const [selectedSubtotal, setSelectedSubtotal] = useState(0);
+  const [quantityState, setQuantityState] = useState({});
 
   // Initialize selected items when cart items change
   useEffect(() => {
     const initialSelectedState = {};
+    const initialQuantityState = {};
     items.forEach(item => {
       // By default, all items are selected
       initialSelectedState[item.id] = true;
+      initialQuantityState[item.id] = false;
     });
     setSelectedItems(initialSelectedState);
+    setQuantityState(initialQuantityState);
   }, [items]);
 
   // Calculate selected items subtotal whenever selection or items change
@@ -182,6 +188,21 @@ const CartPage = () => {
       newSelectedState[item.id] = isSelected;
     });
     setSelectedItems(newSelectedState);
+  };
+
+  const handleQuantityFlip = (id, isIncrease) => {
+    const currentQuantity = items.find(item => item.id === id)?.quantity || 1;
+    const newQuantity = isIncrease ? currentQuantity + 1 : currentQuantity - 1;
+    
+    if (newQuantity >= 1 && newQuantity <= 10) {
+      updateQuantity(id, newQuantity);
+      
+      // Toggle the flip state
+      setQuantityState(prev => ({
+        ...prev,
+        [id]: !prev[id]
+      }));
+    }
   };
 
   // Check if all items are selected
@@ -271,17 +292,15 @@ const CartPage = () => {
                         Quantity:
                       </div>
                       <div className="flex items-center">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className={`h-8 w-8 border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 ${!selectedItems[item.id] ? 'opacity-50' : ''}`}
-                          onClick={() =>
-                            handleQuantityChange(item.id, item.quantity - 1)
-                          }
-                          disabled={item.quantity <= 1 || !selectedItems[item.id]}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
+                        {/* Decrement controller */}
+                        <div className={selectedItems[item.id] ? "" : "opacity-50"}>
+                          <DecrementController
+                            checked={quantityState[item.id] || false}
+                            onChange={() => selectedItems[item.id] && item.quantity > 1 && handleQuantityFlip(item.id, false)}
+                            disabled={!selectedItems[item.id] || item.quantity <= 1}
+                          />
+                        </div>
+                        
                         <Input
                           type="number"
                           min="1"
@@ -294,19 +313,17 @@ const CartPage = () => {
                             )
                           }
                           disabled={!selectedItems[item.id]}
-                          className={`h-8 w-12 mx-2 text-center p-0 bg-white dark:bg-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 ${!selectedItems[item.id] ? 'opacity-50' : ''}`}
+                          className={`size-15 h-8 w-12 mx-2 text-center p-0 bg-white dark:bg-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 ${!selectedItems[item.id] ? 'opacity-50' : ''}`}
                         />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className={`h-8 w-8 border-gray-300 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 ${!selectedItems[item.id] ? 'opacity-50' : ''}`}
-                          onClick={() =>
-                            handleQuantityChange(item.id, item.quantity + 1)
-                          }
-                          disabled={item.quantity >= 10 || !selectedItems[item.id]}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                        
+                        {/* Increment controller */}
+                        <div className={selectedItems[item.id] ? "" : "opacity-50"}>
+                          <IncrementController
+                            checked={!quantityState[item.id] || false}
+                            onChange={() => selectedItems[item.id] && item.quantity < 10 && handleQuantityFlip(item.id, true)}
+                            disabled={!selectedItems[item.id] || item.quantity >= 10}
+                          />
+                        </div>
                       </div>
                     </div>
 
