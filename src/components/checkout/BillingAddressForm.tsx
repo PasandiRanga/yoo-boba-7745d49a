@@ -18,6 +18,7 @@ const BillingAddressForm = ({
 }: BillingAddressFormProps) => {
   return (
     <div className="">
+      <h2 className="text-xl font-semibold mb-4">Billing Address</h2>
       <div className="flex items-center mb-4">
         <input
           type="checkbox"

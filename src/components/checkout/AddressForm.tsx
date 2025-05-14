@@ -19,7 +19,7 @@ const AddressForm = ({
   const prefix = idPrefix ? `${idPrefix}_` : "";
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+    <div className="">
       <h2 className="text-xl font-semibold mb-4">{title}</h2>
       <div className="space-y-4">
         <div>

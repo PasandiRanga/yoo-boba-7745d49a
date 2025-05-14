@@ -156,7 +156,6 @@ const CheckoutPage = () => {
 
               {/* Shipping Address */}
               <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
                 <AddressForm 
                   title="Shipping Address"
                   address={shippingAddress} 
@@ -166,7 +165,6 @@ const CheckoutPage = () => {
 
               {/* Billing Address */}
               <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 className="text-xl font-semibold mb-4">Billing Address</h2>
                 <BillingAddressForm 
                   sameAsBilling={sameAsBilling} 
                   setSameAsBilling={setSameAsBilling}
@@ -177,7 +175,6 @@ const CheckoutPage = () => {
 
               {/* Payment Information */}
               <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 className="text-xl font-semibold mb-4">Payment Information</h2>
                 <PaymentForm 
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}

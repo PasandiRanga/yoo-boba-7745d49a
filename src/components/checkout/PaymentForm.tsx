@@ -1,4 +1,3 @@
-
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
@@ -24,7 +23,7 @@ const PaymentForm = ({
   setCardCvc,
 }: PaymentFormProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+    <div className="">
       <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
       <div className="space-y-4">
         <div className="flex items-center mb-4">
@@ -39,7 +38,7 @@ const PaymentForm = ({
           />
           <Label htmlFor="credit_card">Credit Card</Label>
         </div>
-
+        
         {paymentMethod === "credit_card" && (
           <div className="space-y-4">
             <div>
@@ -76,18 +75,18 @@ const PaymentForm = ({
             </div>
           </div>
         )}
-
+        
         <div className="flex items-center">
           <input
             type="radio"
-            id="paypal"
+            id="cash_on_delivery"
             name="paymentMethod"
-            value="paypal"
-            checked={paymentMethod === "paypal"}
-            onChange={() => setPaymentMethod("paypal")}
+            value="cash_on_delivery"
+            checked={paymentMethod === "cash_on_delivery"}
+            onChange={() => setPaymentMethod("cash_on_delivery")}
             className="mr-2"
           />
-          <Label htmlFor="paypal">PayPal</Label>
+          <Label htmlFor="cash_on_delivery">Cash on Delivery</Label>
         </div>
       </div>
     </div>

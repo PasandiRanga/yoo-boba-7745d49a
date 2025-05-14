@@ -10,8 +10,7 @@ interface CustomerInfoFormProps {
 
 const CustomerInfoForm = ({ customer, handleCustomerChange }: CustomerInfoFormProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
+    <div className="">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="firstName">First Name *</Label>
