@@ -4,7 +4,7 @@ import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { createOrder, Customer, Address } from "@/models/OrderModel";
+import { createOrder } from "@/models/OrderModel";
 import { toast } from "@/components/ui/use-toast";
 
 // Import our components
@@ -53,9 +53,6 @@ const CheckoutPage = () => {
 
   // Payment information
   const [paymentMethod, setPaymentMethod] = useState("credit_card");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -102,17 +99,40 @@ const CheckoutPage = () => {
         paymentMethod
       );
 
-      // Simulate payment processing delay
-      setTimeout(() => {
-        // Clear the cart and show success message
-        clearCart();
+      if (paymentMethod === "credit_card") {
+        // Save order details to session/local storage for retrieval after payment
+        sessionStorage.setItem("pendingOrderId", order.id);
+        
+        // Redirect to payment portal
         toast({
-          title: "Order Placed!",
-          description: `Your order #${order.id} has been placed successfully.`,
+          title: "Redirecting to Payment Portal",
+          description: "Please complete your payment to finalize your order.",
         });
-        navigate("/"); // Navigate to home page after successful order
-        setLoading(false);
-      }, 2000);
+        
+        // Simulate redirect delay
+        setTimeout(() => {
+          navigate("/payment-portal", { 
+            state: { 
+              orderId: order.id,
+              amount: selectedSubtotal,
+              customerEmail: customer.email
+            } 
+          });
+          setLoading(false);
+        }, 1500);
+      } else {
+        // For Cash on Delivery, complete the order directly
+        // Simulate processing delay
+        setTimeout(() => {
+          clearCart();
+          toast({
+            title: "Order Placed!",
+            description: `Your order #${order.id} has been placed successfully.`,
+          });
+          navigate("/order-confirmation", { state: { orderId: order.id } });
+          setLoading(false);
+        }, 1500);
+      }
     } catch (error) {
       setLoading(false);
       toast({
@@ -178,12 +198,6 @@ const CheckoutPage = () => {
                 <PaymentForm 
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}
-                  cardNumber={cardNumber}
-                  setCardNumber={setCardNumber}
-                  cardExpiry={cardExpiry}
-                  setCardExpiry={setCardExpiry}
-                  cardCvc={cardCvc}
-                  setCardCvc={setCardCvc}
                 />
               </div>
 
@@ -199,7 +213,7 @@ const CheckoutPage = () => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? "Processing..." : "Place Order"}
+                {loading ? "Processing..." : paymentMethod === "credit_card" ? "Proceed to Payment" : "Place Order"}
               </Button>
             </form>
           </div>
