@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -7,63 +7,42 @@ import { Input } from "@/components/ui/input";
 import { ShoppingCart, Trash } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useState, useEffect } from "react";
-import React from 'react';
 import { IncrementController, DecrementController } from "@/components/ui/quantityController";
 import CustomCheckbox from "@/components/ui/customCheckBox";
 
 const CartPage = () => {
-  const { items, removeItem, updateQuantity, subtotal, clearCart } = useCart();
+  const { 
+    items, 
+    removeItem, 
+    updateQuantity, 
+    clearCart, 
+    selectedItems, 
+    toggleItemSelection, 
+    toggleSelectAll, 
+    selectedSubtotal,
+    selectedItemsCount 
+  } = useCart();
+  
   const { formatPrice } = useCurrency();
-  const [selectedItems, setSelectedItems] = useState({});
-  const [selectedSubtotal, setSelectedSubtotal] = useState(0);
-  const [quantityState, setQuantityState] = useState({});
+  const navigate = useNavigate();
+  const [quantityState, setQuantityState] = useState<Record<string, boolean>>({});
 
-  // Initialize selected items when cart items change
+  // Initialize quantity state when cart items change
   useEffect(() => {
-    const initialSelectedState = {};
-    const initialQuantityState = {};
+    const initialQuantityState: Record<string, boolean> = {};
     items.forEach(item => {
-      // By default, all items are selected
-      initialSelectedState[item.id] = true;
       initialQuantityState[item.id] = false;
     });
-    setSelectedItems(initialSelectedState);
     setQuantityState(initialQuantityState);
   }, [items]);
 
-  // Calculate selected items subtotal whenever selection or items change
-  useEffect(() => {
-    const newSubtotal = items.reduce((total, item) => {
-      if (selectedItems[item.id]) {
-        return total + (item.price * item.quantity);
-      }
-      return total;
-    }, 0);
-    setSelectedSubtotal(newSubtotal);
-  }, [selectedItems, items]);
-
-  const handleQuantityChange = (id, newQty) => {
+  const handleQuantityChange = (id: string, newQty: number) => {
     if (newQty >= 1 && newQty <= 10) {
       updateQuantity(id, newQty);
     }
   };
 
-  const toggleItemSelection = (id) => {
-    setSelectedItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
-  const toggleSelectAll = (isSelected) => {
-    const newSelectedState = {};
-    items.forEach(item => {
-      newSelectedState[item.id] = isSelected;
-    });
-    setSelectedItems(newSelectedState);
-  };
-
-  const handleQuantityFlip = (id, isIncrease) => {
+  const handleQuantityFlip = (id: string, isIncrease: boolean) => {
     const currentQuantity = items.find(item => item.id === id)?.quantity || 1;
     const newQuantity = isIncrease ? currentQuantity + 1 : currentQuantity - 1;
     
@@ -85,8 +64,14 @@ const CartPage = () => {
   const tax = selectedSubtotal * 0.08; // 8% tax
   const total = selectedSubtotal + tax;
 
-  // Count selected items
-  const selectedItemsCount = Object.values(selectedItems).filter(Boolean).length;
+  // Handle proceed to checkout - only proceed if there are selected items
+  const handleProceedToCheckout = (e: React.MouseEvent) => {
+    if (selectedItemsCount === 0) {
+      e.preventDefault();
+    } else {
+      navigate("/checkout");
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
@@ -271,13 +256,11 @@ const CartPage = () => {
                 </div>
                 
                 <Button 
-                  asChild 
                   className={`w-full mt-6 ${selectedItemsCount > 0 ? 'bg-yooboba-gradient hover:opacity-90 dark:shadow-glow-sm' : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'} transition-all duration-300`}
                   disabled={selectedItemsCount === 0}
+                  onClick={handleProceedToCheckout}
                 >
-                  <Link to={selectedItemsCount > 0 ? "/checkout" : "#"} onClick={(e) => selectedItemsCount === 0 && e.preventDefault()}>
-                    Proceed to Checkout {selectedItemsCount > 0 && `(${selectedItemsCount} ${selectedItemsCount === 1 ? 'item' : 'items'})`}
-                  </Link>
+                  Proceed to Checkout {selectedItemsCount > 0 && `(${selectedItemsCount} ${selectedItemsCount === 1 ? 'item' : 'items'})`}
                 </Button>
                 
                 <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">

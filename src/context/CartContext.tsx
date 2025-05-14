@@ -11,6 +11,10 @@ export interface CartItem {
   weight?: string;
 }
 
+interface SelectedItems {
+  [key: string]: boolean;
+}
+
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
@@ -19,6 +23,12 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
+  selectedItems: SelectedItems;
+  toggleItemSelection: (id: string) => void;
+  toggleSelectAll: (isSelected: boolean) => void;
+  selectedSubtotal: number;
+  getSelectedItems: () => CartItem[];
+  selectedItemsCount: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -26,6 +36,21 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { storedItems, storeItems } = useCartStorage();
   const [items, setItems] = useState<CartItem[]>(storedItems);
+  const [selectedItems, setSelectedItems] = useState<SelectedItems>({});
+
+  // Initialize selected items when component mounts or items change
+  useEffect(() => {
+    const initialSelectedState: SelectedItems = {};
+    items.forEach(item => {
+      // By default, all items are selected if they don't have a selection state yet
+      if (selectedItems[item.id] === undefined) {
+        initialSelectedState[item.id] = true;
+      } else {
+        initialSelectedState[item.id] = selectedItems[item.id];
+      }
+    });
+    setSelectedItems(initialSelectedState);
+  }, [items, selectedItems]);
 
   // Save to localStorage whenever items change
   useEffect(() => {
@@ -46,6 +71,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             : i
         );
       }
+      
+      // Mark new item as selected by default
+      setSelectedItems(prev => ({
+        ...prev,
+        [item.id]: true
+      }));
+      
       toast({
         title: "Item added to cart",
         description: `${item.name} has been added to your cart`,
@@ -65,6 +97,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return prevItems.filter((item) => item.id !== id);
     });
+    
+    // Also remove from selected items
+    setSelectedItems(prev => {
+      const updated = {...prev};
+      delete updated[id];
+      return updated;
+    });
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -77,10 +116,33 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     setItems([]);
+    setSelectedItems({});
     toast({
       title: "Cart cleared",
       description: "All items have been removed from your cart",
     });
+  };
+
+  // Toggle item selection
+  const toggleItemSelection = (id: string) => {
+    setSelectedItems(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  // Toggle select all
+  const toggleSelectAll = (isSelected: boolean) => {
+    const newSelectedState: SelectedItems = {};
+    items.forEach(item => {
+      newSelectedState[item.id] = isSelected;
+    });
+    setSelectedItems(newSelectedState);
+  };
+
+  // Get only selected items
+  const getSelectedItems = (): CartItem[] => {
+    return items.filter(item => selectedItems[item.id]);
   };
 
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
@@ -89,6 +151,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     (acc, item) => acc + item.price * item.quantity,
     0
   );
+
+  // Calculate selected items subtotal
+  const selectedSubtotal = items.reduce((total, item) => {
+    if (selectedItems[item.id]) {
+      return total + (item.price * item.quantity);
+    }
+    return total;
+  }, 0);
+
+  // Count selected items
+  const selectedItemsCount = Object.values(selectedItems).filter(Boolean).length;
 
   return (
     <CartContext.Provider
@@ -100,6 +173,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         clearCart,
         totalItems,
         subtotal,
+        selectedItems,
+        toggleItemSelection,
+        toggleSelectAll,
+        selectedSubtotal,
+        getSelectedItems,
+        selectedItemsCount
       }}
     >
       {children}

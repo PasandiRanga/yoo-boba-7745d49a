@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { createOrder, Customer, Address } from "@/models/OrderModel";
 import { toast } from "@/components/ui/use-toast";
 
-// Import our new components
+// Import our components
 import CustomerInfoForm from "@/components/checkout/CustomerInfoForm";
 import AddressForm from "@/components/checkout/AddressForm";
 import PaymentForm from "@/components/checkout/PaymentForm";
@@ -17,12 +16,14 @@ import EmptyCart from "@/components/checkout/EmptyCart";
 import BillingAddressForm from "@/components/checkout/BillingAddressForm";
 
 const CheckoutPage = () => {
-  const { items, subtotal, clearCart } = useCart();
+  // Get selected items instead of all items
+  const { getSelectedItems, selectedSubtotal, clearCart } = useCart();
+  const selectedItems = getSelectedItems();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   // Shipping information
-  const [customer, setCustomer] = useState<Customer>({
+  const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -31,7 +32,7 @@ const CheckoutPage = () => {
   });
 
   // Address information
-  const [shippingAddress, setShippingAddress] = useState<Address>({
+  const [shippingAddress, setShippingAddress] = useState({
     street1: "",
     street2: "",
     city: "",
@@ -41,7 +42,7 @@ const CheckoutPage = () => {
   });
 
   const [sameAsBilling, setSameAsBilling] = useState(true);
-  const [billingAddress, setBillingAddress] = useState<Address>({
+  const [billingAddress, setBillingAddress] = useState({
     street1: "",
     street2: "",
     city: "",
@@ -57,13 +58,13 @@ const CheckoutPage = () => {
   const [cardCvc, setCardCvc] = useState("");
 
   // Handle input changes for customer info
-  const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomerChange = (e) => {
     const { name, value } = e.target;
     setCustomer((prev) => ({ ...prev, [name]: value }));
   };
 
   // Handle input changes for shipping address
-  const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleShippingChange = (e) => {
     const { name, value } = e.target;
     setShippingAddress((prev) => ({ ...prev, [name]: value }));
     if (sameAsBilling) {
@@ -72,18 +73,18 @@ const CheckoutPage = () => {
   };
 
   // Handle input changes for billing address
-  const handleBillingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBillingChange = (e) => {
     const { name, value } = e.target;
     setBillingAddress((prev) => ({ ...prev, [name]: value }));
   };
 
   // Process the order
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Convert cart items to order items
-    const orderItems = items.map((item) => ({
+    // Convert selected cart items to order items
+    const orderItems = selectedItems.map((item) => ({
       productId: item.id,
       name: item.name,
       price: item.price,
@@ -122,8 +123,8 @@ const CheckoutPage = () => {
     }
   };
 
-  // Redirect to cart if cart is empty
-  if (items.length === 0) {
+  // Redirect to cart if there are no selected items
+  if (selectedItems.length === 0) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -189,9 +190,9 @@ const CheckoutPage = () => {
             </form>
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary - using selected items */}
           <div className="lg:col-span-1">
-            <OrderSummary items={items} subtotal={subtotal} />
+            <OrderSummary items={selectedItems} subtotal={selectedSubtotal} />
           </div>
         </div>
       </main>
