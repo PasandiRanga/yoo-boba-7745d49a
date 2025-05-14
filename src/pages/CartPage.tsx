@@ -188,9 +188,8 @@ const CartPage = () => {
   const areAllItemsSelected = items.length > 0 && items.every(item => selectedItems[item.id]);
 
   // Calculate order summary based on selected items
-  const shipping = selectedSubtotal > 100 ? 0 : 15;
   const tax = selectedSubtotal * 0.08; // 8% tax
-  const total = selectedSubtotal + shipping + tax;
+  const total = selectedSubtotal + tax;
 
   // Count selected items
   const selectedItemsCount = Object.values(selectedItems).filter(Boolean).length;
@@ -371,16 +370,6 @@ const CartPage = () => {
                     <span>{formatPrice(selectedSubtotal)}</span>
                   </div>
                   <div className="flex justify-between text-gray-900 dark:text-gray-300">
-                    <span>Shipping</span>
-                    <span>
-                      {shipping === 0 ? (
-                        <span className="text-green-600 dark:text-green-400">Free</span>
-                      ) : (
-                        formatPrice(shipping)
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-gray-900 dark:text-gray-300">
                     <span>Tax (8%)</span>
                     <span>{formatPrice(tax)}</span>
                   </div>
@@ -402,8 +391,8 @@ const CartPage = () => {
                 </Button>
                 
                 <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-                  <p>Free shipping on orders over {formatPrice(100)}</p>
-                  <p>Taxes calculated at checkout</p>
+                  <p>Shipping will be calculated during checkout</p>
+                  <p>Taxes are estimated and will be finalized at checkout</p>
                 </div>
               </div>
             </div>
