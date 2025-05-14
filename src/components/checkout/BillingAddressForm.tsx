@@ -17,7 +17,7 @@ const BillingAddressForm = ({
   handleBillingChange,
 }: BillingAddressFormProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+    <div className="">
       <div className="flex items-center mb-4">
         <input
           type="checkbox"

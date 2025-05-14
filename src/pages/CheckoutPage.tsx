@@ -146,37 +146,54 @@ const CheckoutPage = () => {
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmitOrder}>
               {/* Customer Information */}
-              <CustomerInfoForm 
-                customer={customer} 
-                handleCustomerChange={handleCustomerChange} 
-              />
+              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
+                <CustomerInfoForm 
+                  customer={customer} 
+                  handleCustomerChange={handleCustomerChange} 
+                />
+              </div>
 
               {/* Shipping Address */}
-              <AddressForm 
-                title="Shipping Address" 
-                address={shippingAddress} 
-                handleAddressChange={handleShippingChange} 
-              />
+              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
+                <AddressForm 
+                  title="Shipping Address"
+                  address={shippingAddress} 
+                  handleAddressChange={handleShippingChange} 
+                />
+              </div>
 
               {/* Billing Address */}
-              <BillingAddressForm 
-                sameAsBilling={sameAsBilling} 
-                setSameAsBilling={setSameAsBilling}
-                billingAddress={billingAddress}
-                handleBillingChange={handleBillingChange}
-              />
+              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <h2 className="text-xl font-semibold mb-4">Billing Address</h2>
+                <BillingAddressForm 
+                  sameAsBilling={sameAsBilling} 
+                  setSameAsBilling={setSameAsBilling}
+                  billingAddress={billingAddress}
+                  handleBillingChange={handleBillingChange}
+                />
+              </div>
 
               {/* Payment Information */}
-              <PaymentForm 
-                paymentMethod={paymentMethod}
-                setPaymentMethod={setPaymentMethod}
-                cardNumber={cardNumber}
-                setCardNumber={setCardNumber}
-                cardExpiry={cardExpiry}
-                setCardExpiry={setCardExpiry}
-                cardCvc={cardCvc}
-                setCardCvc={setCardCvc}
-              />
+              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <h2 className="text-xl font-semibold mb-4">Payment Information</h2>
+                <PaymentForm 
+                  paymentMethod={paymentMethod}
+                  setPaymentMethod={setPaymentMethod}
+                  cardNumber={cardNumber}
+                  setCardNumber={setCardNumber}
+                  cardExpiry={cardExpiry}
+                  setCardExpiry={setCardExpiry}
+                  cardCvc={cardCvc}
+                  setCardCvc={setCardCvc}
+                />
+              </div>
+
+              {/* Order Summary for Mobile Only */}
+              <div className="mb-8 lg:hidden">
+                <OrderSummary items={selectedItems} subtotal={selectedSubtotal} />
+              </div>
 
               {/* Submit Button */}
               <Button
@@ -190,8 +207,8 @@ const CheckoutPage = () => {
             </form>
           </div>
 
-          {/* Order Summary - using selected items */}
-          <div className="lg:col-span-1">
+          {/* Order Summary for Desktop Only */}
+          <div className="lg:col-span-1 hidden lg:block">
             <OrderSummary items={selectedItems} subtotal={selectedSubtotal} />
           </div>
         </div>
