@@ -26,4 +26,5 @@ export interface Product {
   details: ProductDetails;
   isActive: boolean;
   variants: ProductVariant[];
+  fatured: boolean;
 }

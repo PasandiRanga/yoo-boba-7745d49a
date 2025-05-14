@@ -88,7 +88,7 @@ const FeaturedProducts = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredProducts.map((product, index) => (
               <ScrollAnimation
-                key={product.id}
+                key={product.product_id}
                 animation="animate-zoom-in"
                 threshold={0.1}
                 delay={200 * index}

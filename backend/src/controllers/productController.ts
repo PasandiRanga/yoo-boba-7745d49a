@@ -77,10 +77,10 @@ export const getProductById = async (req: Request, res: Response) => {
 export const getFeaturedProducts = async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`
-      SELECT product_id, name, description, images as "imageUrls", attributes as "details"
+      SELECT product_id, name, description, images as "imageUrls",
+            attributes as "details"
       FROM products
-      WHERE featured = True
-      LIMIT 6
+      WHERE featured = true
     `);
     res.json(rows);
   } catch (error) {
