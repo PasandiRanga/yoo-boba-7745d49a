@@ -13,10 +13,10 @@ if (!PAYHERE_MERCHANT_SECRET) {
 }
 const PAYHERE_RETURN_URL = process.env.NODE_ENV === 'production' 
   ? 'https://your-production-domain.com/payment-success'
-  : 'http://localhost:3000/payment-success';
+  : 'http://localhost:8080/receipt';
 const PAYHERE_CANCEL_URL = process.env.NODE_ENV === 'production'
   ? 'https://your-production-domain.com/payment-canceled'
-  : 'http://localhost:3000/payment-canceled';
+  : 'http://localhost:8080/payment-canceled';
 const PAYHERE_NOTIFY_URL = process.env.NODE_ENV === 'production'
   ? 'https://your-production-domain.com/api/payments/notify'
   : 'https://your-ngrok-url.ngrok.io/api/payments/notify'; // You'll need ngrok for local testing

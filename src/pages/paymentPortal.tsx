@@ -1,5 +1,3 @@
-// File: src/pages/PaymentPortal.tsx
-
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -14,7 +12,35 @@ const PaymentPortal = () => {
   // Extract data from location state
   const { orderId, amount, customer, shippingAddress, billingAddress, items } = location.state || {};
   
+  // Check if we're receiving a callback from PayHere
   useEffect(() => {
+    // Check for PayHere callback parameters in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('status_code');
+    
+    // If we have payment status, it means we're receiving a callback from PayHere
+    if (paymentStatus) {
+      const paymentData = {
+        merchant_id: urlParams.get('merchant_id'),
+        order_id: urlParams.get('order_id'),
+        payment_id: urlParams.get('payment_id'),
+        payhere_amount: urlParams.get('payhere_amount'),
+        payhere_currency: urlParams.get('payhere_currency'),
+        status_code: paymentStatus,
+        method: urlParams.get('method'),
+        status_message: urlParams.get('status_message'),
+        customer: customer || {},
+        items: items || [],
+        shipping_address: shippingAddress || {},
+        timestamp: new Date().toISOString()
+      };
+
+      // Redirect to the receipt page with payment data
+      navigate('/receipt', { state: paymentData });
+      return;
+    }
+    
+    // Continue with normal flow if not a callback
     // Validate if we have the necessary data
     if (!orderId || !amount) {
       setError("Missing order information. Please try again.");
@@ -50,7 +76,7 @@ const PaymentPortal = () => {
     };
     
     processPayment();
-  }, [orderId, amount, customer, shippingAddress, billingAddress, items]);
+  }, [orderId, amount, customer, shippingAddress, billingAddress, items, navigate]);
   
   // Function to submit form to PayHere
   const submitToPayHere = (paymentData) => {

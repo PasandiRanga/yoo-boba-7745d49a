@@ -22,6 +22,7 @@ import ContactPage from "@/pages/ContactPage";
 import BYOBPage from "@/pages/BYOBPage";
 import NotFound from "@/pages/NotFound";
 import PaymentPortal from "@/pages/paymentPortal";
+import OrderReceipt from "@/components/checkout/orderReceipt"; // Import the new receipt page
 
 
 // Create a new QueryClient instance inside the component to ensure proper React context
@@ -56,6 +57,7 @@ const App = () => {
                       <Route path="/byob" element={<BYOBPage />} />
                       <Route path="/signup" element={<SignUp />} />
                       <Route path="/payment-portal" element={<PaymentPortal />} />
+                      <Route path="/receipt" element={<OrderReceipt />} />  {/* Add the receipt route */}
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>

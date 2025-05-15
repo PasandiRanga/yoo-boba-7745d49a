@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { Download, Check, ArrowLeft } from "lucide-react";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
@@ -11,30 +10,82 @@ import jsPDF from "jspdf";
 const OrderReceipt = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const receiptRef = useRef(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [orderData, setOrderData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Extract payment response data from location state
-  const { 
-    merchant_id, 
-    order_id, 
-    payment_id,
-    payhere_amount,
-    payhere_currency,
-    status_code,
-    method,
-    status_message,
-    customer,
-    items,
-    shipping_address,
-    timestamp
-  } = location.state || {};
+  useEffect(() => {
+    // First check if data is in location state (direct navigation)
+    if (location.state && location.state.order_id) {
+      setOrderData(location.state);
+      setLoading(false);
+      return;
+    }
+    
+    // Otherwise, get order_id from URL params
+    const orderId = searchParams.get('order_id');
+    
+    if (orderId) {
+      // Fetch order details from your API
+      fetchOrderDetails(orderId);
+    } else {
+      setError("No order information available");
+      setLoading(false);
+    }
+  }, [location, searchParams]);
   
-  // Calculate order summary
-  const subtotal = items?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0;
-  const shipping = 5.00; // Example shipping cost
-  const tax = subtotal * 0.12; // Example tax rate (12%)
-  const total = subtotal + shipping + tax;
+  const fetchOrderDetails = async (orderId) => {
+    try {
+      setLoading(true);
+      
+      // Call your backend API to get order details
+      const response = await fetch(`/api/orders/${orderId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching order: ${response.statusText}`);
+      }
+      
+      const orderDetails = await response.json();
+      
+      if (orderDetails) {
+        // Transform the API response to match your component's expected data structure
+        setOrderData({
+          merchant_id: orderDetails.merchant_id || "MERCHANT_ID",
+          order_id: orderId,
+          payment_id: orderDetails.payment_reference || orderDetails.payment_id,
+          payhere_amount: orderDetails.total_amount,
+          payhere_currency: orderDetails.currency || "LKR",
+          status_code: orderDetails.status === "PAID" ? "2" : "0", 
+          method: orderDetails.payment_method || "Credit Card",
+          status_message: orderDetails.status || "Completed",
+          customer: {
+            first_name: orderDetails.customer?.first_name,
+            last_name: orderDetails.customer?.last_name,
+            email: orderDetails.customer?.email,
+            phone: orderDetails.customer?.phone
+          },
+          items: orderDetails.items?.map(item => ({
+            name: item.name || item.product_name,
+            variant: item.variant,
+            quantity: item.quantity,
+            price: item.price
+          })) || [],
+          shipping_address: orderDetails.shipping_address,
+          timestamp: orderDetails.created_at || new Date().toISOString()
+        });
+      } else {
+        setError("Failed to load order details");
+      }
+    } catch (err) {
+      console.error("Error fetching order details:", err);
+      setError("Failed to load order details. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Format date from timestamp
   const formatDate = (timestamp) => {
@@ -73,7 +124,7 @@ const OrderReceipt = () => {
       const imgHeight = canvas.height * imgWidth / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save(`YooBoba_Order_${order_id}.pdf`);
+      pdf.save(`YooBoba_Order_${orderData?.order_id}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
@@ -81,14 +132,48 @@ const OrderReceipt = () => {
     }
   };
   
-  // If no order data is available, show an error and redirect option
-  if (!order_id || status_code !== "2") {
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 max-w-md w-full text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yooboba-purple mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Loading order details...</h2>
+        </div>
+      </div>
+    );
+  }
+  
+  // Extract payment response data 
+  const { 
+    merchant_id, 
+    order_id, 
+    payment_id,
+    payhere_amount,
+    payhere_currency,
+    status_code,
+    method,
+    status_message,
+    customer,
+    items,
+    shipping_address,
+    timestamp
+  } = orderData || {};
+  
+  // Calculate order summary
+  const subtotal = items?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0;
+  const shipping = 5.00; // Example shipping cost
+  const tax = subtotal * 0.12; // Example tax rate (12%)
+  const total = subtotal + shipping + tax;
+  
+  // If error or no order data available, show an error and redirect option
+  if (error || !order_id || (status_code !== "2" && status_code !== "PAID")) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 max-w-md w-full">
           <h1 className="text-2xl font-semibold text-red-600 dark:text-red-400 mb-4">Receipt Not Available</h1>
           <p className="text-gray-700 dark:text-gray-300 mb-6">
-            We couldn't find your order information or the payment was not successful.
+            {error || "We couldn't find your order information or the payment was not successful."}
           </p>
           <Button 
             onClick={() => navigate("/")}
