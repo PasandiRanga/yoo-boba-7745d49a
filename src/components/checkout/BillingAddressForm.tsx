@@ -1,12 +1,12 @@
 
-import { Address } from "@/models/OrderModel";
+import { AddressInfo } from "@/models/OrderModel";
 import { Label } from "@/components/ui/label";
 import AddressForm from "./AddressForm";
 
 interface BillingAddressFormProps {
   sameAsBilling: boolean;
   setSameAsBilling: (value: boolean) => void;
-  billingAddress: Address;
+  billingAddress: AddressInfo;
   handleBillingChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
