@@ -21,7 +21,7 @@ import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import BYOBPage from "@/pages/BYOBPage";
 import NotFound from "@/pages/NotFound";
-import PaymentPortal from "@/pages/paymentPage";
+import PaymentPortal from "@/pages/paymentPortal";
 
 
 // Create a new QueryClient instance inside the component to ensure proper React context

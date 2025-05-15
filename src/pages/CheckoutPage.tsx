@@ -1,3 +1,4 @@
+// File: src/pages/CheckoutPage.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -38,7 +39,7 @@ const CheckoutPage = () => {
     city: "",
     state: "",
     zipCode: "",
-    country: "United States",
+    country: "Sri Lanka", // Changed default to Sri Lanka
   });
 
   const [sameAsBilling, setSameAsBilling] = useState(true);
@@ -48,11 +49,11 @@ const CheckoutPage = () => {
     city: "",
     state: "",
     zipCode: "",
-    country: "United States",
+    country: "Sri Lanka", // Changed default to Sri Lanka
   });
 
   // Payment information
-  const [paymentMethod, setPaymentMethod] = useState("credit_card");
+  const [paymentMethod, setPaymentMethod] = useState("payhere"); // Default to PayHere
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -75,9 +76,50 @@ const CheckoutPage = () => {
     setBillingAddress((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Validate the form
+  const validateForm = () => {
+    // Check customer details
+    if (!customer.firstName || !customer.lastName || !customer.email || !customer.phone) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide all required customer information.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check shipping address
+    if (!shippingAddress.street1 || !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipCode) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide a complete shipping address.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check billing address if different from shipping
+    if (!sameAsBilling && (!billingAddress.street1 || !billingAddress.city || !billingAddress.state || !billingAddress.zipCode)) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide a complete billing address.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   // Process the order
   const handleSubmitOrder = (e) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
 
     // Convert selected cart items to order items
@@ -90,7 +132,7 @@ const CheckoutPage = () => {
 
     // Create a new order
     try {
-      // Simulate API call to create order
+      // Create order
       const order = createOrder(
         customer,
         shippingAddress,
@@ -99,39 +141,51 @@ const CheckoutPage = () => {
         paymentMethod
       );
 
-      if (paymentMethod === "credit_card") {
-        // Save order details to session/local storage for retrieval after payment
-        sessionStorage.setItem("pendingOrderId", order.id);
-        
-        // Redirect to payment portal
+      if (paymentMethod === "payhere") {
+        // Redirect to payment portal with order details
         toast({
           title: "Redirecting to Payment Portal",
           description: "Please complete your payment to finalize your order.",
         });
         
-        // Simulate redirect delay
-        setTimeout(() => {
-          navigate("/payment-portal", { 
-            state: { 
-              orderId: order.id,
-              amount: selectedSubtotal,
-              customerEmail: customer.email
-            } 
-          });
-          setLoading(false);
-        }, 1500);
+        // Redirect to payment portal
+        navigate("/payment-portal", { 
+          state: { 
+            orderId: order.id,
+            amount: selectedSubtotal,
+            customerEmail: customer.email,
+            customer: customer,
+            shippingAddress: shippingAddress,
+            billingAddress: sameAsBilling ? shippingAddress : billingAddress,
+            items: orderItems
+          } 
+        });
+      } else if (paymentMethod === "bank_transfer") {
+        // Handle bank transfer
+        clearCart();
+        toast({
+          title: "Order Placed!",
+          description: `Your order #${order.id} has been placed. Please complete the bank transfer to finalize your order.`,
+        });
+        navigate("/order-confirmation", { 
+          state: { 
+            orderId: order.id,
+            paymentMethod: "bank_transfer" 
+          } 
+        });
       } else {
         // For Cash on Delivery, complete the order directly
-        // Simulate processing delay
-        setTimeout(() => {
-          clearCart();
-          toast({
-            title: "Order Placed!",
-            description: `Your order #${order.id} has been placed successfully.`,
-          });
-          navigate("/order-confirmation", { state: { orderId: order.id } });
-          setLoading(false);
-        }, 1500);
+        clearCart();
+        toast({
+          title: "Order Placed!",
+          description: `Your order #${order.id} has been placed successfully.`,
+        });
+        navigate("/order-confirmation", { 
+          state: { 
+            orderId: order.id,
+            paymentMethod: "cash_on_delivery" 
+          } 
+        });
       }
     } catch (error) {
       setLoading(false);
@@ -140,6 +194,8 @@ const CheckoutPage = () => {
         description: "There was an error processing your order. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -213,7 +269,10 @@ const CheckoutPage = () => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? "Processing..." : paymentMethod === "credit_card" ? "Proceed to Payment" : "Place Order"}
+                {loading ? "Processing..." : 
+                  paymentMethod === "payhere" ? "Proceed to Payment" : 
+                  paymentMethod === "bank_transfer" ? "Place Order & Pay via Bank Transfer" :
+                  "Place Order (Pay on Delivery)"}
               </Button>
             </form>
           </div>

@@ -1,5 +1,8 @@
+// src/models/OrderModel.ts - Updated to work with payment integration
+import { v4 as uuidv4 } from 'uuid';
 
-export interface Customer {
+// Types
+export interface CustomerInfo {
   firstName: string;
   lastName: string;
   email: string;
@@ -7,7 +10,7 @@ export interface Customer {
   company?: string;
 }
 
-export interface Address {
+export interface AddressInfo {
   street1: string;
   street2?: string;
   city: string;
@@ -23,52 +26,117 @@ export interface OrderItem {
   quantity: number;
 }
 
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
 export interface Order {
   id: string;
-  customer: Customer;
-  shippingAddress: Address;
-  billingAddress: Address;
+  customer: CustomerInfo;
+  shippingAddress: AddressInfo;
+  billingAddress: AddressInfo;
   items: OrderItem[];
-  subtotal: number;
-  tax: number;
-  shipping: number;
   total: number;
-  status: OrderStatus;
+  status: string;
   paymentMethod: string;
-  paymentStatus: 'pending' | 'paid' | 'failed';
-  createdAt: string;
-  updatedAt: string;
+  paymentStatus: string;
+  createdAt: Date;
 }
 
-// Mock function to simulate order creation
+// Store orders in memory while in development
+// In production, these would be stored in a database
+const orders: Order[] = [];
+
+// Create a new order
 export const createOrder = (
-  customer: Customer, 
-  shippingAddress: Address,
-  billingAddress: Address,
+  customer: CustomerInfo,
+  shippingAddress: AddressInfo,
+  billingAddress: AddressInfo,
   items: OrderItem[],
   paymentMethod: string
 ): Order => {
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.08; // 8% tax
-  const shipping = subtotal > 100 ? 0 : 15; // Free shipping over $100
-  const total = subtotal + tax + shipping;
-  
-  return {
-    id: `ORD-${Date.now()}`,
+  // Calculate order total
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  // Create order object
+  const order: Order = {
+    id: uuidv4(),
     customer,
     shippingAddress,
     billingAddress,
     items,
-    subtotal,
-    tax,
-    shipping,
     total,
-    status: 'pending',
+    status: "pending",
     paymentMethod,
-    paymentStatus: 'pending',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    paymentStatus: "pending",
+    createdAt: new Date(),
   };
+
+  // Store order in memory
+  orders.push(order);
+
+  // Also store in localStorage for persistence during development
+  saveOrdersToLocalStorage();
+
+  return order;
 };
+
+// Get order by ID
+export const getOrderById = (id: string): Order | undefined => {
+  loadOrdersFromLocalStorage();
+  return orders.find((order) => order.id === id);
+};
+
+// Get orders for a customer
+export const getOrdersByCustomerEmail = (email: string): Order[] => {
+  loadOrdersFromLocalStorage();
+  return orders.filter((order) => order.customer.email === email);
+};
+
+// Update order payment status
+export const updateOrderPaymentStatus = (
+  orderId: string,
+  paymentStatus: string
+): Order | undefined => {
+  const orderIndex = orders.findIndex((order) => order.id === orderId);
+  if (orderIndex === -1) return undefined;
+
+  orders[orderIndex].paymentStatus = paymentStatus;
+  
+  // Update order status based on payment status
+  if (paymentStatus === "completed") {
+    orders[orderIndex].status = "processing";
+  } else if (paymentStatus === "failed") {
+    orders[orderIndex].status = "payment_failed";
+  }
+
+  saveOrdersToLocalStorage();
+  return orders[orderIndex];
+};
+
+// Helper functions for local storage persistence
+const saveOrdersToLocalStorage = () => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("orders", JSON.stringify(orders));
+  }
+};
+
+const loadOrdersFromLocalStorage = () => {
+  if (typeof window !== "undefined") {
+    const storedOrders = localStorage.getItem("orders");
+    if (storedOrders) {
+      // Clear current orders array
+      orders.length = 0;
+      // Push all stored orders
+      const parsedOrders = JSON.parse(storedOrders);
+      parsedOrders.forEach((order: Order) => {
+        orders.push({
+          ...order,
+          createdAt: new Date(order.createdAt)
+        });
+      });
+    }
+  }
+};
+
+// Initialize by loading orders from localStorage
+loadOrdersFromLocalStorage();
