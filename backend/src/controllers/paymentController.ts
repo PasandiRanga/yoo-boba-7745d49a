@@ -19,8 +19,7 @@ const PAYHERE_CANCEL_URL = process.env.NODE_ENV === 'production'
   : 'http://localhost:8080/payment-canceled';
 const PAYHERE_NOTIFY_URL = process.env.NODE_ENV === 'production'
   ? 'https://your-production-domain.com/api/payments/notify'
-  : 'https://your-ngrok-url.ngrok.io/api/payments/notify'; // You'll need ngrok for local testing
-
+  : 'http://localhost:8080/notify'; 
 // Initialize payment with PayHere
 export const initializePayment = async (req: Request, res: Response) => {
   try {
