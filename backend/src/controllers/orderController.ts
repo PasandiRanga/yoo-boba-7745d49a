@@ -19,33 +19,55 @@ export const getOrderById = async (req: Request, res: Response) => {
   const { id } = req.params;
   
   try {
-    // Fetch the order details
-    const orderQuery = `
-      SELECT * FROM orders
-      WHERE order_id = $1
-    `;
+    const { rows } = await pool.query(`
+      SELECT 
+        o.order_id,
+        o.customer_id,
+        o.total_amount,
+        o.status,
+        o.shipping_address,
+        o.billing_address,
+        o.payment_method,
+        o.payment_reference,
+        o.created_at,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', oi.id,
+              'order_id', oi.order_id,
+              'product_id', oi.product_id,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'product', json_build_object(
+                'product_id', p.product_id,
+                'name', p.name,
+                'description', p.description,
+                'images', p.images,
+                'attributes', p.attributes,
+                'featured', p.featured
+              )
+            )
+          )
+          FROM order_items oi
+          LEFT JOIN products p ON oi.product_id = p.product_id
+          WHERE oi.order_id = o.order_id
+        ) AS items
+      FROM 
+        orders o
+      WHERE 
+        o.order_id = $1
+    `, [id]);
     
-    const orderResult = await pool.query(orderQuery, [id]);
-    
-    if (orderResult.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ message: 'Order not found' });
     }
     
-    // Fetch order items
-    const itemsQuery = `
-      SELECT * FROM order_items
-      WHERE order_id = $1
-    `;
+    // Handle case where order has no items (null items array)
+    if (rows[0].items === null) {
+      rows[0].items = [];
+    }
     
-    const itemsResult = await pool.query(itemsQuery, [id]);
-    
-    // Combine the results
-    const order = {
-      ...orderResult.rows[0],
-      items: itemsResult.rows
-    };
-    
-    res.json(order);
+    res.json(rows[0]);
   } catch (error) {
     console.error(`Error fetching order with id ${id}:`, error);
     res.status(500).json({ message: 'Internal server error' });

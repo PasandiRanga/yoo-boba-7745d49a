@@ -6,6 +6,7 @@ import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { fetchOrderById } from "@/services/orderServices";
 
 const OrderReceipt = () => {
   const location = useLocation();
@@ -19,7 +20,7 @@ const OrderReceipt = () => {
   
   useEffect(() => {
     // First check if data is in location state (direct navigation)
-    if (location.state && location.state.order_id) {
+    if (location.state && location.state.id) {
       setOrderData(location.state);
       setLoading(false);
       return;
@@ -29,7 +30,6 @@ const OrderReceipt = () => {
     const orderId = searchParams.get('order_id');
     
     if (orderId) {
-      // Fetch order details from your API
       fetchOrderDetails(orderId);
     } else {
       setError("No order information available");
@@ -41,41 +41,10 @@ const OrderReceipt = () => {
     try {
       setLoading(true);
       
-      // Call your backend API to get order details
-      const response = await fetch(`/api/orders/${orderId}`);
-      
-      if (!response.ok) {
-        throw new Error(`Error fetching order: ${response.statusText}`);
-      }
-      
-      const orderDetails = await response.json();
+      const orderDetails = await fetchOrderById(orderId);
       
       if (orderDetails) {
-        // Transform the API response to match your component's expected data structure
-        setOrderData({
-          merchant_id: orderDetails.merchant_id || "MERCHANT_ID",
-          order_id: orderId,
-          payment_id: orderDetails.payment_reference || orderDetails.payment_id,
-          payhere_amount: orderDetails.total_amount,
-          payhere_currency: orderDetails.currency || "LKR",
-          status_code: orderDetails.status === "PAID" ? "2" : "0", 
-          method: orderDetails.payment_method || "Credit Card",
-          status_message: orderDetails.status || "Completed",
-          customer: {
-            first_name: orderDetails.customer?.first_name,
-            last_name: orderDetails.customer?.last_name,
-            email: orderDetails.customer?.email,
-            phone: orderDetails.customer?.phone
-          },
-          items: orderDetails.items?.map(item => ({
-            name: item.name || item.product_name,
-            variant: item.variant,
-            quantity: item.quantity,
-            price: item.price
-          })) || [],
-          shipping_address: orderDetails.shipping_address,
-          timestamp: orderDetails.created_at || new Date().toISOString()
-        });
+        setOrderData(orderDetails);
       } else {
         setError("Failed to load order details");
       }
@@ -85,6 +54,13 @@ const OrderReceipt = () => {
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Check if order status is successful
+  const isSuccessfulStatus = (status) => {
+    if (!status) return false;
+    const successStatuses = ['paid', 'completed', 'processing', 'PAID'];
+    return successStatuses.includes(status.toLowerCase());
   };
   
   // Format date from timestamp
@@ -124,7 +100,7 @@ const OrderReceipt = () => {
       const imgHeight = canvas.height * imgWidth / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save(`YooBoba_Order_${orderData?.order_id}.pdf`);
+      pdf.save(`YooBoba_Order_${orderData?.id}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
@@ -144,30 +120,14 @@ const OrderReceipt = () => {
     );
   }
   
-  // Extract payment response data 
-  const { 
-    merchant_id, 
-    order_id, 
-    payment_id,
-    payhere_amount,
-    payhere_currency,
-    status_code,
-    method,
-    status_message,
-    customer,
-    items,
-    shipping_address,
-    timestamp
-  } = orderData || {};
-  
-  // Calculate order summary
-  const subtotal = items?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0;
-  const shipping = 5.00; // Example shipping cost
-  const tax = subtotal * 0.12; // Example tax rate (12%)
-  const total = subtotal + shipping + tax;
+  // Check if order data is valid for showing receipt
+  const isValidOrder = orderData && orderData.id && (
+    isSuccessfulStatus(orderData.status) || 
+    isSuccessfulStatus(orderData.paymentStatus)
+  );
   
   // If error or no order data available, show an error and redirect option
-  if (error || !order_id || (status_code !== "2" && status_code !== "PAID")) {
+  if (error || !isValidOrder) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 max-w-md w-full">
@@ -185,6 +145,37 @@ const OrderReceipt = () => {
       </div>
     );
   }
+  
+  // Format address parts for display
+  const formatAddress = (address) => {
+    if (!address) return ["No address provided"];
+    
+    const parts = [];
+    if (address.street1) parts.push(address.street1);
+    if (address.street2) parts.push(address.street2);
+    
+    let cityStateZip = "";
+    if (address.city) cityStateZip += address.city;
+    if (address.state) cityStateZip += cityStateZip ? `, ${address.state}` : address.state;
+    if (address.zipCode) cityStateZip += cityStateZip ? ` ${address.zipCode}` : address.zipCode;
+    
+    if (cityStateZip) parts.push(cityStateZip);
+    if (address.country) parts.push(address.country);
+    
+    return parts.length ? parts : ["No address details available"];
+  };
+  
+  // Get formatted shipping address
+  const addressLines = formatAddress(orderData.shippingAddress);
+  
+  // Calculate subtotal from items
+  const subtotal = orderData.items?.reduce((total, item) => 
+    total + ((Number(item.price) || 0) * (Number(item.quantity) || 1)), 0) || 0;
+  
+  // Example shipping and tax calculations
+  const shipping = 5.00; 
+  const tax = subtotal * 0.12; 
+  const total = orderData.total || subtotal + shipping + tax;
   
   return (
     <div className="relative overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-300 min-h-screen">
@@ -235,15 +226,16 @@ const OrderReceipt = () => {
                 <div className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yooboba-purple to-yooboba-pink dark:from-yooboba-blue dark:to-yooboba-pink mb-1">
                   YooBoba Premium Pearls
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Order #: {order_id}</p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Payment #: {payment_id}</p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Date: {formatDate(timestamp)}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Order #: {orderData.id}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Date: {formatDate(orderData.createdAt)}</p>
               </div>
               <div className="mt-4 md:mt-0 md:text-right">
                 <div className="text-sm font-medium text-gray-900 dark:text-white">Payment Method</div>
-                <p className="text-gray-600 dark:text-gray-400">{method || "Credit Card"}</p>
+                <p className="text-gray-600 dark:text-gray-400">{orderData.paymentMethod || "Credit Card"}</p>
+                <div className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Status</div>
+                <p className="text-gray-600 dark:text-gray-400">{orderData.paymentStatus}</p>
                 <div className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Currency</div>
-                <p className="text-gray-600 dark:text-gray-400">{payhere_currency}</p>
+                <p className="text-gray-600 dark:text-gray-400">USD</p>
               </div>
             </div>
             
@@ -252,19 +244,18 @@ const OrderReceipt = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Customer Information</h3>
                 <div className="text-gray-700 dark:text-gray-300">
-                  <p>{customer?.first_name} {customer?.last_name}</p>
-                  <p>{customer?.email}</p>
-                  <p>{customer?.phone}</p>
+                  <p>{orderData.customer?.firstName} {orderData.customer?.lastName}</p>
+                  <p>{orderData.customer?.email}</p>
+                  <p>{orderData.customer?.phone}</p>
                 </div>
               </div>
               
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Shipping Address</h3>
                 <div className="text-gray-700 dark:text-gray-300">
-                  <p>{shipping_address?.address_line_1}</p>
-                  {shipping_address?.address_line_2 && <p>{shipping_address.address_line_2}</p>}
-                  <p>{shipping_address?.city}, {shipping_address?.state} {shipping_address?.postal_code}</p>
-                  <p>{shipping_address?.country}</p>
+                  {addressLines.map((line, index) => (
+                    <p key={index}>{line}</p>
+                  ))}
                 </div>
               </div>
             </div>
@@ -282,17 +273,22 @@ const OrderReceipt = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {items && items.map((item, index) => (
-                    <tr key={index} className="text-gray-700 dark:text-gray-300">
-                      <td className="py-3 pr-2">
-                        <div className="font-medium">{item.name}</div>
-                        {item.variant && <div className="text-sm text-gray-500 dark:text-gray-400">{item.variant}</div>}
-                      </td>
-                      <td className="py-3 text-center">{item.quantity}</td>
-                      <td className="py-3 text-right">${item.price.toFixed(2)}</td>
-                      <td className="py-3 text-right">${(item.price * item.quantity).toFixed(2)}</td>
+                  {orderData.items && orderData.items.length > 0 ? (
+                    orderData.items.map((item, index) => (
+                      <tr key={index} className="text-gray-700 dark:text-gray-300">
+                        <td className="py-3 pr-2">
+                          <div className="font-medium">{item.name}</div>
+                        </td>
+                        <td className="py-3 text-center">{item.quantity}</td>
+                        <td className="py-3 text-right">${(Number(item.price) || 0).toFixed(2)}</td>
+                        <td className="py-3 text-right">${((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(2)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="text-gray-700 dark:text-gray-300">
+                      <td colSpan={4} className="py-3 text-center">No items found</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
