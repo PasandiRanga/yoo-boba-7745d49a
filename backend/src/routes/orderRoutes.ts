@@ -1,33 +1,33 @@
 import { Router } from 'express';
-import {
+import { 
+  createOrder, 
+  getOrderById, 
+  updateOrderStatus,
   getAllOrders,
-  getOrderById,
-  updateOrder,
   deleteOrder,
-  getOrdersByCustomer,
-  getOrdersByStatus,
-  processOrderPayment,
-  verifyPaymentStatus
+  getOrdersByCustomerId
 } from '../controllers/orderController';
 
 const router = Router();
 
-// GET routes
-router.get('/', getAllOrders);
+// Create a pending order (keeping original route path for backward compatibility)
+router.post('/create-pending', createOrder);
+
+// Get order by ID
 router.get('/:id', getOrderById);
-router.get('/customer/:customerId', getOrdersByCustomer);
-router.get('/status/:status', getOrdersByStatus);
 
-// POST routes
-router.post('/:orderId/payment', processOrderPayment);
+// Update order status
+router.patch('/:id/status', updateOrderStatus);
 
-// PUT route
-router.put('/:id', updateOrder);
+// Additional routes that match the CustomerController pattern
+// Get all orders
+router.get('/', getAllOrders);
 
-// DELETE route
+// Delete order
 router.delete('/:id', deleteOrder);
 
-// Payment verification
-router.get('/payments/:paymentId/verify', verifyPaymentStatus);
+// Get orders by customer ID
+// Note: This needs to come before '/:id' route to avoid being interpreted as an order ID
+router.get('/customer/:customerId', getOrdersByCustomerId);
 
 export default router;

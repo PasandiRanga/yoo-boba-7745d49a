@@ -1,21 +1,15 @@
-// File: routes/paymentRoutes.ts
-
 import { Router } from 'express';
-import {
-  initializePayment,
-  handlePaymentNotification,
-  getPaymentStatus
-} from '../controllers/paymentController';
+import { PaymentController } from '../controllers/paymentController';
 
 const router = Router();
 
-// Initialize payment
-router.post('/initialize', initializePayment);
+// Generate PayHere checkout parameters
+router.get('/checkout-params/:orderId', PaymentController.getPaymentCheckoutParams);
 
-// PayHere notification webhook
-router.post('/notify', handlePaymentNotification);
+// Verify payment status
+router.post('/verify', PaymentController.verifyPayment);
 
-// Get payment status
-router.get('/status/:orderId', getPaymentStatus);
+// Handle payment notifications from PayHere (webhook)
+router.post('/notify', PaymentController.handlePaymentNotification);
 
 export default router;

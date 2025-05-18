@@ -1,303 +1,338 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
-import { pool } from '../db/index';
-import dotenv from 'dotenv';
+import { pool } from '../db';
 
-dotenv.config();
+export class PaymentController {
+  /**
+   * Verify payment status
+   */
+  static async verifyPayment(req: Request, res: Response) {
+    try {
+      const { orderId, paymentId, status } = req.body;
+      
+      // Get secret key from environment
+      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
+      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
 
-// PayHere configuration
-const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID;
-const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET || '';
-if (!PAYHERE_MERCHANT_SECRET) {
-  throw new Error('PAYHERE_MERCHANT_SECRET is not defined in the environment variables');
-}
-const PAYHERE_RETURN_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-production-domain.com/payment-success'
-  : 'http://localhost:8080/receipt';
-const PAYHERE_CANCEL_URL = process.env.NODE_ENV === 'production'
-  ? 'https://your-production-domain.com/payment-canceled'
-  : 'http://localhost:8080/payment-canceled';
-const PAYHERE_NOTIFY_URL = process.env.NODE_ENV === 'production'
-  ? 'https://your-production-domain.com/api/payments/notify'
-  : 'http://localhost:8080/notify'; 
-// Initialize payment with PayHere
-export const initializePayment = async (req: Request, res: Response) => {
-  try {
-    const { 
-      orderId, 
-      items, 
-      customer, 
-      amount,
-      shippingAddress,
-      billingAddress
-    }: { 
-      orderId: string; 
-      items: { name: string }[]; 
-      customer: { firstName: string; lastName: string; email: string; phone: string }; 
-      amount: number; 
-      shippingAddress: { street1: string; city: string; country: string }; 
-      billingAddress?: { street1: string; city: string; country: string } 
-    } = req.body;
-    
-    // Validate required fields
-    if (!orderId || !items || !customer || !amount || !shippingAddress) {
-      console.log("Missing information");
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Missing required payment information' 
-      });
-    }
-    
-    // Store pending order information temporarily
-    await pool.query(
-      `INSERT INTO payment_sessions (
-        session_id, 
-        order_data, 
-        created_at
-      ) VALUES ($1, $2, NOW())
-      ON CONFLICT (session_id) DO UPDATE 
-      SET order_data = $2, created_at = NOW()`,
-      [
-        orderId,
-        JSON.stringify({
-          orderId,
-          items,
-          customer,
-          amount,
-          shippingAddress,
-          billingAddress,
-          paymentMethod: 'payhere'
-        })
-      ]
-    );
-    
-    // Format amount to 2 decimal places
-    const formattedAmount = amount.toFixed(2);
-    const currency = 'LKR';
-    
-    // FIXED: Generate the hash correctly according to PayHere specifications
-    // Format: md5(merchantId + orderId + amount + currency + md5(merchantSecret))
-    const merchantSecretHash = crypto
-      .createHash('md5')
-      .update(PAYHERE_MERCHANT_SECRET)
-      .digest('hex')
-      .toUpperCase();
+      console.log('Merchant ID:', merchantId);
+      console.log('Secret Key:', secretKey);
       
-    const hash = crypto
-      .createHash('md5')
-      .update(`${PAYHERE_MERCHANT_ID}${orderId}${formattedAmount}${currency}${merchantSecretHash}`)
-      .digest('hex')
-      .toUpperCase();
-    
-    // Prepare PayHere request data
-    const paymentData = {
-      merchant_id: PAYHERE_MERCHANT_ID,
-      return_url: PAYHERE_RETURN_URL,
-      cancel_url: PAYHERE_CANCEL_URL,
-      notify_url: PAYHERE_NOTIFY_URL,
-      order_id: orderId,
-      items: items.map(item => item.name).join(', '),
-      amount: formattedAmount,
-      currency: currency,
-      hash: hash,
-      first_name: customer.firstName,
-      last_name: customer.lastName,
-      email: customer.email,
-      phone: customer.phone,
-      address: shippingAddress.street1,
-      city: shippingAddress.city,
-      country: shippingAddress.country
-    };
-    
-    res.json({ 
-      success: true, 
-      paymentData 
-    });
-    
-  } catch (error) {
-    console.error('Error initializing payment:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to initialize payment' 
-    });
-  }
-};
-
-// Handle PayHere notifications (webhook)
-export const handlePaymentNotification = async (req: Request, res: Response) => {
-  try {
-    const { 
-      merchant_id, 
-      order_id, 
-      payment_id, 
-      payhere_amount, 
-      payhere_currency,
-      status_code, 
-      md5sig 
-    } = req.body;
-    
-    // FIXED: Verify the notification with MD5 signature
-    // The signature format should match exactly how PayHere creates it
-    const merchantSecretHash = crypto
-      .createHash('md5')
-      .update(PAYHERE_MERCHANT_SECRET)
-      .digest('hex')
-      .toUpperCase();
-      
-    const expectedHash = crypto
-      .createHash('md5')
-      .update(`${merchant_id}${order_id}${payhere_amount}${payhere_currency}${status_code}${merchantSecretHash}`)
-      .digest('hex')
-      .toUpperCase();
-    
-    if (md5sig !== expectedHash) {
-      console.error('Invalid PayHere notification signature');
-      return res.status(400).send('Invalid signature');
-    }
-    
-    // Update order status based on PayHere status code
-    let orderStatus = 'PENDING';
-    
-    if (status_code === '2') {
-      orderStatus = 'PAID'; // Payment successful
-    } else if (status_code === '0') {
-      orderStatus = 'PENDING'; // Payment pending
-    } else if (['-1', '-2'].includes(status_code)) {
-      orderStatus = 'CANCELED'; // Payment canceled or failed
-    } else if (status_code === '-3') {
-      orderStatus = 'CHARGEDBACK'; // Payment charged back
-    }
-    
-    // Get the stored order data
-    const sessionResult = await pool.query(
-      'SELECT order_data FROM payment_sessions WHERE session_id = $1',
-      [order_id]
-    );
-    
-    if (sessionResult.rows.length === 0) {
-      console.error('No payment session found for order:', order_id);
-      return res.status(404).send('Order not found');
-    }
-    
-    const orderData = sessionResult.rows[0].order_data;
-    
-    // If payment was successful, create the actual order
-    if (orderStatus === 'PAID') {
-      // Begin transaction
-      const client = await pool.connect();
-      
-      try {
-        await client.query('BEGIN');
-        
-        // Create the order
-        const orderQuery = `
-          INSERT INTO orders (
-            order_id, 
-            customer_id,
-            total_amount, 
-            status, 
-            shipping_address, 
-            billing_address, 
-            payment_method,
-            payment_reference
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          RETURNING order_id
-        `;
-        
-        const orderValues = [
-          order_id,
-          orderData.customer.id || null,
-          orderData.amount,
-          orderStatus,
-          JSON.stringify(orderData.shippingAddress),
-          JSON.stringify(orderData.billingAddress),
-          'payhere',
-          payment_id
-        ];
-        
-        await client.query(orderQuery, orderValues);
-        
-        // Create order items
-        for (const item of orderData.items) {
-          await client.query(
-            `INSERT INTO order_items (order_id, product_id, quantity, price) 
-             VALUES ($1, $2, $3, $4)`,
-            [order_id, item.productId, item.quantity, item.price]
-          );
-        }
-        
-        // Commit transaction
-        await client.query('COMMIT');
-      } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-      } finally {
-        client.release();
+      if (!secretKey || !merchantId) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Payment gateway configuration error',
+          paymentStatus: 'error'
+        });
       }
-    } else if (['CANCELED', 'CHARGEDBACK'].includes(orderStatus)) {
-      // If payment was canceled or charged back, we don't create the order
-      // But we might want to log this event
-      await pool.query(
-        `INSERT INTO payment_logs (order_id, status, payment_id, amount, log_data)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [order_id, orderStatus, payment_id, payhere_amount, JSON.stringify(req.body)]
-      );
-    }
-    
-    // Respond to PayHere
-    res.status(200).send('Notification received');
-    
-  } catch (error) {
-    console.error('Error handling payment notification:', error);
-    res.status(500).send('Server error');
-  }
-};
 
-// Get payment status
-export const getPaymentStatus = async (req: Request, res: Response) => {
-  try {
-    const { orderId } = req.params;
-    
-    // First check if there's a completed order
-    const orderResult = await pool.query(
-      'SELECT status, payment_reference FROM orders WHERE order_id = $1',
-      [orderId]
-    );
-    
-    // If order exists, return its status
-    if (orderResult.rows.length > 0) {
-      return res.json({
+      // Construct verification data
+      const verificationData = {
+        merchant_id: merchantId,
+        order_id: orderId,
+        payment_id: paymentId,
+      };
+
+      // Generate hash for verification request using the updated method
+      const hash = PaymentController.generatePayHereHash(verificationData, secretKey);
+      
+      // Attempt to fetch payment status from PayHere
+      const response = await fetch('https://sandbox.payhere.lk/api/payment/status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.PAYHERE_API_KEY}`
+        },
+        body: JSON.stringify({
+          ...verificationData,
+          hash
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Payment verification failed: ${response.status}`);
+      }
+
+      const paymentData = await response.json();
+      const paymentStatus = paymentData.status_code === 2 ? 'completed' : 'failed';
+
+      // Update order in database
+      await pool.query(
+        `UPDATE orders 
+         SET payment_status = $1, 
+             payment_reference = $2, 
+             status = $3, 
+             updated_at = NOW() 
+         WHERE id = $4`,
+        [paymentStatus, paymentId, paymentStatus === 'completed' ? 'processing' : 'failed', orderId]
+      );
+
+      // Log payment details
+      await pool.query(
+        `INSERT INTO payment_logs (
+          order_id,
+          payment_id,
+          status,
+          amount,
+          currency,
+          payment_method,
+          log_data,
+          created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [
+          orderId,
+          paymentId,
+          paymentStatus,
+          paymentData.payhere_amount,
+          paymentData.payhere_currency,
+          'payhere',
+          JSON.stringify(paymentData)
+        ]
+      );
+
+      res.json({
         success: true,
-        status: orderResult.rows[0].status,
-        paymentReference: orderResult.rows[0].payment_reference
+        paymentStatus,
+        message: paymentStatus === 'completed' 
+          ? 'Payment completed successfully' 
+          : 'Payment failed or is pending'
+      });
+      
+    } catch (error) {
+      console.error('Error verifying payment status:', error);
+      res.status(500).json({ 
+        success: false, 
+        paymentStatus: 'error',
+        message: 'Failed to verify payment status' 
       });
     }
-    
-    // If no order yet, check payment sessions
-    const sessionResult = await pool.query(
-      'SELECT created_at FROM payment_sessions WHERE session_id = $1',
-      [orderId]
-    );
-    
-    if (sessionResult.rows.length > 0) {
-      return res.json({
-        success: true,
-        status: 'PENDING',
-        message: 'Payment has been initiated but not completed'
-      });
-    }
-    
-    // If not found in either table
-    return res.status(404).json({ 
-      success: false, 
-      message: 'Order not found' 
-    });
-    
-  } catch (error) {
-    console.error('Error fetching payment status:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to fetch payment status' 
-    });
   }
-};
+
+  /**
+   * Handle PayHere payment notification (webhook)
+   */
+  static async handlePaymentNotification(req: Request, res: Response) {
+    try {
+      const {
+        merchant_id,
+        order_id,
+        payment_id,
+        payhere_amount,
+        payhere_currency,
+        status_code,
+        md5sig
+      } = req.body;
+
+      // Get secret key from environment
+      const secretKey = process.env.PAYHERE_SECRET_KEY;
+      if (!secretKey) {
+        throw new Error('PayHere secret key not configured');
+      }
+
+      // Calculate MD5 hash using the correct format
+      const calculatedHash = PaymentController.getMd5(
+        merchant_id + 
+        order_id + 
+        payhere_amount + 
+        payhere_currency + 
+        status_code + 
+        PaymentController.getMd5(secretKey)
+      );
+
+      if (calculatedHash !== md5sig) {
+        console.error('Invalid MD5 signature in PayHere notification');
+        return res.status(403).send('Invalid signature');
+      }
+
+      // Map PayHere status codes to application status
+      const paymentStatus = status_code === '2' ? 'completed' : 'failed';
+      const orderStatus = status_code === '2' ? 'processing' : 'failed';
+
+      // Update order status
+      await pool.query(
+        `UPDATE orders 
+         SET status = $1, 
+             payment_status = $2, 
+             payment_reference = $3, 
+             updated_at = NOW() 
+         WHERE id = $4`,
+        [orderStatus, paymentStatus, payment_id, order_id]
+      );
+
+      // Log payment notification
+      await pool.query(
+        `INSERT INTO payment_logs (
+          order_id,
+          payment_id,
+          status,
+          amount,
+          currency,
+          payment_method,
+          log_data,
+          created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [
+          order_id,
+          payment_id,
+          paymentStatus,
+          payhere_amount,
+          payhere_currency,
+          'payhere',
+          JSON.stringify(req.body)
+        ]
+      );
+
+      // Send success response to PayHere
+      res.status(200).send('OK');
+      
+    } catch (error) {
+      console.error('Error handling PayHere notification:', error);
+      // Always return 200 to avoid PayHere retries, but log the error
+      res.status(200).send('OK');
+    }
+  }
+
+  /**
+   * Generate PayHere checkout parameters with proper hash
+   */
+  static async getPaymentCheckoutParams(req: Request, res: Response) {
+    try {
+      const { orderId } = req.params;
+      
+      // Get order details from database
+      const orderResult = await pool.query(
+        `SELECT o.*, 
+                CASE WHEN gc.order_id IS NOT NULL THEN 
+                  json_build_object(
+                    'firstName', gc.first_name,
+                    'lastName', gc.last_name,
+                    'email', gc.email,
+                    'phone', gc.phone
+                  )
+                ELSE
+                  json_build_object(
+                    'firstName', u.first_name,
+                    'lastName', u.last_name,
+                    'email', u.emailaddress,
+                    'phone', u.contactno
+                  )
+                END as customer,
+                (SELECT json_agg(json_build_object(
+                  'productId', oi.product_id,
+                  'name', oi.name,
+                  'price', oi.price,
+                  'quantity', oi.quantity
+                )) FROM order_items oi WHERE oi.order_id = o.id) as items,
+                (SELECT oa FROM order_addresses oa WHERE oa.order_id = o.id AND oa.address_type = 'shipping' LIMIT 1) as shipping_address
+         FROM orders o
+         LEFT JOIN guest_customers gc ON o.id = gc.order_id
+         LEFT JOIN user_orders uo ON o.id = uo.order_id
+         LEFT JOIN customers u ON uo.customerid = u.customerid
+         WHERE o.id = $1`,
+        [orderId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      const order = orderResult.rows[0];
+      const customer = order.customer;
+      const shippingAddress = order.shipping_address;
+      
+      // Get PayHere credentials from environment
+      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
+      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
+      
+      if (!merchantId || !secretKey) {
+        return res.status(500).json({ message: 'Payment gateway configuration error' });
+      }
+
+      // Base URL from request
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      // Format amount to 2 decimal places
+      const amount = Number(order.total_amount).toFixed(2);
+      
+      // Prepare PayHere parameters
+      const payHereParams = {
+        merchant_id: merchantId,
+        return_url: `${baseUrl}/payment-complete`,
+        cancel_url: `${baseUrl}/cart`,
+        notify_url: `${baseUrl}/api/payments/notify`,
+        
+        order_id: orderId,
+        items: order.items.map((item: any) => item.name).join(', '),
+        currency: 'LKR',
+        amount: amount,
+        
+        first_name: customer.firstName,
+        last_name: customer.lastName,
+        email: customer.email,
+        phone: customer.phone,
+        
+        address: shippingAddress?.street1 || '',
+        city: shippingAddress?.city || '',
+        country: shippingAddress?.country || 'Sri Lanka',
+        
+        delivery_address: shippingAddress?.street1 || '',
+        delivery_city: shippingAddress?.city || '',
+        delivery_country: shippingAddress?.country || 'Sri Lanka',
+      };
+      
+      // Generate hash for checkout using MD5 as per sample
+      const hash = PaymentController.getMd5(
+        merchantId + 
+        orderId + 
+        amount + 
+        'LKR' + 
+        PaymentController.getMd5(secretKey)
+      );
+      
+      // Return PayHere parameters with hash
+      res.json({
+        ...payHereParams,
+        hash
+      });
+      
+    } catch (error) {
+      console.error('Error generating PayHere checkout parameters:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  /**
+   * Utility method to generate PayHere hash for API requests
+   * This is still used for some API calls that might require the previous format
+   */
+  private static generatePayHereHash(data: Record<string, any>, secretKey: string): string {
+    // Sort and filter data for consistent hash generation
+    const sortedData = Object.keys(data)
+      .sort()
+      .reduce((acc: Record<string, any>, key) => {
+        if (key !== 'hash' && data[key] !== '') {
+          acc[key] = data[key];
+        }
+        return acc;
+      }, {});
+
+    // Create hash string by joining key-value pairs
+    const hashString = Object.entries(sortedData)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&');
+
+    // Generate SHA1 hash with merchant secret
+    return crypto
+      .createHash('sha1')
+      .update(hashString + secretKey)
+      .digest('hex');
+  }
+  
+  /**
+   * Utility method to generate MD5 hash as per PayHere specifications
+   * Based on the provided Java sample
+   */
+  private static getMd5(input: string): string {
+    const md5Hash = crypto.createHash('md5').update(input).digest('hex');
+    return md5Hash.toUpperCase();
+  }
+}

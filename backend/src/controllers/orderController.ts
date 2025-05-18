@@ -1,11 +1,174 @@
 import { Request, Response } from 'express';
 import { pool } from '../db/index';
+import * as ExcelJS from 'exceljs';
+import path from 'path';
+import fs from 'fs';
 
-// Get all orders
+// Create Excel directory if it doesn't exist
+const excelDir = path.join(__dirname, '../excel');
+if (!fs.existsSync(excelDir)) {
+  fs.mkdirSync(excelDir, { recursive: true });
+}
+
+export const createOrder = async (req: Request, res: Response) => {
+  const { 
+    orderId, 
+    customer, 
+    shippingAddress, 
+    billingAddress, 
+    items, 
+    amount, 
+    paymentMethod, 
+    status 
+  } = req.body;
+
+  try {
+    const isGuestOrder = !customer.userId;
+    const client = await pool.connect();
+
+    try {
+      // Start transaction
+      await client.query('BEGIN');
+
+      // Insert into orders table
+      const orderResult = await client.query(
+        `INSERT INTO orders (
+          id, 
+          total_amount, 
+          status, 
+          payment_method, 
+          payment_status, 
+          created_at, 
+          updated_at, 
+          is_guest_order
+        ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), $6) RETURNING *`,
+        [orderId, amount, status, paymentMethod, 'pending', isGuestOrder]
+      );
+
+      const order = orderResult.rows[0];
+
+      // Insert customer information
+      if (isGuestOrder) {
+        // For guest users
+        await client.query(
+          `INSERT INTO guest_customers (
+            order_id, 
+            first_name, 
+            last_name, 
+            email, 
+            phone, 
+            company
+          ) VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            orderId, 
+            customer.firstName, 
+            customer.lastName, 
+            customer.email, 
+            customer.phone, 
+            customer.company || null
+          ]
+        );
+      } else {
+        // For logged-in users, associate with user account
+        await client.query(
+          `INSERT INTO user_orders (
+            order_id, 
+            user_id
+          ) VALUES ($1, $2)`,
+          [orderId, customer.userId]
+        );
+      }
+
+      // Insert shipping address
+      await client.query(
+        `INSERT INTO order_addresses (
+          order_id, 
+          address_type, 
+          street1, 
+          street2, 
+          city, 
+          state, 
+          zip_code, 
+          country
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          orderId, 
+          'shipping', 
+          shippingAddress.street1, 
+          shippingAddress.street2 || null, 
+          shippingAddress.city, 
+          shippingAddress.state, 
+          shippingAddress.zipCode, 
+          shippingAddress.country
+        ]
+      );
+
+      // Insert billing address
+      await client.query(
+        `INSERT INTO order_addresses (
+          order_id, 
+          address_type, 
+          street1, 
+          street2, 
+          city, 
+          state, 
+          zip_code, 
+          country
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          orderId, 
+          'billing', 
+          billingAddress.street1, 
+          billingAddress.street2 || null, 
+          billingAddress.city, 
+          billingAddress.state, 
+          billingAddress.zipCode, 
+          billingAddress.country
+        ]
+      );
+
+      // Insert order items
+      for (const item of items) {
+        await client.query(
+          `INSERT INTO order_items (
+            order_id, 
+            product_id, 
+            name, 
+            price, 
+            quantity
+          ) VALUES ($1, $2, $3, $4, $5)`,
+          [orderId, item.productId, item.name, item.price, item.quantity]
+        );
+      }
+
+      // Save to Excel spreadsheet based on user type
+      await saveOrderToExcel(order, customer, shippingAddress, billingAddress, items, isGuestOrder);
+
+      // Commit transaction
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        success: true,
+        message: 'Order created successfully',
+        order: orderResult.rows[0]
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 export const getAllOrders = async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`
       SELECT * FROM orders
+      ORDER BY created_at DESC
     `);
     res.json(rows);
   } catch (error) {
@@ -14,381 +177,259 @@ export const getAllOrders = async (_req: Request, res: Response) => {
   }
 };
 
-// Get a single order by ID
 export const getOrderById = async (req: Request, res: Response) => {
   const { id } = req.params;
-  
+
   try {
-    const { rows } = await pool.query(`
-      SELECT 
-        o.order_id,
-        o.customer_id,
-        o.total_amount,
-        o.status,
-        o.shipping_address,
-        o.billing_address,
-        o.payment_method,
-        o.payment_reference,
-        o.created_at,
-        (
-          SELECT json_agg(
-            json_build_object(
-              'id', oi.id,
-              'order_id', oi.order_id,
-              'product_id', oi.product_id,
-              'quantity', oi.quantity,
-              'price', oi.price,
-              'product', json_build_object(
-                'product_id', p.product_id,
-                'name', p.name,
-                'description', p.description,
-                'images', p.images,
-                'attributes', p.attributes,
-                'featured', p.featured
-              )
-            )
-          )
-          FROM order_items oi
-          LEFT JOIN products p ON oi.product_id = p.product_id
-          WHERE oi.order_id = o.order_id
-        ) AS items
-      FROM 
-        orders o
-      WHERE 
-        o.order_id = $1
-    `, [id]);
-    
-    if (rows.length === 0) {
+    // Get order details
+    const orderResult = await pool.query(
+      `SELECT * FROM orders WHERE id = $1`,
+      [id]
+    );
+
+    if (orderResult.rows.length === 0) {
       return res.status(404).json({ message: 'Order not found' });
     }
-    
-    // Handle case where order has no items (null items array)
-    if (rows[0].items === null) {
-      rows[0].items = [];
+
+    const order = orderResult.rows[0];
+    const isGuestOrder = order.is_guest_order;
+
+    // Get customer info
+    let customer;
+    if (isGuestOrder) {
+      const customerResult = await pool.query(
+        `SELECT * FROM guest_customers WHERE order_id = $1`,
+        [id]
+      );
+      customer = customerResult.rows[0];
+    } else {
+      const userOrderResult = await pool.query(
+        `SELECT uo.*, u.first_name, u.last_name, u.email, u.phone 
+         FROM user_orders uo
+         JOIN customers u ON uo.customerid = u.id
+         WHERE uo.order_id = $1`,
+        [id]
+      );
+      customer = userOrderResult.rows[0];
     }
+
+    // Get addresses
+    const addressesResult = await pool.query(
+      `SELECT * FROM order_addresses WHERE order_id = $1`,
+      [id]
+    );
     
-    res.json(rows[0]);
+    const shippingAddress = addressesResult.rows.find(addr => addr.address_type === 'shipping');
+    const billingAddress = addressesResult.rows.find(addr => addr.address_type === 'billing');
+
+    // Get items
+    const itemsResult = await pool.query(
+      `SELECT * FROM order_items WHERE order_id = $1`,
+      [id]
+    );
+
+    res.json({
+      order: {
+        ...order,
+        customer,
+        shippingAddress,
+        billingAddress,
+        items: itemsResult.rows
+      }
+    });
   } catch (error) {
     console.error(`Error fetching order with id ${id}:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-// // Create a new order
-// export const createOrder = async (req: Request, res: Response) => {
-//   const { customer_id, status, total_amount, shipping_address, items } = req.body;
-  
-//   try {
-//     // Start a transaction
-//     await pool.query('BEGIN');
-    
-//     // Create the order
-//     const orderQuery = `
-//       INSERT INTO orders (customer_id, status, total_amount, shipping_address, created_at)
-//       VALUES ($1, $2, $3, $4, NOW())
-//       RETURNING *
-//     `;
-    
-//     const orderValues = [customer_id, status || 'pending', total_amount, shipping_address];
-//     const orderResult = await pool.query(orderQuery, orderValues);
-//     const orderId = orderResult.rows[0].order_id;
-    
-//     // Insert order items
-//     if (items && items.length > 0) {
-//       const itemsQuery = `
-//         INSERT INTO order_items (order_id, product_id, quantity, price, weight)
-//         VALUES ($1, $2, $3, $4, $5)
-//       `;
-      
-//       for (const item of items) {
-//         await pool.query(itemsQuery, [
-//           orderId,
-//           item.product_id,
-//           item.quantity,
-//           item.price,
-//           item.weight
-//         ]);
-//       }
-//     }
-    
-//     // Commit the transaction
-//     await pool.query('COMMIT');
-    
-//     // Return the created order with its items
-//     const createdOrder = await getOrderWithItems(orderId);
-    
-//     res.status(201).json(createdOrder);
-//   } catch (error) {
-//     // Rollback the transaction in case of error
-//     await pool.query('ROLLBACK');
-    
-//     console.error('Error creating order:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// };
-
-// Update an existing order
-export const updateOrder = async (req: Request, res: Response) => {
+export const updateOrderStatus = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { status, total_amount, shipping_address } = req.body;
-  
+  const { status } = req.body;
+
   try {
-    // Check if order exists
-    const checkQuery = 'SELECT * FROM orders WHERE order_id = $1';
-    const checkResult = await pool.query(checkQuery, [id]);
-    
-    if (checkResult.rows.length === 0) {
+    const result = await pool.query(
+      `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [status, id]
+    );
+
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Order not found' });
     }
-    
-    // Build the update query dynamically based on provided fields
-    let updateQuery = 'UPDATE orders SET ';
-    const updateValues = [];
-    const updateFields = [];
-    
-    let paramIndex = 1;
-    
-    if (status !== undefined) {
-      updateFields.push(`status = $${paramIndex}`);
-      updateValues.push(status);
-      paramIndex++;
-    }
-    
-    if (total_amount !== undefined) {
-      updateFields.push(`total_amount = $${paramIndex}`);
-      updateValues.push(total_amount);
-      paramIndex++;
-    }
-    
-    if (shipping_address !== undefined) {
-      updateFields.push(`shipping_address = $${paramIndex}`);
-      updateValues.push(shipping_address);
-      paramIndex++;
-    }
-    
-    // Add updated_at timestamp
-    updateFields.push(`updated_at = NOW()`);
-    
-    // If no fields to update, return the existing order
-    if (updateFields.length === 0) {
-      const order = await getOrderWithItems(id);
-      return res.json(order);
-    }
-    
-    updateQuery += updateFields.join(', ');
-    updateQuery += ` WHERE order_id = $${paramIndex} RETURNING *`;
-    updateValues.push(id);
-    
-    const updateResult = await pool.query(updateQuery, updateValues);
-    
-    // Return the updated order with its items
-    const updatedOrder = await getOrderWithItems(id);
-    
-    res.json(updatedOrder);
+
+    res.json(result.rows[0]);
   } catch (error) {
     console.error(`Error updating order with id ${id}:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-// Delete an order
 export const deleteOrder = async (req: Request, res: Response) => {
   const { id } = req.params;
   
   try {
-    // Start a transaction
-    await pool.query('BEGIN');
+    const client = await pool.connect();
     
-    // Delete associated order items first
-    await pool.query('DELETE FROM order_items WHERE order_id = $1', [id]);
-    
-    // Delete the order
-    const result = await pool.query('DELETE FROM orders WHERE order_id = $1 RETURNING *', [id]);
-    
-    // Commit the transaction
-    await pool.query('COMMIT');
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Order not found' });
+    try {
+      // Start transaction
+      await client.query('BEGIN');
+      
+      // Delete related records first due to foreign key constraints
+      await client.query('DELETE FROM order_items WHERE order_id = $1', [id]);
+      await client.query('DELETE FROM order_addresses WHERE order_id = $1', [id]);
+      await client.query('DELETE FROM guest_customers WHERE order_id = $1', [id]);
+      await client.query('DELETE FROM user_orders WHERE order_id = $1', [id]);
+      
+      // Finally delete the order itself
+      const { rowCount } = await client.query('DELETE FROM orders WHERE id = $1', [id]);
+      
+      if (rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'Order not found' });
+      }
+      
+      // Commit transaction
+      await client.query('COMMIT');
+      
+      res.status(204).send();
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-    
-    res.json({ message: 'Order deleted successfully' });
   } catch (error) {
-    // Rollback the transaction in case of error
-    await pool.query('ROLLBACK');
-    
     console.error(`Error deleting order with id ${id}:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-// Get orders by customer ID
-export const getOrdersByCustomer = async (req: Request, res: Response) => {
+export const getOrdersByCustomerId = async (req: Request, res: Response) => {
   const { customerId } = req.params;
   
   try {
-    const orderQuery = `
-      SELECT * FROM orders
-      WHERE customer_id = $1
-      ORDER BY created_at DESC
-    `;
+    // Check if the customer exists
+    const customerCheck = await pool.query(
+      'SELECT id FROM customers WHERE customerid = $1',
+      [customerId]
+    );
     
-    const orderResult = await pool.query(orderQuery, [customerId]);
+    if (customerCheck.rows.length === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
     
-    // For each order, fetch its items
-    const orders = await Promise.all(orderResult.rows.map(async (order) => {
-      const items = await getOrderItems(order.order_id);
-      return { ...order, items };
-    }));
+    // Get all orders for this customer
+    const { rows } = await pool.query(`
+      SELECT o.* 
+      FROM orders o
+      JOIN user_orders uo ON o.id = uo.order_id
+      WHERE uo.user_id = $1
+      ORDER BY o.created_at DESC
+    `, [customerId]);
     
-    res.json(orders);
+    res.json(rows);
   } catch (error) {
     console.error(`Error fetching orders for customer ${customerId}:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-// Get orders by status
-export const getOrdersByStatus = async (req: Request, res: Response) => {
-  const { status } = req.params;
-  
-  try {
-    const orderQuery = `
-      SELECT * FROM orders
-      WHERE status = $1
-      ORDER BY created_at DESC
-    `;
-    
-    const orderResult = await pool.query(orderQuery, [status]);
-    
-    // For each order, fetch its items
-    const orders = await Promise.all(orderResult.rows.map(async (order) => {
-      const items = await getOrderItems(order.order_id);
-      return { ...order, items };
-    }));
-    
-    res.json(orders);
-  } catch (error) {
-    console.error(`Error fetching orders with status ${status}:`, error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
+// Helper function to save order to Excel
+interface Order {
+  id: string;
+  created_at: string | Date;
+  total_amount: number;
+  payment_method: string;
+  payment_status: string;
+  status: string;
+}
 
-// Process payment for an order
-export const processOrderPayment = async (req: Request, res: Response) => {
-  const { orderId } = req.params;
-  const { amount, method, ...paymentDetails } = req.body;
-  
+interface Customer {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  company?: string;
+}
+
+interface Address {
+  street1: string;
+  street2?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+interface Item {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+async function saveOrderToExcel(
+  order: Order,
+  customer: Customer,
+  shippingAddress: Address,
+  billingAddress: Address,
+  items: Item[],
+  isGuestOrder: boolean
+) {
   try {
-    // Check if order exists and is in pending status
-    const orderQuery = 'SELECT * FROM orders WHERE order_id = $1';
-    const orderResult = await pool.query(orderQuery, [orderId]);
+    const workbook = new ExcelJS.Workbook();
+    const fileName = isGuestOrder ? 'guest_orders.xlsx' : 'user_orders.xlsx';
+    const filePath = path.join(excelDir, fileName);
     
-    if (orderResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Order not found' });
+    let worksheet;
+    
+    // Check if file exists
+    if (fs.existsSync(filePath)) {
+      await workbook.xlsx.readFile(filePath);
+      worksheet = workbook.getWorksheet('Orders');
+    } else {
+      worksheet = workbook.addWorksheet('Orders');
+      
+      // Add headers
+      worksheet.columns = [
+        { header: 'Order ID', key: 'orderId', width: 36 },
+        { header: 'Date', key: 'date', width: 20 },
+        { header: 'Customer Name', key: 'customerName', width: 30 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Phone', key: 'phone', width: 15 },
+        { header: 'Address', key: 'address', width: 40 },
+        { header: 'City', key: 'city', width: 15 },
+        { header: 'Items', key: 'items', width: 50 },
+        { header: 'Total', key: 'total', width: 10 },
+        { header: 'Payment Method', key: 'paymentMethod', width: 15 },
+        { header: 'Payment Status', key: 'paymentStatus', width: 15 },
+        { header: 'Order Status', key: 'orderStatus', width: 15 }
+      ];
     }
     
-    const order = orderResult.rows[0];
-    
-    if (order.status !== 'pending') {
-      return res.status(400).json({ 
-        message: `Cannot process payment for order in ${order.status} status`
+    // Add row if worksheet is defined
+    if (worksheet) {
+      worksheet.addRow({
+        orderId: order.id,
+        date: new Date(order.created_at).toLocaleString(),
+        customerName: `${customer.firstName} ${customer.lastName}`,
+        email: customer.email,
+        phone: customer.phone,
+        address: `${shippingAddress.street1} ${shippingAddress.street2 || ''}`,
+        city: shippingAddress.city,
+        items: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
+        total: order.total_amount,
+        paymentMethod: order.payment_method,
+        paymentStatus: order.payment_status,
+        orderStatus: order.status
       });
     }
     
-    // Insert payment record
-    const paymentQuery = `
-      INSERT INTO payments (order_id, amount, method, details, payment_date)
-      VALUES ($1, $2, $3, $4, NOW())
-      RETURNING payment_id
-    `;
+    // Save the file
+    await workbook.xlsx.writeFile(filePath);
     
-    const paymentResult = await pool.query(paymentQuery, [
-      orderId, 
-      amount, 
-      method, 
-      paymentDetails
-    ]);
-    
-    const paymentId = paymentResult.rows[0].payment_id;
-    
-    // Update order status to 'paid'
-    await pool.query(
-      'UPDATE orders SET status = $1, updated_at = NOW() WHERE order_id = $2',
-      ['paid', orderId]
-    );
-    
-    res.json({
-      success: true,
-      transactionId: paymentId,
-      orderId: orderId,
-      status: 'paid'
-    });
   } catch (error) {
-    console.error(`Error processing payment for order ${orderId}:`, error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Error saving to Excel:', error);
+    // Don't throw error to prevent breaking the main flow
   }
-};
-
-// Verify payment status
-export const verifyPaymentStatus = async (req: Request, res: Response) => {
-  const { paymentId } = req.params;
-  
-  try {
-    const paymentQuery = `
-      SELECT * FROM payments
-      WHERE payment_id = $1
-    `;
-    
-    const paymentResult = await pool.query(paymentQuery, [paymentId]);
-    
-    if (paymentResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Payment not found' });
-    }
-    
-    const payment = paymentResult.rows[0];
-    
-    res.json({
-      status: 'completed',
-      verified: true,
-      paymentId: payment.payment_id,
-      orderId: payment.order_id,
-      amount: payment.amount,
-      method: payment.method,
-      paymentDate: payment.payment_date
-    });
-  } catch (error) {
-    console.error(`Error verifying payment ${paymentId}:`, error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-// Helper function to get order items
-const getOrderItems = async (orderId: string | number) => {
-  const query = `
-    SELECT * FROM order_items
-    WHERE order_id = $1
-  `;
-  
-  const result = await pool.query(query, [orderId]);
-  return result.rows;
-};
-
-// Helper function to get order with items
-const getOrderWithItems = async (orderId: string | number) => {
-  const orderQuery = `
-    SELECT * FROM orders
-    WHERE order_id = $1
-  `;
-  
-  const orderResult = await pool.query(orderQuery, [orderId]);
-  
-  if (orderResult.rows.length === 0) {
-    return null;
-  }
-  
-  const order = orderResult.rows[0];
-  const items = await getOrderItems(orderId);
-  
-  return { ...order, items };
-};
+}

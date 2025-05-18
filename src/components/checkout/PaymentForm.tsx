@@ -1,10 +1,11 @@
-// File: src/components/checkout/PaymentForm.tsx
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { CreditCard, ShoppingBag, Wallet } from "lucide-react";
+import type { PaymentMethod } from "@/models/OrderModel";
 
 interface PaymentFormProps {
-  paymentMethod: string;
-  setPaymentMethod: (method: string) => void;
+  paymentMethod: PaymentMethod;
+  setPaymentMethod: React.Dispatch<React.SetStateAction<PaymentMethod>>;
 }
 
 const PaymentForm = ({
@@ -30,15 +31,21 @@ const PaymentForm = ({
             Credit/Debit Card or Online Banking (PayHere)
           </Label>
         </div>
-        
+
         {paymentMethod === "payhere" && (
           <div className="p-4 bg-gray-50 rounded-md border border-gray-200 ml-8">
             <p className="text-sm text-gray-600">
-              You will be redirected to PayHere's secure payment gateway to complete your purchase. PayHere accepts Visa, Mastercard, American Express, and online banking options from major Sri Lankan banks.
+              You will be redirected to PayHere's secure payment gateway to complete your purchase. 
+              PayHere accepts Visa, Mastercard, American Express, and online banking options from major Sri Lankan banks.
             </p>
+            <div className="flex mt-3">
+              <img src="/img/payment/visa.svg" alt="Visa" className="h-6 mr-2" />
+              <img src="/img/payment/mastercard.svg" alt="Mastercard" className="h-6 mr-2" />
+              <img src="/img/payment/amex.svg" alt="American Express" className="h-6" />
+            </div>
           </div>
         )}
-        
+
         <div className="flex items-center p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
           <input
             type="radio"
@@ -54,7 +61,7 @@ const PaymentForm = ({
             Cash on Delivery
           </Label>
         </div>
-        
+
         <div className="flex items-center p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
           <input
             type="radio"
@@ -70,7 +77,7 @@ const PaymentForm = ({
             Direct Bank Transfer
           </Label>
         </div>
-        
+
         {paymentMethod === "bank_transfer" && (
           <div className="p-4 bg-gray-50 rounded-md border border-gray-200 ml-8">
             <p className="text-sm text-gray-600 mb-2">

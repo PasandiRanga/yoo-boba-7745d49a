@@ -1,11 +1,12 @@
 // File: src/pages/CheckoutPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { createOrder } from "@/models/OrderModel";
+import { createOrder, PaymentMethod } from "@/models/OrderModel";
 import { toast } from "@/components/ui/use-toast";
 
 // Import our components
@@ -23,13 +24,14 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  // Shipping information
+  // Customer Information
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     company: "",
+    userId: localStorage.getItem("userId") || undefined, // For logged-in users
   });
 
   // Address information
@@ -39,7 +41,7 @@ const CheckoutPage = () => {
     city: "",
     state: "",
     zipCode: "",
-    country: "Sri Lanka", // Changed default to Sri Lanka
+    country: "Sri Lanka",
   });
 
   const [sameAsBilling, setSameAsBilling] = useState(true);
@@ -49,11 +51,11 @@ const CheckoutPage = () => {
     city: "",
     state: "",
     zipCode: "",
-    country: "Sri Lanka", // Changed default to Sri Lanka
+    country: "Sri Lanka",
   });
 
   // Payment information
-  const [paymentMethod, setPaymentMethod] = useState("payhere"); // Default to PayHere
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere"); // Default to PayHere
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -78,6 +80,16 @@ const CheckoutPage = () => {
 
   // Validate the form
   const validateForm = () => {
+    // Check if cart is empty
+    if (selectedItems.length === 0) {
+      toast({
+        title: "Empty Cart",
+        description: "Your cart is empty. Add items before checkout.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     // Check customer details
     if (!customer.firstName || !customer.lastName || !customer.email || !customer.phone) {
       toast({
@@ -122,17 +134,22 @@ const CheckoutPage = () => {
     
     setLoading(true);
 
-    // Convert selected cart items to order items
-    const orderItems = selectedItems.map((item) => ({
-      productId: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-    }));
-
-    // Create a new order
     try {
-      // Create order
+      // Convert selected cart items to order items
+      const orderItems = selectedItems.map((item) => ({
+        productId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      // Calculate totals
+      const subtotal = selectedSubtotal;
+      const shipping = 350.00;
+      const tax = subtotal * 0.08; // 8% tax
+      const orderTotal = subtotal + shipping + tax;
+  
+      // Create a new order
       const order = createOrder(
         customer,
         shippingAddress,
@@ -152,12 +169,12 @@ const CheckoutPage = () => {
         navigate("/payment-portal", { 
           state: { 
             orderId: order.id,
-            amount: selectedSubtotal,
-            customerEmail: customer.email,
-            customer: customer,
-            shippingAddress: shippingAddress,
-            billingAddress: sameAsBilling ? shippingAddress : billingAddress,
-            items: orderItems
+            customer: order.customer,
+            shippingAddress: order.shippingAddress,
+            billingAddress: order.billingAddress,
+            items: order.items,
+            amount: orderTotal, // Using calculated total with tax and shipping
+            customerEmail: customer.email
           } 
         });
       } else if (paymentMethod === "bank_transfer") {
@@ -170,7 +187,8 @@ const CheckoutPage = () => {
         navigate("/order-confirmation", { 
           state: { 
             orderId: order.id,
-            paymentMethod: "bank_transfer" 
+            paymentMethod: "bank_transfer",
+            orderDetails: order
           } 
         });
       } else {
@@ -183,12 +201,13 @@ const CheckoutPage = () => {
         navigate("/order-confirmation", { 
           state: { 
             orderId: order.id,
-            paymentMethod: "cash_on_delivery" 
+            paymentMethod: "cash_on_delivery",
+            orderDetails: order
           } 
         });
       }
     } catch (error) {
-      setLoading(false);
+      console.error("Checkout error:", error);
       toast({
         title: "Error",
         description: "There was an error processing your order. Please try again.",
@@ -259,7 +278,10 @@ const CheckoutPage = () => {
 
               {/* Order Summary for Mobile Only */}
               <div className="mb-8 lg:hidden">
-                <OrderSummary items={selectedItems} subtotal={selectedSubtotal} />
+                <OrderSummary 
+                  items={selectedItems} 
+                  subtotal={selectedSubtotal}
+                />
               </div>
 
               {/* Submit Button */}
@@ -279,7 +301,10 @@ const CheckoutPage = () => {
 
           {/* Order Summary for Desktop Only */}
           <div className="lg:col-span-1 hidden lg:block">
-            <OrderSummary items={selectedItems} subtotal={selectedSubtotal} />
+            <OrderSummary 
+              items={selectedItems} 
+              subtotal={selectedSubtotal}
+            />
           </div>
         </div>
       </main>
