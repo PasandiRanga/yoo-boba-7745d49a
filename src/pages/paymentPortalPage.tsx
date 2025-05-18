@@ -11,7 +11,7 @@ const PaymentPortalPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     // Extract data from location state
@@ -28,45 +28,57 @@ const PaymentPortalPage = () => {
       return;
     }
 
-    // Process order and redirect to payment
+    // Use a flag to track if the effect has already run
+    let isActive = true;
+    
     const handlePaymentProcess = async () => {
       console.log("Processing payment for order:", orderData);
       try {
         setIsLoading(true);
         
-        // Step 1: Create the pending order in the database
-        await createPendingOrder({
-          orderId: orderData.orderId,
-          customer: orderData.customer,
-          shippingAddress: orderData.shippingAddress,
-          billingAddress: orderData.billingAddress,
-          items: orderData.items,
-          amount: orderData.amount,
-          paymentMethod: "payhere",
-          status: "pending"
-        });
-        
-        // Step 2: Process payment through payment service
-        // This will retrieve checkout parameters and redirect to PayHere
-        await processPayment(orderData.orderId);
-        
+        // Only proceed if the component is still mounted
+        if (isActive) {
+          // Step 1: Create the pending order
+          await createPendingOrder({
+            orderId: orderData.orderId,
+            customer: orderData.customer,
+            shippingAddress: orderData.shippingAddress,
+            billingAddress: orderData.billingAddress,
+            items: orderData.items,
+            amount: orderData.amount,
+            paymentMethod: "payhere",
+            status: "pending"
+          });
+          
+          // Step 2: Process payment
+          if (isActive) {
+            await processPayment(orderData.orderId);
+          }
+        }
       } catch (error) {
-        console.error("Payment process error:", error);
-        setError(error instanceof Error ? error.message : "An unknown error occurred");
-        
-        toast({
-          title: "Payment Error",
-          description: error instanceof Error ? error.message : "Failed to process payment. Please try again.",
-          variant: "destructive",
-        });
-        
-        // Don't navigate away yet since we're showing the error in this component
+        if (isActive) {
+          console.error("Payment process error:", error);
+          setError(error instanceof Error ? error.message : "An unknown error occurred");
+          
+          toast({
+            title: "Payment Error",
+            description: error instanceof Error ? error.message : "Failed to process payment. Please try again.",
+            variant: "destructive",
+          });
+        }
       } finally {
-        setIsLoading(false);
+        if (isActive) {
+          setIsLoading(false);
+        }
       }
     };
 
     handlePaymentProcess();
+    
+    // Cleanup function to prevent double execution effects
+    return () => {
+      isActive = false;
+    };
   }, [location.state, navigate]);
 
   // If there's an error, show it
