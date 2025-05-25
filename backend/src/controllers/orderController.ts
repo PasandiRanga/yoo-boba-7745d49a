@@ -23,6 +23,8 @@ export const createOrder = async (req: Request, res: Response) => {
   } = req.body;
 
   console.error('Creating order with data:', req.body);
+  console.error('Order ID:', orderId);
+  console.error('User id ' , customer.userId);
 
   try {
     const isGuestOrder = !customer.userId;
@@ -75,7 +77,7 @@ export const createOrder = async (req: Request, res: Response) => {
         await client.query(
           `INSERT INTO user_orders (
             order_id, 
-            user_id
+            customerid
           ) VALUES ($1, $2)`,
           [orderId, customer.userId]
         );
@@ -206,9 +208,9 @@ export const getOrderById = async (req: Request, res: Response) => {
       customer = customerResult.rows[0];
     } else {
       const userOrderResult = await pool.query(
-        `SELECT uo.*, u.first_name, u.last_name, u.email, u.phone 
+        `SELECT uo.*, u.first_name, u.last_name, u.emailaddress, u.contactno 
          FROM user_orders uo
-         JOIN customers u ON uo.customerid = u.id
+         JOIN customers u ON uo.customerid = u.customerid
          WHERE uo.order_id = $1`,
         [id]
       );
@@ -325,7 +327,7 @@ export const getOrdersByCustomerId = async (req: Request, res: Response) => {
       SELECT o.* 
       FROM orders o
       JOIN user_orders uo ON o.id = uo.order_id
-      WHERE uo.user_id = $1
+      WHERE uo.customerid = $1
       ORDER BY o.created_at DESC
     `, [customerId]);
     

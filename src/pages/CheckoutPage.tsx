@@ -34,6 +34,8 @@ const CheckoutPage = () => {
     userId: localStorage.getItem("userId") || undefined, // For logged-in users
   });
 
+  console.log(localStorage.getItem("userId"));
+
   // Address information
   const [shippingAddress, setShippingAddress] = useState({
     street1: "",
