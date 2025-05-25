@@ -23,18 +23,17 @@ const CheckoutPage = () => {
   const selectedItems = getSelectedItems();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
-  // Customer Information
+  // Customer Information - Initialize with empty values
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     company: "",
-    userId: localStorage.getItem("userId") || undefined, // For logged-in users
+    userId: undefined,
   });
-
-  console.log(localStorage.getItem("userId"));
 
   // Address information
   const [shippingAddress, setShippingAddress] = useState({
@@ -58,6 +57,49 @@ const CheckoutPage = () => {
 
   // Payment information
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere"); // Default to PayHere
+
+  // Effect to load user data from session storage
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem("customer");
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setLoggedInUser(userData);
+        
+        // Pre-fill customer information with session data
+        setCustomer(prev => ({
+          ...prev,
+          firstName: userData.first_name || userData.firstName || "",
+          lastName: userData.last_name || userData.lastName || "",
+          email: userData.email || "",
+          phone: userData.phone || userData.phone_number || "",
+          company: userData.company || "",
+          userId: userData.id || userData.user_id || undefined,
+        }));
+
+        // Pre-fill address if available in user data
+        if (userData.address) {
+          const userAddress = {
+            street1: userData.address.street1 || userData.address.address_line_1 || "",
+            street2: userData.address.street2 || userData.address.address_line_2 || "",
+            city: userData.address.city || "",
+            state: userData.address.state || userData.address.province || "",
+            zipCode: userData.address.zipCode || userData.address.postal_code || "",
+            country: userData.address.country || "Sri Lanka",
+          };
+          
+          setShippingAddress(userAddress);
+          if (sameAsBilling) {
+            setBillingAddress(userAddress);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing user data from session:", error);
+        // Clear invalid session data
+        sessionStorage.removeItem("customer");
+      }
+    }
+  }, [sameAsBilling]);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -97,6 +139,17 @@ const CheckoutPage = () => {
       toast({
         title: "Missing Information",
         description: "Please provide all required customer information.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customer.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please provide a valid email address.",
         variant: "destructive",
       });
       return false;
@@ -151,7 +204,7 @@ const CheckoutPage = () => {
       const tax = subtotal * 0.08; // 8% tax
       const orderTotal = subtotal + shipping + tax;
   
-      // Create a new order
+      // Create a new order with updated customer data
       const order = createOrder(
         customer,
         shippingAddress,
@@ -237,14 +290,29 @@ const CheckoutPage = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold font-display mb-8">Checkout</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold font-display">Checkout</h1>
+          {/* Show logged in user info */}
+          {loggedInUser && (
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Logged in as: <span className="font-medium text-gray-800 dark:text-gray-200">{loggedInUser.first_name} {loggedInUser.last_name}</span>
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmitOrder}>
               {/* Customer Information */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Customer Information</h2>
+                  {loggedInUser && (
+                    <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                      Auto-filled
+                    </span>
+                  )}
+                </div>
                 <CustomerInfoForm 
                   customer={customer} 
                   handleCustomerChange={handleCustomerChange} 
@@ -252,16 +320,24 @@ const CheckoutPage = () => {
               </div>
 
               {/* Shipping Address */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Shipping Address</h2>
+                  {loggedInUser && loggedInUser.address && (
+                    <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                      Auto-filled
+                    </span>
+                  )}
+                </div>
                 <AddressForm 
-                  title="Shipping Address"
+                  title=""
                   address={shippingAddress} 
                   handleAddressChange={handleShippingChange} 
                 />
               </div>
 
               {/* Billing Address */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <BillingAddressForm 
                   sameAsBilling={sameAsBilling} 
                   setSameAsBilling={setSameAsBilling}
@@ -271,7 +347,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Information */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <PaymentForm 
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}

@@ -28,16 +28,24 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   
   useEffect(() => {
-    const storedUser = localStorage.getItem("customer");
+    // Check sessionStorage instead of localStorage
+    const storedUser = sessionStorage.getItem("customer");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
   
   const handleLogout = () => {
-    localStorage.removeItem("customer");
+    // Clear all session data on logout
+    sessionStorage.removeItem("customer");
+    sessionStorage.removeItem("token");
+    
+    // Clear any other session-related data if needed
+    sessionStorage.clear();
+    
     setUser(null);
-    // Redirect to homepage or reload page if needed
+    
+    // Redirect to homepage
     window.location.href = "/";
   };
   

@@ -131,9 +131,9 @@ const SignInDialog = () => {
     try {
       const response = await loginCustomer(formData.email, formData.password);
       
-      // Save token and customer data
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("customer", JSON.stringify(response.customer));
+      // Save token and customer data to sessionStorage instead of localStorage
+      sessionStorage.setItem("token", response.token);
+      sessionStorage.setItem("customer", JSON.stringify(response.customer));
 
       // Close the dialog and redirect to home page
       setIsOpen(false);

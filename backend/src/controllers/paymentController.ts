@@ -125,7 +125,7 @@ export class PaymentController {
       } = req.body;
 
       // Get secret key from environment
-      const secretKey = process.env.PAYHERE_SECRET_KEY;
+      const secretKey = "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
       if (!secretKey) {
         throw new Error('PayHere secret key not configured');
       }
@@ -154,7 +154,7 @@ export class PaymentController {
         `UPDATE orders 
          SET status = $1, 
              payment_status = $2, 
-             payment_reference = $3, 
+             payment_id = $3, 
              updated_at = NOW() 
          WHERE id = $4`,
         [orderStatus, paymentStatus, payment_id, order_id]
@@ -262,7 +262,7 @@ export class PaymentController {
         merchant_id: merchantId,
         return_url: `http://localhost:8080/payment-complete?order_id=${orderId}`,
         cancel_url: `http://localhost:8080/checkout`,
-        notify_url: `http://localhost:4000/payments/notify`,
+        notify_url: `https://a6d8-112-135-67-24.ngrok-free.app/api/payments/notify`,
         
         order_id: orderId,
         items: order.items.map((item: any) => item.name).join(', '),
