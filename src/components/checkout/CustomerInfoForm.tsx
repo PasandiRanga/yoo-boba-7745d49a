@@ -1,10 +1,10 @@
 
-import { CustomerInfo } from "@/models/OrderModel";
+import { Customer } from "@/models/OrderModel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface CustomerInfoFormProps {
-  customer: CustomerInfo;
+  customer: Customer;
   handleCustomerChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 

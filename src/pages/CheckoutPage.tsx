@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { createOrder, PaymentMethod } from "@/models/OrderModel";
 import { toast } from "@/components/ui/use-toast";
+import { fetchCustomerById } from "@/services/customerService";
 
 // Import our components
 import CustomerInfoForm from "@/components/checkout/CustomerInfoForm";
@@ -59,33 +60,43 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere"); // Default to PayHere
 
   // Effect to load user data from session storage
-  useEffect(() => {
+  // Effect to load user data from session storage
+// Effect to load user data from session storage
+useEffect(() => {
+  const loadUserData = async () => {
     const storedUser = sessionStorage.getItem("customer");
+    console.log("Stored user data:", storedUser);
+    
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
-        setLoggedInUser(userData);
+        console.log("Stored user id", userData.customerid);
+
+        // Properly await the async function
+        const fetchedUserData = await fetchCustomerById(userData.customerid);
+        console.log("Fetched user data:", fetchedUserData);
         
-        // Pre-fill customer information with session data
+        // Map fetched user data to Order model Customer interface
         setCustomer(prev => ({
           ...prev,
-          firstName: userData.first_name || userData.firstName || "",
-          lastName: userData.last_name || userData.lastName || "",
-          email: userData.email || "",
-          phone: userData.phone || userData.phone_number || "",
-          company: userData.company || "",
-          userId: userData.id || userData.user_id || undefined,
+          firstName: fetchedUserData.first_name || "",
+          lastName: fetchedUserData.last_name || "",
+          email: fetchedUserData.emailaddress || "",
+          phone: fetchedUserData.contactno || "",
+          company: fetchedUserData.company || "",
+          userId: fetchedUserData.customerid || undefined,
         }));
 
         // Pre-fill address if available in user data
-        if (userData.address) {
+        // Address is a string in the fetched data
+        if (fetchedUserData.address && typeof fetchedUserData.address === 'string') {
           const userAddress = {
-            street1: userData.address.street1 || userData.address.address_line_1 || "",
-            street2: userData.address.street2 || userData.address.address_line_2 || "",
-            city: userData.address.city || "",
-            state: userData.address.state || userData.address.province || "",
-            zipCode: userData.address.zipCode || userData.address.postal_code || "",
-            country: userData.address.country || "Sri Lanka",
+            street1: fetchedUserData.address,
+            street2: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "Sri Lanka",
           };
           
           setShippingAddress(userAddress);
@@ -94,12 +105,16 @@ const CheckoutPage = () => {
           }
         }
       } catch (error) {
-        console.error("Error parsing user data from session:", error);
+        console.error("Error parsing user data from session or fetching from API:", error);
         // Clear invalid session data
         sessionStorage.removeItem("customer");
       }
     }
-  }, [sameAsBilling]);
+  };
+
+  // Call the async function
+  loadUserData();
+}, [sameAsBilling]);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
