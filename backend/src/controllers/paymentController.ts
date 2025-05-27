@@ -262,7 +262,7 @@ export class PaymentController {
         merchant_id: merchantId,
         return_url: `http://localhost:8080/payment-complete?order_id=${orderId}`,
         cancel_url: `http://localhost:8080/checkout`,
-        notify_url: `https://a6d8-112-135-67-24.ngrok-free.app/api/payments/notify`,
+        notify_url: `https://5894-2402-d000-a500-37c9-685b-fb70-3cfe-417b.ngrok-free.app/api/payments/notify`,
         
         order_id: orderId,
         items: order.items.map((item: any) => item.name).join(', '),
