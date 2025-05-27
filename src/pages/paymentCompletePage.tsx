@@ -4,12 +4,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { CheckCircle, Loader2, User, MapPin, Package, CreditCard, Heart } from "lucide-react";
+import { CheckCircle, Loader2, User, MapPin, Package, CreditCard, Heart, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FloatingBobaPearls } from "@/components/ui/floatingBobaPearls";
 import { toast } from "@/components/ui/use-toast";
 import { fetchOrderById } from "@/services/orderService";
 import { Order } from "@/models/OrderModel";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 // Add interface for the database response structure
 interface DatabaseOrderResponse {
@@ -113,86 +115,193 @@ const transformDatabaseOrder = (dbResponse: DatabaseOrderResponse): Order => {
   };
 };
 
-// Boba Pearl Component
-const BobaPearl = ({ delay = 0, size = 'small', color = 'purple' }: { delay?: number; size?: 'small' | 'medium' | 'large'; color?: 'purple' | 'pink' | 'blue' | 'green' }) => {
-  const sizeClasses = {
-    small: 'w-3 h-3',
-    medium: 'w-4 h-4',
-    large: 'w-5 h-5'
-  };
-  
-  const colorClasses = {
-    purple: 'bg-purple-400',
-    pink: 'bg-pink-400',
-    blue: 'bg-blue-400',
-    green: 'bg-green-400'
-  };
-
-  return (
-    <div 
-      className={`${sizeClasses[size]} ${colorClasses[color]} rounded-full opacity-80 animate-bounce`}
-      style={{ animationDelay: `${delay}ms`, animationDuration: '2s' }}
-    />
-  );
-};
-
-// // Floating Boba Pearls Background
-// const FloatingBobaPearls = () => {
-//   const pearls = Array.from({ length: 15 }, (_, i) => ({
-//     id: i,
-//     left: Math.random() * 100,
-//     delay: Math.random() * 2000,
-//     size: ['small', 'medium', 'large'][Math.floor(Math.random() * 3)] as 'small' | 'medium' | 'large',
-//     color: ['purple', 'pink', 'blue', 'green'][Math.floor(Math.random() * 4)] as 'purple' | 'pink' | 'blue' | 'green',
-//     duration: 3 + Math.random() * 2
-//   }));
-
-//   return (
-//     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-//       {pearls.map((pearl) => (
-//         <div
-//           key={pearl.id}
-//           className="absolute animate-float"
-//           style={{
-//             left: `${pearl.left}%`,
-//             animationDelay: `${pearl.delay}ms`,
-//             animationDuration: `${pearl.duration}s`
-//           }}
-//         >
-//           <BobaPearl size={pearl.size} color={pearl.color} />
-//         </div>
-//       ))}
-//       <style jsx>{`
-//         @keyframes float {
-//           0% {
-//             transform: translateY(100vh) rotate(0deg);
-//             opacity: 0;
-//           }
-//           10% {
-//             opacity: 1;
-//           }
-//           90% {
-//             opacity: 1;
-//           }
-//           100% {
-//             transform: translateY(-10vh) rotate(360deg);
-//             opacity: 0;
-//           }
-//         }
-//         .animate-float {
-//           animation: float linear infinite;
-//         }
-//       `}</style>
-//     </div>
-//   );
-// };
-
 const PaymentCompletePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { clearCart } = useCart();
   const [isLoading, setIsLoading] = useState(true);
   const [orderData, setOrderData] = useState<Order | null>(null);
+  const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
+
+  // Function to download receipt as PDF
+  // Update the downloadReceipt function in your PaymentCompletePage.tsx
+const downloadReceipt = async () => {
+  try {
+    setIsGeneratingReceipt(true);
+    
+    // Create a temporary div with only the essential receipt content
+    const receiptContent = document.createElement("div");
+    receiptContent.style.padding = "20px";
+    receiptContent.style.backgroundColor = "white";
+    receiptContent.style.color = "black";
+    receiptContent.style.maxWidth = "800px";
+    receiptContent.style.margin = "0 auto";
+
+    // Add company header
+    const header = document.createElement("div");
+    header.style.textAlign = "center";
+    header.style.marginBottom = "20px";
+    header.innerHTML = `
+      <h1 style="font-size: 24px; font-weight: bold; color: #7e22ce;">YooBoba</h1>
+      <p style="font-size: 16px; color: #6b7280;">Order Receipt</p>
+      <hr style="border: 1px solid #e5e7eb; margin: 10px 0;">
+    `;
+    receiptContent.appendChild(header);
+
+    // Add order summary
+    const orderSummary = document.createElement("div");
+    orderSummary.style.marginBottom = "20px";
+    orderSummary.innerHTML = `
+      <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #7e22ce;">Order Summary</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <p><strong>Order Number:</strong> ${order?.id || "N/A"}</p>
+          <p><strong>Date:</strong> ${order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}</p>
+          <p><strong>Status:</strong> ${order?.status ? capitalize(order.status) : "N/A"}</p>
+        </div>
+        <div>
+          <p><strong>Payment Method:</strong> ${order?.paymentMethod ? order.paymentMethod.replace('_', ' ').toUpperCase() : 'N/A'}</p>
+          <p><strong>Payment Status:</strong> ${order?.paymentStatus ? capitalize(order.paymentStatus) : "N/A"}</p>
+          <p><strong>Total Amount:</strong> LKR ${order?.total?.toFixed(2) || "0.00"}</p>
+        </div>
+      </div>
+    `;
+    receiptContent.appendChild(orderSummary);
+
+    // Add customer information
+    const customerInfo = document.createElement("div");
+    customerInfo.style.marginBottom = "20px";
+    customerInfo.innerHTML = `
+      <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #7e22ce;">Customer Information</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <p><strong>Name:</strong> ${getCustomerName()}</p>
+          <p><strong>Email:</strong> ${getCustomerEmail()}</p>
+        </div>
+        <div>
+          <p><strong>Phone:</strong> ${getCustomerPhone()}</p>
+          ${customer?.company ? `<p><strong>Company:</strong> ${customer.company}</p>` : ''}
+        </div>
+      </div>
+    `;
+    receiptContent.appendChild(customerInfo);
+
+    // Add addresses if they exist
+    if (order?.shippingAddress) {
+      const shippingAddress = document.createElement("div");
+      shippingAddress.style.marginBottom = "20px";
+      shippingAddress.innerHTML = `
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #7e22ce;">Shipping Address</h2>
+        <p>${formatAddress(order.shippingAddress)}</p>
+      `;
+      receiptContent.appendChild(shippingAddress);
+    }
+
+    if (order?.billingAddress) {
+      const billingAddress = document.createElement("div");
+      billingAddress.style.marginBottom = "20px";
+      billingAddress.innerHTML = `
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #7e22ce;">Billing Address</h2>
+        <p>${formatAddress(order.billingAddress)}</p>
+      `;
+      receiptContent.appendChild(billingAddress);
+    }
+
+    // Add order items table
+    if (order?.items && order.items.length > 0) {
+      const itemsTable = document.createElement("div");
+      itemsTable.style.marginBottom = "20px";
+      
+      let itemsHTML = `
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #7e22ce;">Order Items</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background-color: #f3e8ff;">
+              <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Item</th>
+              <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
+              <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ddd;">Qty</th>
+              <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      order.items.forEach(item => {
+        itemsHTML += `
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name}</td>
+            <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">LKR ${item.price.toFixed(2)}</td>
+            <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity}</td>
+            <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">LKR ${(item.price * item.quantity).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      itemsHTML += `
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="padding: 8px; text-align: right; font-weight: bold;">Total:</td>
+              <td style="padding: 8px; text-align: right; font-weight: bold;">LKR ${order.total?.toFixed(2) || "0.00"}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+
+      itemsTable.innerHTML = itemsHTML;
+      receiptContent.appendChild(itemsTable);
+    }
+
+    // Add footer
+    const footer = document.createElement("div");
+    footer.style.textAlign = "center";
+    footer.style.marginTop = "20px";
+    footer.style.paddingTop = "10px";
+    footer.style.borderTop = "1px solid #e5e7eb";
+    footer.style.color = "#6b7280";
+    footer.innerHTML = `
+      <p>Thank you for your order!</p>
+      <p>YooBoba  • ${new Date().getFullYear()}</p>
+    `;
+    receiptContent.appendChild(footer);
+
+    // Add the temporary div to the body
+    document.body.appendChild(receiptContent);
+
+    // Generate the PDF
+    const canvas = await html2canvas(receiptContent, {
+      scale: 2,
+      logging: false,
+      useCORS: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgWidth = 190; // Slightly smaller than A4 width
+    const pageHeight = 277; // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+    pdf.save(`YooBoba_Receipt_${order?.id || "order"}.pdf`);
+
+    // Clean up
+    document.body.removeChild(receiptContent);
+
+    toast({
+      title: "Receipt Downloaded",
+      description: "Your receipt has been successfully downloaded.",
+    });
+  } catch (error) {
+    console.error("Error generating receipt:", error);
+    toast({
+      title: "Error Generating Receipt",
+      description: "There was an error generating your receipt. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsGeneratingReceipt(false);
+  }
+};
 
   useEffect(() => {
     // Extract query parameters from URL
@@ -270,16 +379,10 @@ const PaymentCompletePage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen relative">
-        <FloatingBobaPearls />
+      <div className="flex flex-col min-h-screen">
         <Navbar />
-        <main className="flex-grow container mx-auto px-4 py-16 flex items-center justify-center relative z-10">
+        <main className="flex-grow container mx-auto px-4 py-16 flex items-center justify-center">
           <div className="text-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200 dark:border-purple-800">
-            <div className="flex justify-center mb-4 space-x-2">
-              <BobaPearl delay={0} size="medium" color="purple" />
-              <BobaPearl delay={200} size="medium" color="pink" />
-              <BobaPearl delay={400} size="medium" color="blue" />
-            </div>
             <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-purple-500" />
             <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-white">Verifying Payment</h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -293,11 +396,8 @@ const PaymentCompletePage = () => {
   }
 
   const order = orderData;
-  console.log("Final Order Data:", order);
   const isGuestOrder = order?.isGuestOrder;
-  console.log("Is Guest Order:", isGuestOrder);
   const customer = order?.customer;
-  console.log("Customer Data:", customer);
 
   // Helper function to get customer name
   const getCustomerName = () => {
@@ -309,7 +409,7 @@ const PaymentCompletePage = () => {
   // Helper function to get customer email
   const getCustomerEmail = () => {
     if (!customer) return "N/A";
-    return customer.email || "N/A" ;
+    return customer.email || "N/A";
   };
 
   // Helper function to get customer phone
@@ -349,23 +449,15 @@ const PaymentCompletePage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 relative">
-      <FloatingBobaPearls />
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8 relative z-10">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-grow container mx-auto px-4 py-8 relative">
+        {/* Receipt container with FloatingBobaPearls */}
+        <div className="max-w-4xl mx-auto relative" id="receipt">
+          <FloatingBobaPearls />
+          
           {/* Success Header */}
           <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
-            {/* Decorative boba pearls in header */}
-            <div className="absolute top-4 right-4 flex space-x-2">
-              <BobaPearl delay={0} size="small" color="purple" />
-              <BobaPearl delay={300} size="small" color="pink" />
-            </div>
-            <div className="absolute bottom-4 left-4 flex space-x-2">
-              <BobaPearl delay={600} size="small" color="blue" />
-              <BobaPearl delay={900} size="small" color="green" />
-            </div>
-            
             <div className="text-center relative">
               <div className="relative inline-block">
                 <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-4 drop-shadow-lg" />
@@ -379,7 +471,6 @@ const PaymentCompletePage = () => {
               </p>
               {isGuestOrder && (
                 <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full px-4 py-2 border border-blue-200 dark:border-blue-700">
-                  <BobaPearl size="small" color="blue" />
                   <p className="text-sm text-blue-600 dark:text-blue-400">
                     This order was placed as a guest. Consider creating an account to track your boba orders!
                   </p>
@@ -392,9 +483,6 @@ const PaymentCompletePage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Order Summary */}
               <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
-                <div className="absolute top-4 right-4">
-                  <BobaPearl delay={0} size="small" color="purple" />
-                </div>
                 <div className="flex items-center mb-4">
                   <Package className="h-6 w-6 text-purple-500 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -447,9 +535,6 @@ const PaymentCompletePage = () => {
 
               {/* Customer Information */}
               <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
-                <div className="absolute top-4 right-4">
-                  <BobaPearl delay={200} size="small" color="pink" />
-                </div>
                 <div className="flex items-center mb-4">
                   <User className="h-6 w-6 text-pink-500 mr-3" />
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -486,9 +571,6 @@ const PaymentCompletePage = () => {
               {/* Shipping Address */}
               {order.shippingAddress && (
                 <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
-                  <div className="absolute top-4 right-4">
-                    <BobaPearl delay={400} size="small" color="blue" />
-                  </div>
                   <div className="flex items-center mb-4">
                     <MapPin className="h-6 w-6 text-blue-500 mr-3" />
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -504,9 +586,6 @@ const PaymentCompletePage = () => {
               {/* Billing Address */}
               {order.billingAddress && (
                 <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
-                  <div className="absolute top-4 right-4">
-                    <BobaPearl delay={600} size="small" color="green" />
-                  </div>
                   <div className="flex items-center mb-4">
                     <MapPin className="h-6 w-6 text-green-500 mr-3" />
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -522,10 +601,6 @@ const PaymentCompletePage = () => {
               {/* Order Items */}
               {order.items && order.items.length > 0 && (
                 <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 lg:col-span-2 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
-                  <div className="absolute top-4 right-4 flex space-x-2">
-                    <BobaPearl delay={0} size="small" color="purple" />
-                    <BobaPearl delay={300} size="small" color="pink" />
-                  </div>
                   <div className="flex items-center mb-6">
                     <CreditCard className="h-6 w-6 text-purple-500 mr-3" />
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -537,7 +612,6 @@ const PaymentCompletePage = () => {
                       <div key={index} className="flex justify-between items-center py-4 px-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-800 last:border-b-0 hover:shadow-md transition-shadow duration-200">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
-                            <BobaPearl size="small" color="purple" />
                             <p className="font-semibold text-gray-900 dark:text-white text-lg">{item.name}</p>
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
@@ -564,18 +638,7 @@ const PaymentCompletePage = () => {
 
           {/* Action Buttons */}
           <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 mt-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
-            <div className="absolute top-4 left-4 flex space-x-2">
-              <BobaPearl delay={0} size="small" color="pink" />
-              <BobaPearl delay={500} size="small" color="blue" />
-            </div>
             <div className="text-center space-y-6">
-              <div className="flex justify-center mb-4">
-                <div className="flex space-x-2">
-                  <BobaPearl delay={0} size="medium" color="purple" />
-                  <BobaPearl delay={200} size="medium" color="pink" />
-                  <BobaPearl delay={400} size="medium" color="blue" />
-                </div>
-              </div>
               <p className="text-gray-600 dark:text-gray-300 text-lg">
                 A confirmation email has been sent to your inbox! Check it out for all the sweet details 📧✨
               </p>
@@ -585,6 +648,24 @@ const PaymentCompletePage = () => {
                   className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-purple-300"
                 >
                   Continue Shopping 🛍️
+                </Button>
+                <Button
+                  onClick={downloadReceipt}
+                  disabled={isGeneratingReceipt}
+                  variant="outline"
+                  className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                >
+                  {isGeneratingReceipt ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-5 w-5 mr-2" />
+                      Download Receipt
+                    </>
+                  )}
                 </Button>
                 {!isGuestOrder && (
                   <Button
