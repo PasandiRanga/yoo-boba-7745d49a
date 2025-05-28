@@ -23,6 +23,8 @@ interface DatabaseOrderResponse {
       first_name: string;
       last_name: string;
       email: string;
+      emailaddress:string;
+      contactno:string;
       phone: string;
       company?: string;
       user_id?: string;
@@ -77,8 +79,8 @@ const transformDatabaseOrder = (dbResponse: DatabaseOrderResponse): Order => {
     customer: {
       firstName: dbOrder.customer.first_name,
       lastName: dbOrder.customer.last_name,
-      email: dbOrder.customer.email,
-      phone: dbOrder.customer.phone,
+      email: dbOrder.customer.email || dbOrder.customer.emailaddress,
+      phone: dbOrder.customer.phone || dbOrder.customer.contactno,
       company: dbOrder.customer.company,
       userId: dbOrder.customer.user_id,
     },
@@ -399,6 +401,7 @@ const downloadReceipt = async () => {
   const isGuestOrder = order?.isGuestOrder;
   const customer = order?.customer;
 
+
   // Helper function to get customer name
   const getCustomerName = () => {
     if (!customer) return "N/A";
@@ -409,7 +412,7 @@ const downloadReceipt = async () => {
   // Helper function to get customer email
   const getCustomerEmail = () => {
     if (!customer) return "N/A";
-    return customer.email || "N/A";
+    return customer.email ||"N/A";
   };
 
   // Helper function to get customer phone
