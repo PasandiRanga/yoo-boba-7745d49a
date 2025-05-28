@@ -17,24 +17,25 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   // Use localStorage to persist currency preference
   const savedCurrency = typeof window !== 'undefined' ? 
     (localStorage.getItem('currency') as CurrencyType || "LKR") : "LKR";
-  
+    
   const [currency, setCurrency] = useState<CurrencyType>(savedCurrency);
   const [exchangeRate, setExchangeRate] = useState<number>(320); // Default fallback rate
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasFetched, setHasFetched] = useState<boolean>(false); // Track if we've already fetched
 
-  // Use ref instead of state for tracking fetch status
+  // Fetch exchange rate only once on mount
   useEffect(() => {
-    let isMounted = true;
+    if (hasFetched) return; // Prevent duplicate requests
     
+    let isMounted = true;
+        
     const fetchExchangeRate = async () => {
-      if (isLoading) return; // Prevent duplicate requests
-      
       try {
         setIsLoading(true);
         // Using ExchangeRate API to get real-time LKR to USD exchange rate
         const response = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
         const data = await response.json();
-        
+                
         if (isMounted && data && data.rates && data.rates.LKR) {
           setExchangeRate(data.rates.LKR);
         }
@@ -44,16 +45,17 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
       } finally {
         if (isMounted) {
           setIsLoading(false);
+          setHasFetched(true); // Mark as fetched regardless of success/failure
         }
       }
     };
 
     fetchExchangeRate();
-    
+        
     return () => {
       isMounted = false;
     };
-  }, [isLoading]); // Include isLoading in the dependency array
+  }, []); // Empty dependency array - only run once on mount
 
   // Save currency preference to localStorage when it changes
   useEffect(() => {
@@ -64,8 +66,13 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
 
   // Memoize toggleCurrency to maintain stable reference
   const toggleCurrency = useCallback(() => {
-    setCurrency(prev => prev === "LKR" ? "USD" : "LKR");
-  }, []);
+    console.log('Toggle currency called, current:', currency); // Debug log
+    setCurrency(prev => {
+      const newCurrency = prev === "LKR" ? "USD" : "LKR";
+      console.log('Switching from', prev, 'to', newCurrency); // Debug log
+      return newCurrency;
+    });
+  }, [currency]); // Include currency in dependencies for debugging
 
   // Memoize convertPrice to maintain stable reference
   const convertPrice = useCallback((price: number): number => {
@@ -79,7 +86,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   // Memoize formatPrice to maintain stable reference
   const formatPrice = useCallback((price: number): string => {
     const convertedPrice = currency === "LKR" ? price : price / exchangeRate;
-    
+        
     if (currency === "LKR") {
       return new Intl.NumberFormat('si-LK', {
         style: 'currency',
@@ -111,8 +118,6 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
     </CurrencyContext.Provider>
   );
 };
-
-// Rest of the export remains the same
 
 export const useCurrency = () => {
   const context = useContext(CurrencyContext);
