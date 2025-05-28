@@ -21,6 +21,7 @@ interface CartContextType {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  removeOrderedItems: (orderedItems: CartItem[]) => void; // New function
   totalItems: number;
   subtotal: number;
   selectedItems: SelectedItems;
@@ -50,9 +51,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     storeItems(items);
   }, [items, storeItems]);
 
-  // This useEffect was causing the infinite loop - we'll handle selection differently
-  // Instead of using useEffect to manage selected items, we'll handle it in our item operations
-  
   const addItem = useCallback((item: CartItem) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id);
@@ -119,6 +117,52 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  // New function to remove only ordered items
+  const removeOrderedItems = useCallback((orderedItems: CartItem[]) => {
+    setItems((prevItems) => {
+      const updatedItems = prevItems.map(cartItem => {
+        // Find the corresponding ordered item
+        const orderedItem = orderedItems.find(ordered => ordered.id === cartItem.id);
+        
+        if (orderedItem) {
+          // Calculate remaining quantity
+          const remainingQuantity = cartItem.quantity - orderedItem.quantity;
+          
+          if (remainingQuantity <= 0) {
+            // Item should be completely removed
+            return null;
+          } else {
+            // Update quantity to remaining amount
+            return { ...cartItem, quantity: remainingQuantity };
+          }
+        }
+        
+        // Item wasn't ordered, keep as is
+        return cartItem;
+      }).filter(item => item !== null) as CartItem[];
+
+      // Update selected items state to remove completely ordered items
+      setSelectedItems(prev => {
+        const updated = { ...prev };
+        orderedItems.forEach(orderedItem => {
+          const cartItem = prevItems.find(item => item.id === orderedItem.id);
+          if (cartItem && cartItem.quantity <= orderedItem.quantity) {
+            delete updated[orderedItem.id];
+          }
+        });
+        return updated;
+      });
+
+      const removedItemsCount = orderedItems.length;
+      toast({
+        title: "Order completed",
+        description: `${removedItemsCount} ordered item${removedItemsCount > 1 ? 's have' : ' has'} been removed from your cart`,
+      });
+
+      return updatedItems;
+    });
+  }, []);
+
   // Toggle item selection
   const toggleItemSelection = useCallback((id: string) => {
     setSelectedItems(prev => ({
@@ -178,6 +222,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     removeItem,
     updateQuantity,
     clearCart,
+    removeOrderedItems, // Add the new function
     totalItems,
     subtotal,
     selectedItems,
@@ -192,6 +237,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     removeItem,
     updateQuantity,
     clearCart,
+    removeOrderedItems, // Include in dependencies
     totalItems,
     subtotal,
     selectedItems,

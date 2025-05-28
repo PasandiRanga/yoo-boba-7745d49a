@@ -20,7 +20,7 @@ import { OrderItems } from "@/components/order/OrderItems";
 const PaymentCompletePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { clearCart } = useCart();
+  const { removeOrderedItems } = useCart(); // Use removeOrderedItems instead of clearCart
   const [isLoading, setIsLoading] = useState(true);
   const [orderData, setOrderData] = useState<Order | null>(null);
   const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
@@ -32,8 +32,8 @@ const PaymentCompletePage = () => {
 
     console.log("Order Reference:", orderRef);
     
-    // Function to verify payment and clear cart
-    const verifyPaymentAndClearCart = async () => {
+    // Function to verify payment and remove ordered items from cart
+    const verifyPaymentAndUpdateCart = async () => {
       try {
         if (!orderRef) {
           toast({
@@ -72,8 +72,23 @@ const PaymentCompletePage = () => {
         const transformedOrder = transformDatabaseOrder(orderResponse);
         console.log("Transformed Order:", transformedOrder);
 
-        // If order exists and payment is confirmed, clear cart
-        clearCart();
+        // If order exists and payment is confirmed, remove only ordered items from cart
+        if (transformedOrder.items && transformedOrder.items.length > 0) {
+          // Convert order items to CartItem format for removal
+          const orderedItems = transformedOrder.items.map(orderItem => ({
+            id: orderItem.productId,
+            name: orderItem.name,
+            price: orderItem.price,
+            quantity: orderItem.quantity,
+            image: "image" in orderItem && typeof orderItem.image === "string" ? orderItem.image : "",
+            weight:
+              "weight" in orderItem && typeof orderItem.weight === "string"
+                ? orderItem.weight
+                : undefined, // Ensure weight is string or undefined
+          }));
+          
+          removeOrderedItems(orderedItems);
+        }
         
         setOrderData(transformedOrder);
         toast({
@@ -93,8 +108,8 @@ const PaymentCompletePage = () => {
       }
     };
 
-    verifyPaymentAndClearCart();
-  }, [location, navigate, clearCart]);
+    verifyPaymentAndUpdateCart();
+  }, [location, navigate, removeOrderedItems]);
 
   // Handle a direct visit without payment parameters
   useEffect(() => {
