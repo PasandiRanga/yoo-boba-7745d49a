@@ -82,14 +82,14 @@ const ProductDetailPage = () => {
   // Error state or product not found
   if (error || !product) {
     return (
-      <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
+      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-white">
         <Navbar />
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">
               {error || "Product Not Found"}
             </h1>
-            <p className="mb-6">Sorry, we couldn't find the product you're looking for.</p>
+            <p className="mb-6 text-gray-600 dark:text-gray-300">Sorry, we couldn't find the product you're looking for.</p>
             <Button asChild>
               <Link to="/products">Back to Products</Link>
             </Button>
@@ -142,7 +142,7 @@ const ProductDetailPage = () => {
   const isOutOfStock = selectedVariant && selectedVariant.stock === 0;
 
   return (
-    <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-white">
       <Navbar />
 
       <main className="flex-grow">
@@ -158,7 +158,7 @@ const ProductDetailPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Product Image */}
             <ScrollAnimation animation="animate-zoom-in" delay={200}>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 flex items-center justify-center">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 flex items-center justify-center shadow-sm">
                 <img
                   src={product.imageUrls[0]}
                   alt={product.name}
@@ -170,12 +170,12 @@ const ProductDetailPage = () => {
             {/* Product Details */}
             <ScrollAnimation animation="animate-reveal-text" delay={400}>
               <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="text-3xl md:text-4xl font-bold font-display">{product.name}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold font-display text-gray-900 dark:text-white">{product.name}</h1>
               </div>
               
               {selectedVariant && (
                 <div className="mt-4">
-                  <span className="text-2xl font-bold">{formatPrice(selectedVariant.price)}</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(selectedVariant.price)}</span>
                   <span className="ml-2 text-gray-500 dark:text-gray-400">/ {selectedVariant.weight}</span>
                 </div>
               )}
@@ -185,20 +185,21 @@ const ProductDetailPage = () => {
               <div className="mt-8 space-y-6">
                 {/* Weight Selection */}
                 <div>
-                  <p className="font-medium mb-2">Size Options</p>
+                  <p className="font-medium mb-2 text-gray-900 dark:text-white">Size Options</p>
                   <Select 
                     value={selectedVariant?.weight} 
                     onValueChange={handleWeightChange}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
                       <SelectValue placeholder="Select weight" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                       {product.variants.map((variant) => (
                         <SelectItem 
                           key={variant.weight} 
                           value={variant.weight}
                           disabled={variant.stock === 0}
+                          className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           {variant.weight} - {formatPrice(variant.price)}
                           {variant.stock === 0 && " (Out of Stock)"}
@@ -219,9 +220,9 @@ const ProductDetailPage = () => {
                 )}
 
                 {isOutOfStock && (
-                  <Alert variant="destructive" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
+                  <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800">
+                    <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    <AlertDescription className="text-red-800 dark:text-red-300">
                       This size is currently out of stock. Please select a different size or check back later.
                     </AlertDescription>
                   </Alert>
@@ -229,17 +230,18 @@ const ProductDetailPage = () => {
 
                 {/* Quantity Selector */}
                 <div>
-                  <p className="font-medium mb-2">Quantity</p>
+                  <p className="font-medium mb-2 text-gray-900 dark:text-white">Quantity</p>
                   <div className="flex items-center">
                     <Button 
                       variant="outline" 
                       size="icon" 
                       onClick={decrementQuantity}
                       disabled={quantity <= 1 || isOutOfStock}
+                      className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
-                    <span className="mx-4 w-8 text-center font-medium">{quantity}</span>
+                    <span className="mx-4 w-8 text-center font-medium text-gray-900 dark:text-white">{quantity}</span>
                     <Button 
                       variant="outline" 
                       size="icon" 
@@ -248,6 +250,7 @@ const ProductDetailPage = () => {
                         isOutOfStock || 
                         (selectedVariant && quantity >= Math.min(10, selectedVariant.stock))
                       }
+                      className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -266,23 +269,23 @@ const ProductDetailPage = () => {
               </div>
 
               <div className="mt-8">
-                <Separator className="dark:bg-gray-700" />
+                <Separator className="bg-gray-200 dark:bg-gray-700" />
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Weight</p>
-                    <p className="font-medium">{selectedVariant?.weight || "N/A"}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{selectedVariant?.weight || "N/A"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Category</p>
-                    <p className="font-medium capitalize">{product.category}</p>
+                    <p className="font-medium capitalize text-gray-900 dark:text-white">{product.category}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Texture</p>
-                    <p className="font-medium">{product.details.texture}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{product.details.texture}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Flavor</p>
-                    <p className="font-medium">{product.details.flavor}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{product.details.flavor}</p>
                   </div>
                 </div>
               </div>
@@ -292,42 +295,57 @@ const ProductDetailPage = () => {
           {/* Product Tabs */}
           <ScrollAnimation animation="animate-zoom-in" delay={600} className="mt-16">
             <Tabs defaultValue="details">
-              <TabsList className="grid w-full grid-cols-3 mb-8">
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="instructions">Instructions</TabsTrigger>
-                <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <TabsTrigger 
+                  value="details" 
+                  className="text-gray-700 dark:text-gray-300 data-[state=active]:bg-gray-100 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                >
+                  Details
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="instructions"
+                  className="text-gray-700 dark:text-gray-300 data-[state=active]:bg-gray-100 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                >
+                  Instructions
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ingredients"
+                  className="text-gray-700 dark:text-gray-300 data-[state=active]:bg-gray-100 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                >
+                  Ingredients
+                </TabsTrigger>
               </TabsList>
-              <TabsContent value="details" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Product Details</h3>
-                <p>{product.description}</p>
+              <TabsContent value="details" className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Product Details</h3>
+                <p className="text-gray-700 dark:text-gray-300">{product.description}</p>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-medium">Color</h4>
-                    <p>{product.details.color}</p>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Color</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{product.details.color}</p>
                   </div>
                   <div>
-                    <h4 className="font-medium">Texture</h4>
-                    <p>{product.details.texture}</p>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Texture</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{product.details.texture}</p>
                   </div>
                   <div>
-                    <h4 className="font-medium">Flavor</h4>
-                    <p>{product.details.flavor}</p>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Flavor</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{product.details.flavor}</p>
                   </div>
                   <div>
-                    <h4 className="font-medium">Available Sizes</h4>
-                    <p>{product.variants.map(v => v.weight).join(", ")}</p>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Available Sizes</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{product.variants.map(v => v.weight).join(", ")}</p>
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="instructions" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Cooking Instructions</h3>
-                <p className="mb-4">
+              <TabsContent value="instructions" className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Cooking Instructions</h3>
+                <p className="mb-4 text-gray-700 dark:text-gray-300">
                   <strong>Cooking Time:</strong> {product.details.cookingTime}
                 </p>
-                <p className="mb-4">
+                <p className="mb-4 text-gray-700 dark:text-gray-300">
                   <strong>Storage:</strong> {product.details.storageInstructions}
                 </p>
-                <ol className="list-decimal list-inside space-y-2">
+                <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
                   <li>Bring water to a boil in a large pot.</li>
                   <li>Add boba pearls to the boiling water and stir gently.</li>
                   <li>Once pearls float to the surface, reduce heat to medium and cover with lid.</li>
@@ -336,9 +354,9 @@ const ProductDetailPage = () => {
                   <li>Soak in simple syrup or honey for added flavor.</li>
                 </ol>
               </TabsContent>
-              <TabsContent value="ingredients" className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Ingredients</h3>
-                <ul className="list-disc list-inside">
+              <TabsContent value="ingredients" className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Ingredients</h3>
+                <ul className="list-disc list-inside text-gray-700 dark:text-gray-300">
                   {product.details.ingredients?.map((ingredient, index) => (
                     <li key={index}>{ingredient}</li>
                   ))}
