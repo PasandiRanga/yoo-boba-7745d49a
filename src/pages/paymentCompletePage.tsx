@@ -1,5 +1,5 @@
 // src/pages/PaymentCompletePage.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import Navbar from "@/components/layout/Navbar";
@@ -20,12 +20,20 @@ import { OrderItems } from "@/components/order/OrderItems";
 const PaymentCompletePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { removeOrderedItems } = useCart(); // Use removeOrderedItems instead of clearCart
+  const { removeOrderedItems } = useCart();
   const [isLoading, setIsLoading] = useState(true);
   const [orderData, setOrderData] = useState<Order | null>(null);
   const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
+  
+  // Use ref to track if payment has been processed to prevent infinite loops
+  const paymentProcessedRef = useRef(false);
 
   useEffect(() => {
+    // Prevent running multiple times
+    if (paymentProcessedRef.current) {
+      return;
+    }
+
     // Extract query parameters from URL
     const queryParams = new URLSearchParams(location.search);
     const orderRef = queryParams.get("order_id");
@@ -44,6 +52,9 @@ const PaymentCompletePage = () => {
           navigate("/cart");
           return;
         }
+
+        // Mark as processing to prevent re-runs
+        paymentProcessedRef.current = true;
 
         // Get order details from your backend
         const fetchedOrderResponse = await fetchOrderById(orderRef);
@@ -84,10 +95,10 @@ const PaymentCompletePage = () => {
             weight:
               "weight" in orderItem && typeof orderItem.weight === "string"
                 ? orderItem.weight
-                : undefined, // Ensure weight is string or undefined
+                : undefined,
           }));
           
-          removeOrderedItems(orderedItems);
+          await removeOrderedItems(orderedItems);
         }
         
         setOrderData(transformedOrder);
@@ -96,7 +107,6 @@ const PaymentCompletePage = () => {
           description: `Your order #${orderRef} has been confirmed and is being processed.`,
         });
         
-        setIsLoading(false);
       } catch (error) {
         console.error("Payment verification error:", error);
         toast({
@@ -105,18 +115,20 @@ const PaymentCompletePage = () => {
           variant: "destructive",
         });
         navigate("/cart");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     verifyPaymentAndUpdateCart();
-  }, [location, navigate, removeOrderedItems]);
+  }, [location.search, navigate, removeOrderedItems]); // Include navigate and removeOrderedItems in dependencies
 
   // Handle a direct visit without payment parameters
   useEffect(() => {
     if (!location.search) {
       navigate("/");
     }
-  }, [location, navigate]);
+  }, [location.search, navigate]); // Only depend on search, not the entire location object
 
   if (isLoading) {
     return (
