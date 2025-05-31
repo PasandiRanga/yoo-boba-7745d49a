@@ -13,7 +13,7 @@ export const useCartStorage = (): UseCartStorageReturn => {
   // Get items from localStorage
   const storedItems = (() => {
     if (typeof window === "undefined") return [];
-    
+        
     try {
       const storedItems = localStorage.getItem(CART_STORAGE_KEY);
       return storedItems ? JSON.parse(storedItems) : [];
