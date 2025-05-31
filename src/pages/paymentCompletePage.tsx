@@ -132,13 +132,13 @@ const PaymentCompletePage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
         <Navbar />
         <main className="flex-grow container mx-auto px-4 py-16 flex items-center justify-center">
-          <div className="text-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200 dark:border-purple-800">
+          <div className="text-center bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-purple-200 dark:border-purple-700">
             <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-purple-500" />
             <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-white">Verifying Payment</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-300">
               Please wait while we verify your payment...
             </p>
           </div>
@@ -152,7 +152,7 @@ const PaymentCompletePage = () => {
   if (!order) return null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-white">
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-8 relative">
         {/* Receipt container with FloatingBobaPearls */}
@@ -160,7 +160,7 @@ const PaymentCompletePage = () => {
           <FloatingBobaPearls />
           
           {/* Success Header */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-6 border border-purple-200 dark:border-purple-700 relative overflow-hidden">
             <div className="text-center relative">
               <div className="relative inline-block">
                 <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-4 drop-shadow-lg" />
@@ -173,7 +173,7 @@ const PaymentCompletePage = () => {
                 Thank you for your order! Your boba adventure is being prepared with love 💕
               </p>
               {order.isGuestOrder && (
-                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full px-4 py-2 border border-blue-200 dark:border-blue-700">
+                <div className="inline-flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/30 rounded-full px-4 py-2 border border-blue-200 dark:border-blue-700">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
                     This order was placed as a guest. Consider creating an account to track your boba orders!
                   </p>
@@ -191,7 +191,7 @@ const PaymentCompletePage = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 mt-6 border border-purple-200 dark:border-purple-800 relative overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mt-6 border border-purple-200 dark:border-purple-700 relative overflow-hidden">
             <div className="text-center space-y-6">
               <p className="text-gray-600 dark:text-gray-300 text-lg">
                 A confirmation email has been sent to your inbox! Check it out for all the sweet details 📧✨
@@ -199,7 +199,7 @@ const PaymentCompletePage = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   onClick={() => navigate("/")}
-                  className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-purple-300"
+                  className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-purple-300 dark:border-purple-600"
                 >
                   Continue Shopping 🛍️
                 </Button>
@@ -207,7 +207,7 @@ const PaymentCompletePage = () => {
                   onClick={() => generateReceipt(order, setIsGeneratingReceipt)}
                   disabled={isGeneratingReceipt}
                   variant="outline"
-                  className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                  className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:bg-gray-800 px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                 >
                   {isGeneratingReceipt ? (
                     <>
@@ -225,7 +225,7 @@ const PaymentCompletePage = () => {
                   <Button
                     onClick={() => navigate("/my-orders")}
                     variant="outline"
-                    className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-900/20 px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:bg-gray-800 px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                   >
                     View My Orders 📋
                   </Button>
@@ -234,7 +234,7 @@ const PaymentCompletePage = () => {
                   <Button
                     onClick={() => navigate("/signUp")}
                     variant="outline"
-                    className="border-2 border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-900/20 px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    className="border-2 border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:bg-gray-800 px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                   >
                     Create Account 🌟
                   </Button>
