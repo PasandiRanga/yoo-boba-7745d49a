@@ -314,9 +314,11 @@ export const getOrdersByCustomerId = async (req: Request, res: Response) => {
   try {
     // Check if the customer exists
     const customerCheck = await pool.query(
-      'SELECT id FROM customers WHERE customerid = $1',
+      'SELECT customerid FROM customers WHERE customerid = $1',
       [customerId]
     );
+
+    console.log(`Customer check for ID ${customerId}:`, customerCheck.rows);
     
     if (customerCheck.rows.length === 0) {
       return res.status(404).json({ message: 'Customer not found' });
