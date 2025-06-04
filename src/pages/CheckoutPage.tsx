@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { createOrder, PaymentMethod } from "@/models/OrderModel";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 // Import our components
 import CustomerInfoForm from "@/components/checkout/CustomerInfoForm";
@@ -18,6 +19,7 @@ import EmptyCart from "@/components/checkout/EmptyCart";
 import BillingAddressForm from "@/components/checkout/BillingAddressForm";
 
 const CheckoutPage = () => {
+  const { user, isAuthenticated } = useAuth();
   // Get selected items instead of all items
   const { getSelectedItems, selectedSubtotal, clearCart } = useCart();
   const selectedItems = getSelectedItems();

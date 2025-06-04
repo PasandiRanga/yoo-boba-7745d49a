@@ -5,8 +5,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { useAuth } from "@/context/AuthContext";
 
 const NotFound = () => {
+  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
 
   useEffect(() => {

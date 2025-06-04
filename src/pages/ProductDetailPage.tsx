@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import { useCurrency } from "@/context/CurrencyContext";
 import BackToTopButton from "@/components/ui/back-to-top";
+import { useAuth } from "@/context/AuthContext";
 import { 
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ProductDetailPage = () => {
+  const { user, isAuthenticated } = useAuth();
   const { productId } = useParams<{ productId: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);

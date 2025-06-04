@@ -6,8 +6,10 @@ import { Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { createPendingOrder } from "@/services/orderService";
 import { processPayment } from "@/services/paymentService";
+import { useAuth } from "@/context/AuthContext";
 
 const PaymentPortalPage = () => {
+  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);

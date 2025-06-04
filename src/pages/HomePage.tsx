@@ -8,10 +8,11 @@ import CTASection from "@/components/home/CTASection";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import BackToTopButton from "@/components/ui/back-to-top";
+import { useAuth } from "@/context/AuthContext";
 
 const HomePage = () => {
+  const { user, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -19,11 +20,6 @@ const HomePage = () => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2000);
-    
-    const storedUser = localStorage.getItem("customer");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
     
     return () => clearTimeout(timer);
   }, []);
