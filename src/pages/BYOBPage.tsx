@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BackToTopButton from "@/components/ui/back-to-top";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
+import { useAuth } from "@/context/AuthContext";
 
 const BYOBPage = () => {
+  const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     organizationName: "",

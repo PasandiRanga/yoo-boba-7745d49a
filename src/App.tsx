@@ -9,6 +9,7 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeProvider";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { LoadingProvider } from "@/context/LoadingContext";
+import { AuthProvider } from "@/context/AuthContext";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import SignUp from "@/components/signin/signUp";
 
@@ -40,8 +41,9 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <CurrencyProvider>
-            <CartProvider>
-              <LoadingProvider>
+            <AuthProvider>
+              <CartProvider>
+                <LoadingProvider>
                 <TooltipProvider>
                   <Toaster />
                   <Sonner />
@@ -62,8 +64,9 @@ const App = () => {
                     </Routes>
                   </BrowserRouter>
                 </TooltipProvider>
-              </LoadingProvider>
-            </CartProvider>
+                </LoadingProvider>
+              </CartProvider>
+            </AuthProvider>
           </CurrencyProvider>
         </ThemeProvider>
       </QueryClientProvider>

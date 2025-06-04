@@ -9,8 +9,10 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useState, useEffect } from "react";
 import { IncrementController, DecrementController } from "@/components/ui/quantityController";
 import CustomCheckbox from "@/components/ui/customCheckBox";
+import { useAuth } from "@/context/AuthContext";
 
 const CartPage = () => {
+  const { user, isAuthenticated } = useAuth();
   const { 
     items, 
     removeItem, 

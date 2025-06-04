@@ -7,8 +7,10 @@ import BobaSendingToast from "@/components/ui/bobaSendingToast";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
 import StyledInput from "@/components/ui/styledInput";
 import StyledTextarea from "@/components/ui/styledTextArea";
+import { useAuth } from "@/context/AuthContext";
 
 const ContactPage = () => {
+  const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
