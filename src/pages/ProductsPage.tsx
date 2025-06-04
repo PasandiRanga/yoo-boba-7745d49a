@@ -7,11 +7,7 @@ import ProductCard from "@/components/product/ProductCard";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import BackToTopButton from "@/components/ui/back-to-top";
-import { useAuth } from "@/context/AuthContext";
-
-
 const ProductsPage = () => {
-  const { user, isAuthenticated } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

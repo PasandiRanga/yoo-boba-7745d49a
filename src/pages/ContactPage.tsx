@@ -12,8 +12,8 @@ import { useAuth } from "@/context/AuthContext";
 const ContactPage = () => {
   const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    name: user?.name || "",
+    email: user?.email || "",
     phone: "",
     subject: "",
     message: "",

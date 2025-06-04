@@ -8,10 +8,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { fetchOrderById } from "@/services/orderService";
-import { useAuth } from "@/context/AuthContext";
-
 const PaymentCompletePage = () => {
-  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { clearCart } = useCart();

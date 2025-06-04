@@ -3,10 +3,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
-import { useAuth } from "@/context/AuthContext";
-
 const AboutPage = () => {
-  const { user, isAuthenticated } = useAuth();
   return (
     <div className="flex flex-col min-h-screen dark:bg-gray-900">
       <Navbar />
