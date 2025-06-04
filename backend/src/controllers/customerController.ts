@@ -142,8 +142,12 @@ export const createCustomer = async (req: Request, res: Response) => {
     res.status(201).json(rows[0]);
   } catch (error) {
     console.error('Error creating customer:', error);
-    
-    if (error instanceof Error && (error as any).code === '23505') {
+
+    interface PgError extends Error {
+      code?: string;
+    }
+    const pgError = error as PgError;
+    if (pgError.code === '23505') {
       return res.status(409).json({ message: 'Duplicate entry found' });
     }
     
@@ -186,7 +190,10 @@ export const updateCustomer = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(`Error updating customer with id ${id}:`, error);
     
-    if (error instanceof Error && (error as any).code === '23505') { // Unique violation (e.g., duplicate email)
+    interface PgError extends Error {
+      code?: string;
+    }
+    if (error instanceof Error && (error as PgError).code === '23505') { // Unique violation (e.g., duplicate email)
       return res.status(409).json({ message: 'Another customer with this email already exists' });
     }
     
