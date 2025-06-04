@@ -13,11 +13,11 @@ import { useAuth } from "@/context/AuthContext";
 const BYOBPage = () => {
   const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
-    name: user?.name || "",
+    name: user ? `${user.first_name} ${user.last_name}` : "",
     organizationName: "",
     category: "",
     contactNumber: "",
-    email: user?.email || "",
+    email: user?.emailaddress || "",
     address: "",
     minimumOrder: ""
   });

@@ -32,9 +32,9 @@ const MyOrdersPage = () => {
         
         let orderData: Order[];
         
-        if (user?.id) {
-          // Fetch orders for logged-in user
-          orderData = await fetchOrdersByCustomer(user.id);
+        if (user?.customerid) {
+          // Fetch orders for logged-in user - use customerid from the auth response
+          orderData = await fetchOrdersByCustomer(user.customerid);
         } else {
           // For guest users, fetch all orders (you might want to modify this logic)
           orderData = await fetchOrders();

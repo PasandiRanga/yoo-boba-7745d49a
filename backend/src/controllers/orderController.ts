@@ -167,10 +167,90 @@ export const createOrder = async (req: Request, res: Response) => {
 export const getAllOrders = async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`
-      SELECT * FROM orders
-      ORDER BY created_at DESC
+      SELECT 
+        o.*,
+        gc.first_name as guest_first_name,
+        gc.last_name as guest_last_name,
+        gc.email as guest_email,
+        c.first_name as customer_first_name,
+        c.last_name as customer_last_name,
+        c.emailaddress as customer_email
+      FROM orders o
+      LEFT JOIN guest_customers gc ON o.id = gc.order_id AND o.is_guest_order = true
+      LEFT JOIN user_orders uo ON o.id = uo.order_id AND o.is_guest_order = false
+      LEFT JOIN customers c ON uo.user_id = c.customerid AND o.is_guest_order = false
+      ORDER BY o.created_at DESC
     `);
-    res.json(rows);
+
+    // Format the response to include customer info and items
+    const ordersWithDetails = await Promise.all(
+      rows.map(async (order) => {
+        // Get order items
+        const itemsResult = await pool.query(
+          'SELECT * FROM order_items WHERE order_id = $1',
+          [order.id]
+        );
+
+        // Get addresses
+        const addressesResult = await pool.query(
+          'SELECT * FROM order_addresses WHERE order_id = $1',
+          [order.id]
+        );
+
+        const shippingAddress = addressesResult.rows.find(addr => addr.address_type === 'shipping');
+        const billingAddress = addressesResult.rows.find(addr => addr.address_type === 'billing');
+
+        // Format customer info
+        const customer = order.is_guest_order 
+          ? {
+              firstName: order.guest_first_name,
+              lastName: order.guest_last_name,
+              email: order.guest_email
+            }
+          : {
+              firstName: order.customer_first_name,
+              lastName: order.customer_last_name,
+              email: order.customer_email
+            };
+
+        return {
+          id: order.id,
+          customer,
+          shippingAddress: shippingAddress ? {
+            street1: shippingAddress.street1,
+            street2: shippingAddress.street2,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            zipCode: shippingAddress.zip_code,
+            country: shippingAddress.country
+          } : null,
+          billingAddress: billingAddress ? {
+            street1: billingAddress.street1,
+            street2: billingAddress.street2,
+            city: billingAddress.city,
+            state: billingAddress.state,
+            zipCode: billingAddress.zip_code,
+            country: billingAddress.country
+          } : null,
+          items: itemsResult.rows.map(item => ({
+            productId: item.product_id,
+            name: item.name,
+            price: parseFloat(item.price),
+            quantity: item.quantity
+          })),
+          total: parseFloat(order.total_amount),
+          status: order.status,
+          paymentMethod: order.payment_method,
+          paymentStatus: order.payment_status,
+          paymentId: order.payment_id,
+          createdAt: order.created_at,
+          updatedAt: order.updated_at,
+          isGuestOrder: order.is_guest_order
+        };
+      })
+    );
+
+    res.json(ordersWithDetails);
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -204,9 +284,9 @@ export const getOrderById = async (req: Request, res: Response) => {
       customer = customerResult.rows[0];
     } else {
       const userOrderResult = await pool.query(
-        `SELECT uo.*, u.first_name, u.last_name, u.email, u.phone 
+        `SELECT uo.*, c.first_name, c.last_name, c.emailaddress as email, c.phone 
          FROM user_orders uo
-         JOIN customers u ON uo.customerid = u.id
+         JOIN customers c ON uo.user_id = c.customerid
          WHERE uo.order_id = $1`,
         [id]
       );
@@ -228,15 +308,47 @@ export const getOrderById = async (req: Request, res: Response) => {
       [id]
     );
 
-    res.json({
-      order: {
-        ...order,
-        customer,
-        shippingAddress,
-        billingAddress,
-        items: itemsResult.rows
-      }
-    });
+    const orderDetails = {
+      id: order.id,
+      customer: {
+        firstName: customer?.first_name,
+        lastName: customer?.last_name,
+        email: customer?.email || customer?.emailaddress,
+        phone: customer?.phone
+      },
+      shippingAddress: shippingAddress ? {
+        street1: shippingAddress.street1,
+        street2: shippingAddress.street2,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        zipCode: shippingAddress.zip_code,
+        country: shippingAddress.country
+      } : null,
+      billingAddress: billingAddress ? {
+        street1: billingAddress.street1,
+        street2: billingAddress.street2,
+        city: billingAddress.city,
+        state: billingAddress.state,
+        zipCode: billingAddress.zip_code,
+        country: billingAddress.country
+      } : null,
+      items: itemsResult.rows.map(item => ({
+        productId: item.product_id,
+        name: item.name,
+        price: parseFloat(item.price),
+        quantity: item.quantity
+      })),
+      total: parseFloat(order.total_amount),
+      status: order.status,
+      paymentMethod: order.payment_method,
+      paymentStatus: order.payment_status,
+      paymentId: order.payment_id,
+      createdAt: order.created_at,
+      updatedAt: order.updated_at,
+      isGuestOrder: order.is_guest_order
+    };
+
+    res.json(orderDetails);
   } catch (error) {
     console.error(`Error fetching order with id ${id}:`, error);
     res.status(500).json({ message: 'Internal server error' });
@@ -310,7 +422,7 @@ export const getOrdersByCustomerId = async (req: Request, res: Response) => {
   try {
     // Check if the customer exists
     const customerCheck = await pool.query(
-      'SELECT id FROM customers WHERE customerid = $1',
+      'SELECT customerid FROM customers WHERE customerid = $1',
       [customerId]
     );
     
@@ -318,7 +430,7 @@ export const getOrdersByCustomerId = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
     
-    // Get all orders for this customer
+    // Get all orders for this customer with full details
     const { rows } = await pool.query(`
       SELECT o.* 
       FROM orders o
@@ -327,7 +439,74 @@ export const getOrdersByCustomerId = async (req: Request, res: Response) => {
       ORDER BY o.created_at DESC
     `, [customerId]);
     
-    res.json(rows);
+    // Format the response to include customer info and items for each order
+    const ordersWithDetails = await Promise.all(
+      rows.map(async (order) => {
+        // Get customer info
+        const customerResult = await pool.query(
+          'SELECT first_name, last_name, emailaddress, phone FROM customers WHERE customerid = $1',
+          [customerId]
+        );
+        const customer = customerResult.rows[0];
+
+        // Get order items
+        const itemsResult = await pool.query(
+          'SELECT * FROM order_items WHERE order_id = $1',
+          [order.id]
+        );
+
+        // Get addresses
+        const addressesResult = await pool.query(
+          'SELECT * FROM order_addresses WHERE order_id = $1',
+          [order.id]
+        );
+
+        const shippingAddress = addressesResult.rows.find(addr => addr.address_type === 'shipping');
+        const billingAddress = addressesResult.rows.find(addr => addr.address_type === 'billing');
+
+        return {
+          id: order.id,
+          customer: {
+            firstName: customer?.first_name,
+            lastName: customer?.last_name,
+            email: customer?.emailaddress,
+            phone: customer?.phone
+          },
+          shippingAddress: shippingAddress ? {
+            street1: shippingAddress.street1,
+            street2: shippingAddress.street2,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            zipCode: shippingAddress.zip_code,
+            country: shippingAddress.country
+          } : null,
+          billingAddress: billingAddress ? {
+            street1: billingAddress.street1,
+            street2: billingAddress.street2,
+            city: billingAddress.city,
+            state: billingAddress.state,
+            zipCode: billingAddress.zip_code,
+            country: billingAddress.country
+          } : null,
+          items: itemsResult.rows.map(item => ({
+            productId: item.product_id,
+            name: item.name,
+            price: parseFloat(item.price),
+            quantity: item.quantity
+          })),
+          total: parseFloat(order.total_amount),
+          status: order.status,
+          paymentMethod: order.payment_method,
+          paymentStatus: order.payment_status,
+          paymentId: order.payment_id,
+          createdAt: order.created_at,
+          updatedAt: order.updated_at,
+          isGuestOrder: order.is_guest_order
+        };
+      })
+    );
+    
+    res.json(ordersWithDetails);
   } catch (error) {
     console.error(`Error fetching orders for customer ${customerId}:`, error);
     res.status(500).json({ message: 'Internal server error' });

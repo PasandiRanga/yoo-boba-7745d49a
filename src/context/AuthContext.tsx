@@ -2,9 +2,10 @@ import { createContext, useContext, useState, useEffect, ReactNode, useMemo } fr
 import { loginCustomer } from "@/services/customerService";
 
 interface User {
-  id: string;
-  name: string;
-  email: string;
+  customerid: string;
+  first_name: string;
+  last_name: string;
+  emailaddress: string;
   // Add other user properties as needed
 }
 
