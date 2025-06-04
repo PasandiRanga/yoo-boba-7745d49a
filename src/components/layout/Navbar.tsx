@@ -113,9 +113,9 @@ const Navbar = () => {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/orders" className="cursor-pointer flex items-center">
+                      <Link to="/my-orders" className="cursor-pointer flex items-center">
                         <Package className="mr-2 h-4 w-4" />
-                        Orders
+                        My Orders
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -264,11 +264,11 @@ const Navbar = () => {
                                 
                                 <SheetClose asChild>
                                   <Link
-                                    to="/orders"
+                                    to="/my-orders"
                                     className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
                                   >
                                     <Package className="h-4 w-4" />
-                                    <span>Orders</span>
+                                    <span>My Orders</span>
                                   </Link>
                                 </SheetClose>
                                 

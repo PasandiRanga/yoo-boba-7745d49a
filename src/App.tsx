@@ -21,6 +21,7 @@ import CheckoutPage from "@/pages/CheckoutPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import BYOBPage from "@/pages/BYOBPage";
+import MyOrdersPage from "@/pages/MyOrdersPage";
 import NotFound from "@/pages/NotFound";
 import PaymentPortal from "@/pages/paymentPortalPage";
 import PaymentCompletePage from "./pages/paymentCompletePage";
@@ -57,6 +58,7 @@ const App = () => {
                       <Route path="/about" element={<AboutPage />} />
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/byob" element={<BYOBPage />} />
+                      <Route path="/my-orders" element={<MyOrdersPage />} />
                       <Route path="/signup" element={<SignUp />} />
                       <Route path="/payment-portal" element={<PaymentPortal />} />
                       <Route path="/payment-complete" element={<PaymentCompletePage />} />
