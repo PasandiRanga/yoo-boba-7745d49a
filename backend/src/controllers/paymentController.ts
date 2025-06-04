@@ -7,7 +7,6 @@ export class PaymentController {
    * Verify payment status
    */
   static async verifyPayment(req: Request, res: Response) {
-    console.error('Received payment verification request:', req.body);
     try {
       const { orderId, paymentId, status } = req.body;
       
@@ -67,28 +66,28 @@ export class PaymentController {
         [paymentStatus, paymentId, paymentStatus === 'completed' ? 'processing' : 'failed', orderId]
       );
 
-      // // Log payment details
-      // await pool.query(
-      //   `INSERT INTO payment_logs (
-      //     order_id,
-      //     payment_id,
-      //     status,
-      //     amount,
-      //     currency,
-      //     payment_method,
-      //     log_data,
-      //     created_at
-      //   ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      //   [
-      //     orderId,
-      //     paymentId,
-      //     paymentStatus,
-      //     paymentData.payhere_amount,
-      //     paymentData.payhere_currency,
-      //     'payhere',
-      //     JSON.stringify(paymentData)
-      //   ]
-      // );
+      // Log payment details
+      await pool.query(
+        `INSERT INTO payment_logs (
+          order_id,
+          payment_id,
+          status,
+          amount,
+          currency,
+          payment_method,
+          log_data,
+          created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [
+          orderId,
+          paymentId,
+          paymentStatus,
+          paymentData.payhere_amount,
+          paymentData.payhere_currency,
+          'payhere',
+          JSON.stringify(paymentData)
+        ]
+      );
 
       res.json({
         success: true,
@@ -112,7 +111,6 @@ export class PaymentController {
    * Handle PayHere payment notification (webhook)
    */
   static async handlePaymentNotification(req: Request, res: Response) {
-    console.error('Received PayHere notification:', req.body);
     try {
       const {
         merchant_id,
@@ -160,30 +158,28 @@ export class PaymentController {
         [orderStatus, paymentStatus, payment_id, order_id]
       );
 
-      console.error("Updated values");
-
       // Log payment notification
-      // await pool.query(
-      //   `INSERT INTO payment_logs (
-      //     order_id,
-      //     payment_id,
-      //     status,
-      //     amount,
-      //     currency,
-      //     payment_method,
-      //     log_data,
-      //     created_at
-      //   ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      //   [
-      //     order_id,
-      //     payment_id,
-      //     paymentStatus,
-      //     payhere_amount,
-      //     payhere_currency,
-      //     'payhere',
-      //     JSON.stringify(req.body)
-      //   ]
-      // );
+      await pool.query(
+        `INSERT INTO payment_logs (
+          order_id,
+          payment_id,
+          status,
+          amount,
+          currency,
+          payment_method,
+          log_data,
+          created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [
+          order_id,
+          payment_id,
+          paymentStatus,
+          payhere_amount,
+          payhere_currency,
+          'payhere',
+          JSON.stringify(req.body)
+        ]
+      );
 
       // Send success response to PayHere
       res.status(200).send('OK');
@@ -260,9 +256,9 @@ export class PaymentController {
       // Prepare PayHere parameters
       const payHereParams = {
         merchant_id: merchantId,
-        return_url: `http://localhost:8080/payment-complete?order_id=${orderId}`,
-        cancel_url: `http://localhost:8080/checkout`,
-        notify_url: `http://localhost:4000/payments/notify`,
+        return_url: `${baseUrl}/payment-complete`,
+        cancel_url: `${baseUrl}/cart`,
+        notify_url: `${baseUrl}/api/payments/notify`,
         
         order_id: orderId,
         items: order.items.map((item: any) => item.name).join(', '),

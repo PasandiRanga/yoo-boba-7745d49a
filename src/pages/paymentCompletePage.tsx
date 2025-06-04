@@ -22,16 +22,16 @@ const PaymentCompletePage = () => {
     // Extract query parameters from URL
     const queryParams = new URLSearchParams(location.search);
     const orderRef = queryParams.get("order_id");
-
-    console.log("Order Reference:", orderRef);
+    const status = queryParams.get("status_code");
     
     // Function to verify payment and clear cart
     const verifyPaymentAndClearCart = async () => {
       try {
-        if (!orderRef) {
+        // Basic validation
+        if (!orderRef || status !== "2") {
           toast({
-            title: "Missing Order ID",
-            description: "We couldn't verify your payment because the order reference is missing.",
+            title: "Payment Verification Failed",
+            description: "We couldn't verify your payment. Please contact customer support.",
             variant: "destructive",
           });
           navigate("/cart");

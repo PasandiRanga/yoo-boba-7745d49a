@@ -22,8 +22,6 @@ export const createOrder = async (req: Request, res: Response) => {
     status 
   } = req.body;
 
-  console.error('Creating order with data:', req.body);
-
   try {
     const isGuestOrder = !customer.userId;
     const client = await pool.connect();
