@@ -257,6 +257,14 @@ export class PaymentController {
       // Format amount to 2 decimal places
       const amount = Number(order.total_amount).toFixed(2);
       
+      // Define the type for order items
+      type OrderItem = {
+        productId: number;
+        name: string;
+        price: number;
+        quantity: number;
+      };
+
       // Prepare PayHere parameters
       const payHereParams = {
         merchant_id: merchantId,
@@ -265,7 +273,7 @@ export class PaymentController {
         notify_url: `http://localhost:4000/payments/notify`,
         
         order_id: orderId,
-        items: order.items.map((item: any) => item.name).join(', '),
+        items: (order.items as OrderItem[]).map((item) => item.name).join(', '),
         currency: 'LKR',
         amount: amount,
         
@@ -308,11 +316,11 @@ export class PaymentController {
    * Utility method to generate PayHere hash for API requests
    * This is still used for some API calls that might require the previous format
    */
-  private static generatePayHereHash(data: Record<string, any>, secretKey: string): string {
+  private static generatePayHereHash(data: Record<string, string | number>, secretKey: string): string {
     // Sort and filter data for consistent hash generation
     const sortedData = Object.keys(data)
       .sort()
-      .reduce((acc: Record<string, any>, key) => {
+      .reduce((acc: Record<string, string | number>, key) => {
         if (key !== 'hash' && data[key] !== '') {
           acc[key] = data[key];
         }
