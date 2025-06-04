@@ -259,8 +259,8 @@ export class PaymentController {
         return res.status(500).json({ message: 'Payment gateway configuration error' });
       }
 
-      // Base URL from request
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Frontend URL - use environment variable or default to localhost:5173 (Vite default)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       
       // Format amount to 2 decimal places
       const amount = Number(order.total_amount).toFixed(2);
@@ -268,8 +268,8 @@ export class PaymentController {
       // Prepare PayHere parameters
       const payHereParams = {
         merchant_id: merchantId,
-        return_url: `http://localhost:8080/payment-complete?order_id=${orderId}`,
-        cancel_url: `http://localhost:8080/checkout`,
+        return_url: `${frontendUrl}/payment-complete?order_id=${orderId}`,
+        cancel_url: `${frontendUrl}/checkout`,
         notify_url: `https://478a-2402-d000-a400-6cfc-894d-abe2-1620-cb79.ngrok-free.app/api/payments/notify`,
         
         order_id: orderId,
