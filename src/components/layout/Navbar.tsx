@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/authContext"; // Import useAuth
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Menu, X, User, LogOut, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,22 +24,14 @@ import SignInDialog from "@/components/signin/signInDialog";
 
 const Navbar = () => {
   const { totalItems } = useCart();
+  const { user, logout } = useAuth(); // Use auth context
   const [open, setOpen] = useState(false);
   const [profileExpanded, setProfileExpanded] = useState(false);
-  const [user, setUser] = useState(null);
-  
-  useEffect(() => {
-    const storedUser = localStorage.getItem("customer");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
   
   const handleLogout = () => {
-    localStorage.removeItem("customer");
-    setUser(null);
-    // Redirect to homepage or reload page if needed
-    window.location.href = "/";
+    logout(); // Use the logout function from auth context
+    setOpen(false); // Close mobile menu if open
+    setProfileExpanded(false); // Close profile dropdown if open
   };
   
   const navItems = [
@@ -103,7 +96,7 @@ const Navbar = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
                     <div className="px-2 py-1.5 text-sm font-medium">
-                      {user.first_name}
+                      {user.FullName || user.EmailAddress}
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -113,7 +106,7 @@ const Navbar = () => {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/orders" className="cursor-pointer flex items-center">
+                      <Link to="/my-orders" className="cursor-pointer flex items-center">
                         <Package className="mr-2 h-4 w-4" />
                         Orders
                       </Link>
@@ -238,7 +231,7 @@ const Navbar = () => {
                             >
                               <div className="flex items-center space-x-2">
                                 <User className="h-5 w-5" />
-                                <span className="font-medium">{user.first_name || user.email}</span>
+                                <span className="font-medium">{user.FullName || user.EmailAddress}</span>
                               </div>
                               <svg 
                                 className={`w-5 h-5 transition-transform duration-200 ${profileExpanded ? 'transform rotate-180' : ''}`} 

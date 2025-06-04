@@ -28,9 +28,9 @@ export class PaymentController {
 
       // Construct verification data
       const verificationData = {
-        merchant_id: merchantId,
-        order_id: orderId,
-        payment_id: paymentId,
+        merchant_id: String(merchantId),
+        order_id: String(orderId),
+        payment_id: String(paymentId),
       };
 
       // Generate hash for verification request using the updated method
@@ -125,7 +125,7 @@ export class PaymentController {
       } = req.body;
 
       // Get secret key from environment
-      const secretKey = process.env.PAYHERE_SECRET_KEY;
+      const secretKey = "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
       if (!secretKey) {
         throw new Error('PayHere secret key not configured');
       }
@@ -154,7 +154,7 @@ export class PaymentController {
         `UPDATE orders 
          SET status = $1, 
              payment_status = $2, 
-             payment_reference = $3, 
+             payment_id = $3, 
              updated_at = NOW() 
          WHERE id = $4`,
         [orderStatus, paymentStatus, payment_id, order_id]
@@ -202,6 +202,14 @@ export class PaymentController {
     try {
       const { orderId } = req.params;
       
+      // Define a type for order items
+      interface OrderItem {
+        productId: number;
+        name: string;
+        price: number;
+        quantity: number;
+      }
+
       // Get order details from database
       const orderResult = await pool.query(
         `SELECT o.*, 
@@ -257,20 +265,12 @@ export class PaymentController {
       // Format amount to 2 decimal places
       const amount = Number(order.total_amount).toFixed(2);
       
-      // Define the type for order items
-      type OrderItem = {
-        productId: number;
-        name: string;
-        price: number;
-        quantity: number;
-      };
-
       // Prepare PayHere parameters
       const payHereParams = {
         merchant_id: merchantId,
         return_url: `http://localhost:8080/payment-complete?order_id=${orderId}`,
         cancel_url: `http://localhost:8080/checkout`,
-        notify_url: `http://localhost:4000/payments/notify`,
+        notify_url: `https://478a-2402-d000-a400-6cfc-894d-abe2-1620-cb79.ngrok-free.app/api/payments/notify`,
         
         order_id: orderId,
         items: (order.items as OrderItem[]).map((item) => item.name).join(', '),
@@ -316,16 +316,16 @@ export class PaymentController {
    * Utility method to generate PayHere hash for API requests
    * This is still used for some API calls that might require the previous format
    */
-  private static generatePayHereHash(data: Record<string, string | number>, secretKey: string): string {
+  private static generatePayHereHash(data: Record<string, string>, secretKey: string): string {
     // Sort and filter data for consistent hash generation
     const sortedData = Object.keys(data)
       .sort()
-      .reduce((acc: Record<string, string | number>, key) => {
+      .reduce((acc: Record<string, string>, key) => {
         if (key !== 'hash' && data[key] !== '') {
           acc[key] = data[key];
         }
         return acc;
-      }, {});
+      }, {} as Record<string, string>);
 
     // Create hash string by joining key-value pairs
     const hashString = Object.entries(sortedData)

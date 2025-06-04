@@ -45,10 +45,10 @@ export const loginCustomer = async (req: Request, res: Response) => {
       message: 'Login successful',
       token,
       customer: {
-        id: user.customerid,
+        customerid: user.customerid,
         first_name: user.first_name,
         last_name: user.last_name,
-        email: user.emailaddress
+        emailaddress: user.emailaddress
       }
     });
   } catch (error) {
@@ -61,8 +61,7 @@ export const loginCustomer = async (req: Request, res: Response) => {
 export const getAllCustomers = async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(`
-      SELECT id, first_name, last_name, email, phone, address, 
-             created_at, updated_at, status, notes
+      SELECT customerid, first_name, last_name, email, phone, address
       FROM customers
     `);
     res.json(rows);
@@ -76,10 +75,9 @@ export const getCustomerById = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const { rows } = await pool.query(`
-      SELECT id, first_name, last_name, email, phone, address, 
-             created_at, updated_at, status, notes
+      SELECT customerid, first_name, last_name, emailaddress, contactno, address
       FROM customers
-      WHERE id = $1
+      WHERE customerid = $1
     `, [id]);
     
     if (rows.length === 0) {
@@ -144,9 +142,12 @@ export const createCustomer = async (req: Request, res: Response) => {
     res.status(201).json(rows[0]);
   } catch (error) {
     console.error('Error creating customer:', error);
-    
-    type PgError = Error & { code?: string };
-    if (error instanceof Error && (error as PgError).code === '23505') {
+
+    interface PgError extends Error {
+      code?: string;
+    }
+    const pgError = error as PgError;
+    if (pgError.code === '23505') {
       return res.status(409).json({ message: 'Duplicate entry found' });
     }
     
@@ -171,16 +172,15 @@ export const updateCustomer = async (req: Request, res: Response) => {
       UPDATE customers
       SET first_name = $1,
           last_name = $2,
-          email = $3,
-          phone = $4,
+          emailaddress = $3,
+          contactno = $4,
           address = $5,
           status = $6,
           notes = $7,
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
-      RETURNING id, first_name, last_name, email, phone, address, 
-                created_at, updated_at, status, notes
-    `, [first_name, last_name, email, phone, address, status, notes, id]);
+      WHERE customerid = $8
+      RETURNING customerid, first_name, last_name, email, phone, addres
+    `, [first_name, last_name, email, phone, address, status, id]);
     
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Customer not found' });
@@ -190,7 +190,9 @@ export const updateCustomer = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(`Error updating customer with id ${id}:`, error);
     
-    type PgError = Error & { code?: string };
+    interface PgError extends Error {
+      code?: string;
+    }
     if (error instanceof Error && (error as PgError).code === '23505') { // Unique violation (e.g., duplicate email)
       return res.status(409).json({ message: 'Another customer with this email already exists' });
     }
@@ -204,7 +206,7 @@ export const deleteCustomer = async (req: Request, res: Response) => {
   try {
     const { rowCount } = await pool.query(`
       DELETE FROM customers
-      WHERE id = $1
+      WHERE customerid = $1
     `, [id]);
     
     if (rowCount === 0) {
@@ -223,7 +225,7 @@ export const getCustomerOrders = async (req: Request, res: Response) => {
   try {
     // First check if customer exists
     const customerCheck = await pool.query(
-      'SELECT id FROM customers WHERE id = $1',
+      'SELECT id FROM customers WHERE customerid = $1',
       [id]
     );
     
@@ -232,7 +234,7 @@ export const getCustomerOrders = async (req: Request, res: Response) => {
     }
     
     const { rows } = await pool.query(`
-      SELECT o.id, o.customer_id, o.order_date, o.status, o.total_amount,
+      SELECT o.id, o.customerid, o.order_date, o.status, o.total_amount,
              o.shipping_address, o.payment_method, o.shipping_method
       FROM orders o
       WHERE o.customer_id = $1

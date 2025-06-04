@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { createOrder, PaymentMethod } from "@/models/OrderModel";
 import { toast } from "@/components/ui/use-toast";
+import { fetchCustomerById } from "@/services/customerService";
 
 // Import our components
 import CustomerInfoForm from "@/components/checkout/CustomerInfoForm";
@@ -23,15 +24,16 @@ const CheckoutPage = () => {
   const selectedItems = getSelectedItems();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
-  // Customer Information
+  // Customer Information - Initialize with empty values
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     company: "",
-    userId: localStorage.getItem("userId") || undefined, // For logged-in users
+    userId: undefined,
   });
 
   // Address information
@@ -56,6 +58,63 @@ const CheckoutPage = () => {
 
   // Payment information
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere"); // Default to PayHere
+
+  // Effect to load user data from session storage
+  // Effect to load user data from session storage
+// Effect to load user data from session storage
+useEffect(() => {
+  const loadUserData = async () => {
+    const storedUser = sessionStorage.getItem("customer");
+    console.log("Stored user data:", storedUser);
+    
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        console.log("Stored user id", userData.customerid);
+
+        // Properly await the async function
+        const fetchedUserData = await fetchCustomerById(userData.customerid);
+        console.log("Fetched user data:", fetchedUserData);
+        
+        // Map fetched user data to Order model Customer interface
+        setCustomer(prev => ({
+          ...prev,
+          firstName: fetchedUserData.first_name || "",
+          lastName: fetchedUserData.last_name || "",
+          email: fetchedUserData.emailaddress || "",
+          phone: fetchedUserData.contactno || "",
+          company: fetchedUserData.company || "",
+          userId: fetchedUserData.customerid || undefined,
+        }));
+
+        // Pre-fill address if available in user data
+        // Address is a string in the fetched data
+        if (fetchedUserData.address && typeof fetchedUserData.address === 'string') {
+          const userAddress = {
+            street1: fetchedUserData.address,
+            street2: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "Sri Lanka",
+          };
+          
+          setShippingAddress(userAddress);
+          if (sameAsBilling) {
+            setBillingAddress(userAddress);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing user data from session or fetching from API:", error);
+        // Clear invalid session data
+        sessionStorage.removeItem("customer");
+      }
+    }
+  };
+
+  // Call the async function
+  loadUserData();
+}, [sameAsBilling]);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -95,6 +154,17 @@ const CheckoutPage = () => {
       toast({
         title: "Missing Information",
         description: "Please provide all required customer information.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customer.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please provide a valid email address.",
         variant: "destructive",
       });
       return false;
@@ -149,7 +219,7 @@ const CheckoutPage = () => {
       const tax = subtotal * 0.08; // 8% tax
       const orderTotal = subtotal + shipping + tax;
   
-      // Create a new order
+      // Create a new order with updated customer data
       const order = createOrder(
         customer,
         shippingAddress,
@@ -235,14 +305,29 @@ const CheckoutPage = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold font-display mb-8">Checkout</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold font-display">Checkout</h1>
+          {/* Show logged in user info */}
+          {loggedInUser && (
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Logged in as: <span className="font-medium text-gray-800 dark:text-gray-200">{loggedInUser.first_name} {loggedInUser.last_name}</span>
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmitOrder}>
               {/* Customer Information */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Customer Information</h2>
+                  {loggedInUser && (
+                    <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                      Auto-filled
+                    </span>
+                  )}
+                </div>
                 <CustomerInfoForm 
                   customer={customer} 
                   handleCustomerChange={handleCustomerChange} 
@@ -250,16 +335,24 @@ const CheckoutPage = () => {
               </div>
 
               {/* Shipping Address */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Shipping Address</h2>
+                  {loggedInUser && loggedInUser.address && (
+                    <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                      Auto-filled
+                    </span>
+                  )}
+                </div>
                 <AddressForm 
-                  title="Shipping Address"
+                  title=""
                   address={shippingAddress} 
                   handleAddressChange={handleShippingChange} 
                 />
               </div>
 
               {/* Billing Address */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <BillingAddressForm 
                   sameAsBilling={sameAsBilling} 
                   setSameAsBilling={setSameAsBilling}
@@ -269,7 +362,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Information */}
-              <div className="mb-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <PaymentForm 
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}

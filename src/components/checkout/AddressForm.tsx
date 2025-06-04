@@ -1,11 +1,11 @@
 
-import { AddressInfo } from "@/models/OrderModel";
+import { Address } from "@/models/OrderModel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface AddressFormProps {
   title: string;
-  address: AddressInfo;
+  address: Address;
   handleAddressChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   idPrefix?: string;
 }

@@ -1,4 +1,4 @@
-import { Customer } from '@/models/CustomerModel';
+import { Customer , CustomerCheckout } from '@/models/CustomerModel';
 
 // Base API URL - adjust this to your actual API endpoint
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
@@ -18,7 +18,7 @@ export const fetchCustomers = async (): Promise<Customer[]> => {
 };
 
 // Fetch a single customer by ID
-export const fetchCustomerById = async (id: string): Promise<Customer> => {
+export const fetchCustomerById = async (id: string): Promise<CustomerCheckout> => {
   try {
     const response = await fetch(`${API_URL}/customers/${id}`);
     if (!response.ok) {

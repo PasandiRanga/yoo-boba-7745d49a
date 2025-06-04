@@ -25,6 +25,8 @@ export interface OrderItem {
   name: string;
   price: number;
   quantity: number;
+  image?: string; // Add optional image property
+  weight?: string; // Add optional weight property
 }
 
 export interface Order {
