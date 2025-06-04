@@ -259,8 +259,8 @@ export class PaymentController {
         return res.status(500).json({ message: 'Payment gateway configuration error' });
       }
 
-      // Base URL from request
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Frontend URL - use environment variable or default to localhost:5173 (Vite default)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       
       // Format amount to 2 decimal places
       const amount = Number(order.total_amount).toFixed(2);
