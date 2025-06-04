@@ -268,8 +268,8 @@ export class PaymentController {
       // Prepare PayHere parameters
       const payHereParams = {
         merchant_id: merchantId,
-        return_url: `http://localhost:8080/payment-complete?order_id=${orderId}`,
-        cancel_url: `http://localhost:8080/checkout`,
+        return_url: `http://localhost:8081/payment-complete?order_id=${orderId}`,
+        cancel_url: `http://localhost:8081/checkout`,
         notify_url: `https://478a-2402-d000-a400-6cfc-894d-abe2-1620-cb79.ngrok-free.app/api/payments/notify`,
         
         order_id: orderId,
