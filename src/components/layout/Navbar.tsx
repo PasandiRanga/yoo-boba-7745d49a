@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/authContext"; // Import useAuth
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,6 @@ import SignInDialog from "@/components/signin/signInDialog";
 const Navbar = () => {
   const { totalItems } = useCart();
   const { user, logout } = useAuth(); // Use auth context
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [profileExpanded, setProfileExpanded] = useState(false);
   
@@ -33,7 +32,6 @@ const Navbar = () => {
     logout(); // Use the logout function from auth context
     setOpen(false); // Close mobile menu if open
     setProfileExpanded(false); // Close profile dropdown if open
-    navigate('/'); // Redirect to home page after logout
   };
   
   const navItems = [
@@ -259,7 +257,7 @@ const Navbar = () => {
                                 
                                 <SheetClose asChild>
                                   <Link
-                                    to="/my-orders"
+                                    to="/orders"
                                     className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
                                   >
                                     <Package className="h-4 w-4" />
