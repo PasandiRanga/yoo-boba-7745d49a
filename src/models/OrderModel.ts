@@ -1,4 +1,3 @@
-// src/models/OrderModel.ts
 import { v4 as uuidv4 } from 'uuid';
 
 // Type definitions
@@ -8,7 +7,7 @@ export interface Customer {
   email: string;
   phone: string;
   company?: string;
-  userId?: string; // Will be null for guest users
+  customerid?: string; // Will be null for guest users
 }
 
 export interface Address {
@@ -21,12 +20,13 @@ export interface Address {
 }
 
 export interface OrderItem {
+  id:number;
   productId: string;
   name: string;
   price: number;
   quantity: number;
-  image?: string; // Add optional image property
-  weight?: string; // Add optional weight property
+  image?: string;
+  weight?: string;
 }
 
 export interface Order {
@@ -35,20 +35,38 @@ export interface Order {
   shippingAddress: Address;
   billingAddress: Address;
   items: OrderItem[];
-  total: number;
+  total_amount: number;
   status: OrderStatus;
-  paymentMethod: PaymentMethod;
+  payment_method: PaymentMethod;
   paymentStatus: PaymentStatus;
   paymentId?: string;
-  createdAt: Date;
+  created_at: Date;
   updatedAt: Date;
   isGuestOrder: boolean;
 }
 
-
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 export type PaymentMethod = 'payhere' | 'cash_on_delivery' | 'bank_transfer';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+
+/**
+ * Helper: Load orders from localStorage
+ */
+const loadOrders = (): Order[] => {
+  try {
+    return JSON.parse(localStorage.getItem('pendingOrders') || '[]') as Order[];
+  } catch (e) {
+    console.error('Failed to parse pendingOrders from localStorage:', e);
+    return [];
+  }
+};
+
+/**
+ * Helper: Save orders to localStorage
+ */
+const saveOrders = (orders: Order[]): void => {
+  localStorage.setItem('pendingOrders', JSON.stringify(orders));
+};
 
 /**
  * Create a new order
@@ -58,36 +76,32 @@ export const createOrder = (
   shippingAddress: Address,
   billingAddress: Address,
   items: OrderItem[],
-  paymentMethod: PaymentMethod
+  payment_method: PaymentMethod
 ): Order => {
-  // Calculate total
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + tax;
 
-  // Check if this is a logged-in user order or guest order
-  const isGuestOrder = !customer.userId;
-  
-  // Create an order object
+  const isGuestOrder = !customer.customerid;
+
   const order: Order = {
     id: uuidv4(),
     customer,
     shippingAddress,
     billingAddress,
     items,
-    total,
+    total_amount: total,
     status: 'pending',
-    paymentMethod,
+    payment_method,
     paymentStatus: 'pending',
-    createdAt: new Date(),
+    created_at: new Date(),
     updatedAt: new Date(),
-    isGuestOrder
+    isGuestOrder,
   };
 
-  // Store the order in local storage temporarily (will be replaced with API call)
-  const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-  pendingOrders.push(order);
-  localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
+  const orders = loadOrders();
+  orders.push(order);
+  saveOrders(orders);
 
   return order;
 };
@@ -95,53 +109,61 @@ export const createOrder = (
 /**
  * Update order status
  */
-export const updateOrderStatus = (orderId: string, status: OrderStatus): Order | null => {
-  // In a real app, this would be an API call
-  const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-  const orderIndex = pendingOrders.findIndex(order => order.id === orderId);
-  
-  if (orderIndex === -1) {
-    return null;
-  }
-  
-  pendingOrders[orderIndex].status = status;
-  pendingOrders[orderIndex].updatedAt = new Date();
-  
-  localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
-  return pendingOrders[orderIndex];
+export const updateOrderStatus = (
+  orderId: string,
+  status: OrderStatus
+): Order | null => {
+  const orders = loadOrders();
+  const index = orders.findIndex(order => order.id === orderId);
+
+  if (index === -1) return null;
+
+  orders[index].status = status;
+  orders[index].updatedAt = new Date();
+
+  saveOrders(orders);
+  return orders[index];
 };
 
 /**
  * Update payment status
  */
 export const updatePaymentStatus = (
-  orderId: string, 
-  paymentStatus: PaymentStatus, 
+  orderId: string,
+  paymentStatus: PaymentStatus,
   paymentId?: string
 ): Order | null => {
-  // In a real app, this would be an API call
-  const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-  const orderIndex = pendingOrders.findIndex(order => order.id === orderId);
-  
-  if (orderIndex === -1) {
-    return null;
-  }
-  
-  pendingOrders[orderIndex].paymentStatus = paymentStatus;
-  if (paymentId) {
-    pendingOrders[orderIndex].paymentId = paymentId;
-  }
-  pendingOrders[orderIndex].updatedAt = new Date();
-  
-  localStorage.setItem('pendingOrders', JSON.stringify(pendingOrders));
-  return pendingOrders[orderIndex];
+  const orders = loadOrders();
+  const index = orders.findIndex(order => order.id === orderId);
+
+  if (index === -1) return null;
+
+  orders[index].paymentStatus = paymentStatus;
+  if (paymentId) orders[index].paymentId = paymentId;
+  orders[index].updatedAt = new Date();
+
+  saveOrders(orders);
+  return orders[index];
 };
 
 /**
  * Get order by ID
  */
 export const getOrderById = (orderId: string): Order | null => {
-  // In a real app, this would be an API call
-  const pendingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-  return pendingOrders.find(order => order.id === orderId) || null;
+  const orders = loadOrders();
+  return orders.find(order => order.id === orderId) || null;
+};
+
+/**
+ * Get all orders
+ */
+export const getAllOrders = (): Order[] => {
+  return loadOrders();
+};
+
+/**
+ * Clear all orders (development use only)
+ */
+export const clearOrders = (): void => {
+  localStorage.removeItem('pendingOrders');
 };

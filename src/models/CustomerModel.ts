@@ -2,12 +2,12 @@
 
 // Customer interface
 export interface Customer {
-  CustomerID: string;
   FullName: string;
   ContactNo?: string;
-  EmailAddress: string;
   Address?: string;
   Password: string;
+  customerid: string;
+  emailaddress: string;
 }
 
 export interface CustomerInput {

@@ -96,7 +96,7 @@ const Navbar = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
                     <div className="px-2 py-1.5 text-sm font-medium">
-                      {user.FullName || user.EmailAddress}
+                      {user.FullName || user.emailaddress}
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -231,7 +231,7 @@ const Navbar = () => {
                             >
                               <div className="flex items-center space-x-2">
                                 <User className="h-5 w-5" />
-                                <span className="font-medium">{user.FullName || user.EmailAddress}</span>
+                                <span className="font-medium">{user.FullName || user.emailaddress}</span>
                               </div>
                               <svg 
                                 className={`w-5 h-5 transition-transform duration-200 ${profileExpanded ? 'transform rotate-180' : ''}`} 
@@ -257,7 +257,7 @@ const Navbar = () => {
                                 
                                 <SheetClose asChild>
                                   <Link
-                                    to="/orders"
+                                    to="/my-orders"
                                     className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
                                   >
                                     <Package className="h-4 w-4" />

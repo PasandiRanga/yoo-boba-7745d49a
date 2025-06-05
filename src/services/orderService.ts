@@ -125,6 +125,8 @@ export const deleteOrder = async (id: string): Promise<void> => {
 export const fetchOrdersByCustomer = async (customerId: string): Promise<Order[]> => {
   try {
     const response = await fetch(`${API_URL}/orders/customer/${customerId}`);
+    console.log(`Fetching orders for customer ID: ${customerId}`);
+    console.log(response);
     if (!response.ok) {
       throw new Error(`Failed to fetch orders by customer ID: ${response.status}`);
     }

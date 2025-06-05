@@ -310,35 +310,70 @@ export const deleteOrder = async (req: Request, res: Response) => {
 
 export const getOrdersByCustomerId = async (req: Request, res: Response) => {
   const { customerId } = req.params;
-  
+
   try {
-    // Check if the customer exists
+    // Step 1: Check if the customer exists
     const customerCheck = await pool.query(
       'SELECT customerid FROM customers WHERE customerid = $1',
       [customerId]
     );
 
-    console.log(`Customer check for ID ${customerId}:`, customerCheck.rows);
-    
+    console.error(`Checking customer with ID ${customerId}:`, customerCheck.rows);
+
     if (customerCheck.rows.length === 0) {
+      console.error(`Customer with ID ${customerId} not found`);  
       return res.status(404).json({ message: 'Customer not found' });
     }
-    
-    // Get all orders for this customer
-    const { rows } = await pool.query(`
+
+    // Step 2: Get all orders for this customer
+    const ordersResult = await pool.query(`
       SELECT o.* 
       FROM orders o
       JOIN user_orders uo ON o.id = uo.order_id
       WHERE uo.customerid = $1
       ORDER BY o.created_at DESC
     `, [customerId]);
-    
-    res.json(rows);
+
+    console.error(`Orders for customer ${customerId}:`, ordersResult.rows);
+
+    const orders = ordersResult.rows;
+
+    console.error(`Found ${orders.length} orders for customer ${customerId}`);
+
+    // Step 3: For each order, get items and addresses
+    const enrichedOrders = await Promise.all(
+      orders.map(async (order) => {
+        // Get items for this order
+        const itemsResult = await pool.query(
+          `SELECT * FROM order_items WHERE order_id = $1`,
+          [order.id]
+        );
+
+        console.error(`Items for order ${order.id}:`, itemsResult.rows);
+
+        // Get addresses (both shipping and billing)
+        const addressesResult = await pool.query(
+          `SELECT * FROM order_addresses WHERE order_id = $1`,
+          [order.id]
+        );
+
+        console.error(`Addresses for order ${order.id}:`, addressesResult.rows);
+
+        return {
+          ...order,
+          items: itemsResult.rows,
+          addresses: addressesResult.rows,
+        };
+      })
+    );
+
+    res.json(enrichedOrders);
   } catch (error) {
     console.error(`Error fetching orders for customer ${customerId}:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 // Helper function to save order to Excel
 interface Order {
