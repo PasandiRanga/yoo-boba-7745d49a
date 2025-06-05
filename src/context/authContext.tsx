@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Customer } from '../models/CustomerModel'; // Import the Customer interface
+import { Customer } from '../models/CustomerModel';
 
 interface AuthContextType {
   user: Customer | null;
@@ -49,16 +49,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Login function
+  // Login function - Now triggers cart sync
   const login = (newToken: string, customer: Customer) => {
     setToken(newToken);
     setUser(customer);
     sessionStorage.setItem('token', newToken);
     sessionStorage.setItem('customer', JSON.stringify(customer));
+    
+    // Dispatch custom event to notify cart context
+    window.dispatchEvent(new CustomEvent('auth-login', { 
+      detail: { token: newToken, customer } 
+    }));
   };
 
-  // Logout function
+  // Logout function - Now triggers cart sync
   const logout = () => {
+    // Dispatch logout event before clearing state
+    window.dispatchEvent(new CustomEvent('auth-logout'));
+    
     setToken(null);
     setUser(null);
     sessionStorage.removeItem('token');

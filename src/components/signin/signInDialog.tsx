@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { User, AlertCircle } from "lucide-react";
 import { loginCustomer } from "@/services/customerService";
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/authContext'; // Import the useAuth hook
+import { useAuth } from '@/context/authContext';
 
 // StyledInput component with proper TypeScript types
 interface StyledInputProps {
@@ -73,7 +73,7 @@ const StyledInput: React.FC<StyledInputProps> = ({
 
 const SignInDialog: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // Use the login function from AuthContext
+  const { login } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -143,12 +143,12 @@ const SignInDialog: React.FC = () => {
     try {
       const response = await loginCustomer(formData.email, formData.password);
       
-      // Use the login function from AuthContext instead of manual sessionStorage
+      // Use the login function from AuthContext - this will automatically trigger cart sync
       login(response.token, response.customer);
 
       // Close the dialog and navigate to home page
       setIsOpen(false);
-      navigate('/'); // Use navigate instead of window.location.href
+      navigate('/');
       
     } catch (error: unknown) {
       // Handle specific error messages from the backend
@@ -170,7 +170,7 @@ const SignInDialog: React.FC = () => {
   };
 
   const navigateToSignUp = () => {
-    navigate('/signUp'); // Use navigate instead of window.location.href
+    navigate('/signUp');
     setIsOpen(false);
   };
 

@@ -87,6 +87,38 @@ function CartProvider({ children }: { children: ReactNode }) {
     initializeCart();
   }, []); // Empty dependency array - only run once on mount
 
+  // Listen for auth events and react accordingly
+  useEffect(() => {
+    const handleAuthLogin = async () => {
+      console.log('Auth login event detected, syncing cart...');
+      await syncCartOnLogin();
+    };
+
+    const handleAuthLogout = async () => {
+      console.log('Auth logout event detected, switching to localStorage cart...');
+      setIsLoading(true);
+      try {
+        // Switch back to localStorage cart
+        setItems(storedItems);
+        initializeSelectedItems(storedItems);
+      } catch (error) {
+        console.error('Error handling logout:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('auth-login', handleAuthLogin);
+    window.addEventListener('auth-logout', handleAuthLogout);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('auth-login', handleAuthLogin);
+      window.removeEventListener('auth-logout', handleAuthLogout);
+    };
+  }, [storedItems, initializeSelectedItems]);
+
   // Save to localStorage only when user is not logged in
   useEffect(() => {
     if (isInitialized && !isUserLoggedIn()) {
@@ -211,134 +243,134 @@ function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Updated removeItem function with better error handling
-const removeItem = useCallback(async (id: string) => {
-  setIsLoading(true);
-  try {
-    if (isUserLoggedIn()) {
-      // Remove from database
-      const customerId = getCurrentCustomerId();
-      if (customerId) {
-        try {
-          await cartService.removeCartItem(customerId, id);
-        } catch (error: unknown) {
-          // If item doesn't exist in database (404), just continue with local removal
-          if (typeof error === "object" && error !== null && "message" in error && typeof (error as { message?: string }).message === "string" &&
-              ((error as { message: string }).message.includes('404') || (error as { message: string }).message.includes('not found'))) {
-            console.warn(`Item ${id} not found in database, removing from local state only`);
-          } else {
-            throw error; // Re-throw other errors
+  const removeItem = useCallback(async (id: string) => {
+    setIsLoading(true);
+    try {
+      if (isUserLoggedIn()) {
+        // Remove from database
+        const customerId = getCurrentCustomerId();
+        if (customerId) {
+          try {
+            await cartService.removeCartItem(customerId, id);
+          } catch (error: unknown) {
+            // If item doesn't exist in database (404), just continue with local removal
+            if (typeof error === "object" && error !== null && "message" in error && typeof (error as { message?: string }).message === "string" &&
+                ((error as { message: string }).message.includes('404') || (error as { message: string }).message.includes('not found'))) {
+              console.warn(`Item ${id} not found in database, removing from local state only`);
+            } else {
+              throw error; // Re-throw other errors
+            }
           }
+          
+          // Always update local state regardless of database operation result
+          setItems((prevItems) => prevItems.filter((item) => item.id !== id));
         }
-        
-        // Always update local state regardless of database operation result
+      } else {
+        // Remove from localStorage
         setItems((prevItems) => prevItems.filter((item) => item.id !== id));
       }
-    } else {
-      // Remove from localStorage
-      setItems((prevItems) => prevItems.filter((item) => item.id !== id));
-    }
-    
-    // Remove from selected items
-    setSelectedItems(prev => {
-      const updated = {...prev};
-      delete updated[id];
-      return updated;
-    });
-    
-    const itemToRemove = items.find((i) => i.id === id);
-    if (itemToRemove) {
-      toast({
-        title: "Item removed",
-        description: `${itemToRemove.name} has been removed from your cart`,
+      
+      // Remove from selected items
+      setSelectedItems(prev => {
+        const updated = {...prev};
+        delete updated[id];
+        return updated;
       });
+      
+      const itemToRemove = items.find((i) => i.id === id);
+      if (itemToRemove) {
+        toast({
+          title: "Item removed",
+          description: `${itemToRemove.name} has been removed from your cart`,
+        });
+      }
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+      
+      // For critical errors, still try to remove from local state as fallback
+      setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+      setSelectedItems(prev => {
+        const updated = {...prev};
+        delete updated[id];
+        return updated;
+      });
+      
+      toast({
+        title: "Warning",
+        description: "Item removed locally, but there may have been a sync issue",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error('Error removing item from cart:', error);
-    
-    // For critical errors, still try to remove from local state as fallback
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
-    setSelectedItems(prev => {
-      const updated = {...prev};
-      delete updated[id];
-      return updated;
-    });
-    
-    toast({
-      title: "Warning",
-      description: "Item removed locally, but there may have been a sync issue",
-      variant: "destructive"
-    });
-  } finally {
-    setIsLoading(false);
-  }
-}, [items]);
+  }, [items]);
 
-// Also update the updateQuantity function for similar robustness
-const updateQuantity = useCallback(async (id: string, quantity: number) => {
-  setIsLoading(true);
-  try {
-    if (isUserLoggedIn()) {
-      // Update in database
-      const customerId = getCurrentCustomerId();
-      if (customerId) {
-        try {
-          await cartService.updateCartItem(customerId, id, quantity);
-        } catch (error: unknown) {
-          // If item doesn't exist in database, add it instead
-          if (
-            typeof error === "object" &&
-            error !== null &&
-            "message" in error &&
-            typeof (error as { message?: string }).message === "string" &&
-            (
-              (error as { message: string }).message.includes('404') ||
-              (error as { message: string }).message.includes('not found')
-            )
-          ) {
-            const itemToUpdate = items.find(item => item.id === id);
-            if (itemToUpdate) {
-              console.warn(`Item ${id} not found in database, adding it`);
-              await cartService.addToCart(customerId, { ...itemToUpdate, quantity });
+  // Also update the updateQuantity function for similar robustness
+  const updateQuantity = useCallback(async (id: string, quantity: number) => {
+    setIsLoading(true);
+    try {
+      if (isUserLoggedIn()) {
+        // Update in database
+        const customerId = getCurrentCustomerId();
+        if (customerId) {
+          try {
+            await cartService.updateCartItem(customerId, id, quantity);
+          } catch (error: unknown) {
+            // If item doesn't exist in database, add it instead
+            if (
+              typeof error === "object" &&
+              error !== null &&
+              "message" in error &&
+              typeof (error as { message?: string }).message === "string" &&
+              (
+                (error as { message: string }).message.includes('404') ||
+                (error as { message: string }).message.includes('not found')
+              )
+            ) {
+              const itemToUpdate = items.find(item => item.id === id);
+              if (itemToUpdate) {
+                console.warn(`Item ${id} not found in database, adding it`);
+                await cartService.addToCart(customerId, { ...itemToUpdate, quantity });
+              }
+            } else {
+              throw error;
             }
-          } else {
-            throw error;
           }
+          
+          // Update local state
+          setItems((prevItems) =>
+            prevItems.map((item) =>
+              item.id === id ? { ...item, quantity } : item
+            )
+          );
         }
-        
-        // Update local state
+      } else {
+        // Update in localStorage
         setItems((prevItems) =>
           prevItems.map((item) =>
             item.id === id ? { ...item, quantity } : item
           )
         );
       }
-    } else {
-      // Update in localStorage
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      
+      // Fallback: update local state anyway
       setItems((prevItems) =>
         prevItems.map((item) =>
           item.id === id ? { ...item, quantity } : item
         )
       );
+      
+      toast({
+        title: "Warning",
+        description: "Quantity updated locally, but there may have been a sync issue",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error('Error updating cart item:', error);
-    
-    // Fallback: update local state anyway
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
-    
-    toast({
-      title: "Warning",
-      description: "Quantity updated locally, but there may have been a sync issue",
-      variant: "destructive"
-    });
-  } finally {
-    setIsLoading(false);
-  }
-}, [items]);
+  }, [items]);
 
   const clearCart = useCallback(async () => {
     setIsLoading(true);
