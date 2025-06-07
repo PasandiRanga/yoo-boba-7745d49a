@@ -7,6 +7,7 @@ import BobaSendingToast from "@/components/ui/bobaSendingToast";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
 import StyledInput from "@/components/ui/styledInput";
 import StyledTextarea from "@/components/ui/styledTextArea";
+import { submitContactRequest } from '@/services/contactService';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ const ContactPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -27,14 +29,7 @@ const ContactPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setShowToast(true);
-  };
-
-  const handleToastComplete = () => {
-    // Reset the form after toast animation completes
+  const resetForm = () => {
     setFormData({
       name: "",
       email: "",
@@ -42,8 +37,34 @@ const ContactPage = () => {
       subject: "",
       message: "",
     });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setIsSubmitted(false);
+
+    try {
+      await submitContactRequest(formData);
+      setIsSubmitted(true);
+      setShowToast(true);
+      // Refresh the page after a short delay (e.g., after the toast)
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000); // Adjust delay as needed
+    } catch (error) {
+      console.error('Error submitting contact request:', error);
+      setLoading(false);
+    }
+  };
+
+
+  const handleToastComplete = () => {
+    // Reset everything after toast animation completes
+    resetForm();
     setLoading(false);
     setShowToast(false);
+    setIsSubmitted(false);
   };
 
   return (
@@ -72,6 +93,16 @@ const ContactPage = () => {
               {/* Contact Form */}
               <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700">
                 <h2 className="text-2xl font-bold font-display mb-6 dark:text-white">Send Us a Message</h2>
+                
+                {/* Success message */}
+                {isSubmitted && !showToast && (
+                  <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-green-800 dark:text-green-300 text-sm">
+                      ✅ Message sent successfully! We'll get back to you soon.
+                    </p>
+                  </div>
+                )}
+                
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-1">
@@ -83,6 +114,7 @@ const ContactPage = () => {
                         onChange={handleChange}
                         required
                         placeholder="John Doe"
+                        disabled={loading}
                       />
                     </div>
                     <div className="md:col-span-1">
@@ -95,6 +127,7 @@ const ContactPage = () => {
                         onChange={handleChange}
                         required
                         placeholder="email@example.com"
+                        disabled={loading}
                       />
                     </div>
                     <div className="md:col-span-1">
@@ -105,6 +138,7 @@ const ContactPage = () => {
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="(555) 123-4567"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -117,6 +151,7 @@ const ContactPage = () => {
                       onChange={handleChange}
                       required
                       placeholder="What's this about?"
+                      disabled={loading}
                     />
                   </div>
                   <div>
@@ -129,6 +164,7 @@ const ContactPage = () => {
                       onChange={handleChange}
                       required
                       placeholder="Tell us more about your inquiry..."
+                      disabled={loading}
                     />
                   </div>
                   <Button
@@ -139,7 +175,7 @@ const ContactPage = () => {
                     disabled={loading}
                     isLoading={loading}
                   >
-                    Send Message
+                    {loading ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
               </div>

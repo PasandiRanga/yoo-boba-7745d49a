@@ -10,6 +10,7 @@ import orderRoutes from './routes/orderRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import cartRoutes from './routes/cartRoutes';
 import byobRoutes from './routes/byobRoutes';
+import contactRoutes from './routes/contactRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +30,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/byob', byobRoutes);
+app.use('/api/contact', contactRoutes );
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
