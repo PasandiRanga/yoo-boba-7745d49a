@@ -3,10 +3,30 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Order, OrderStatus } from "@/models/OrderModel";
 
+// Extended interfaces to handle database field variations
+interface DatabaseCustomer {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  first_name?: string;
+  last_name?: string;
+  emailaddress?: string;
+  contactno?: string;
+}
+
+interface DatabaseOrder extends Omit<Order, 'customer' | 'total_amount' | 'payment_method'> {
+  customer: DatabaseCustomer;
+  total_amount?: number;
+  total?: number;
+  payment_method?: string;
+  paymentMethod?: string;
+}
+
 interface OrderReceiptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  order: Order | null;
+  order: DatabaseOrder | null;
 }
 
 export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDialogProps) => {
@@ -80,9 +100,9 @@ export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDi
           {/* Customer Info */}
           <div className="mb-4">
             <p className="font-semibold mb-1">Customer:</p>
-            <p className="text-xs">{orderCustomer?.firstName || (orderCustomer as any)?.first_name || ''} {orderCustomer?.lastName || (orderCustomer as any)?.last_name || ''}</p>
-            <p className="text-xs">{orderCustomer?.email || (orderCustomer as any)?.emailaddress || 'N/A'}</p>
-            <p className="text-xs">{orderCustomer?.phone || (orderCustomer as any)?.contactno || 'N/A'}</p>
+            <p className="text-xs">{orderCustomer?.firstName || orderCustomer?.first_name || ''} {orderCustomer?.lastName || orderCustomer?.last_name || ''}</p>
+            <p className="text-xs">{orderCustomer?.email || orderCustomer?.emailaddress || 'N/A'}</p>
+            <p className="text-xs">{orderCustomer?.phone || orderCustomer?.contactno || 'N/A'}</p>
             <Separator className="my-2" />
           </div>
 
@@ -107,11 +127,11 @@ export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDi
           <div className="mb-4">
             <div className="flex justify-between font-bold">
               <span>TOTAL:</span>
-              <span>Rs.{order.total_amount || (order as any).total || 0}</span>
+              <span>Rs.{order.total_amount || order.total || 0}</span>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Payment:</span>
-              <span>{order.payment_method || (order as any).paymentMethod || 'N/A'}</span>
+              <span>{order.payment_method || order.paymentMethod || 'N/A'}</span>
             </div>
           </div>
 
