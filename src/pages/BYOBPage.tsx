@@ -19,10 +19,10 @@ const BYOBPage = () => {
       6000
     );
     
-    // Refresh the page after a short delay to allow toast to be seen
-    setTimeout(() => {
-      window.location.reload();
-    }, 6000); // 2 second delay
+    // // Refresh the page after a short delay to allow toast to be seen
+    // setTimeout(() => {
+    //   window.location.reload();
+    // }, 6000); // 2 second delay
   };
 
   return (
