@@ -106,9 +106,10 @@ const SignUpPage = () => {
       const customerData = {
         FullName: `${formData.first_name} ${formData.last_name}`,
         ContactNo: formData.contactNumber,
-        EmailAddress: formData.email,
+        emailaddress: formData.email,
         Address: formData.address,
-        Password: formData.password
+        Password: formData.password,
+        customerid: '' // Will be set by backend
       } as Omit<Customer, 'id'>;
 
       // Use the customerService instead of direct fetch
