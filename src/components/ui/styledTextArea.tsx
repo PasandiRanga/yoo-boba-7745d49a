@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 
-const StyledTextarea = ({ 
+interface StyledTextareaProps {
+  name: string;
+  id: string;
+  placeholder: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  required?: boolean;
+  disabled?: boolean;
+  rows?: number;
+}
+
+const StyledTextarea: React.FC<StyledTextareaProps> = ({ 
   name, 
   id, 
   placeholder, 
   value: initialValue = "", 
   onChange, 
-  required = false, 
+  required = false,
+  disabled = false, 
   rows = 5 
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -30,12 +42,14 @@ const StyledTextarea = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         required={required}
+        disabled={disabled}
         rows={rows}
         placeholder={placeholder}
         className={`
           w-full border-none outline-none rounded-2xl p-4 text-base
           font-inherit resize-vertical transition-all duration-300 ease-in-out
           ${isFocused ? 'transform scale-105' : ''}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           
           /* Light mode */
           bg-white text-gray-700

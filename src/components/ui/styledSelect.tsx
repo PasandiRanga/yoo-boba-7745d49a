@@ -1,20 +1,32 @@
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const StyledSelect = ({
+interface StyledSelectProps {
+  name: string;
+  id: string;
+  placeholder: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  required?: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
+}
+
+const StyledSelect: React.FC<StyledSelectProps> = ({
   name,
   id,
   placeholder,
   value,
   onValueChange,
   required = false,
+  disabled = false,
   children
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-
+  
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => setIsFocused(false);
-
+  
   return (
     <div className="w-full">
       <Select 
@@ -22,6 +34,7 @@ const StyledSelect = ({
         value={value}
         onValueChange={onValueChange}
         required={required}
+        disabled={disabled}
         onOpenChange={(open) => {
           if (open) {
             handleFocus();
@@ -36,6 +49,7 @@ const StyledSelect = ({
             w-full border-none outline-none rounded-2xl p-2.5 text-base h-auto
             transition-all duration-300 ease-in-out focus:ring-0 focus:ring-offset-0
             ${isFocused ? 'transform scale-105' : ''}
+            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
             
             /* Light mode */
             bg-white text-gray-700

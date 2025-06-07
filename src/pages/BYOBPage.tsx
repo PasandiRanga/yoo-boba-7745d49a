@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectItem } from "@/components/ui/select";
 import BackToTopButton from "@/components/ui/back-to-top";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
 import StyledInput from "@/components/ui/styledInput";
 import StyledTextarea from "@/components/ui/styledTextArea";
 import StyledSelect from "@/components/ui/styledSelect";
+import { Product } from "@/models/ProductModel";
+import { fetchProducts, fetchProductById } from "@/services/productService";
+
 
 const BYOBPage = () => {
   const [formData, setFormData] = useState({
@@ -18,10 +21,33 @@ const BYOBPage = () => {
     contactNumber: "",
     email: "",
     address: "",
-    minimumOrder: ""
+    productType: "",
+    weight: "",
+    maximumQuantity: ""
   });
 
   const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [availableWeights, setAvailableWeights] = useState<string[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+
+  // Fetch products on component mount
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setProductsLoading(true);
+        const productsData = await fetchProducts();
+        setProducts(productsData);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -30,17 +56,77 @@ const BYOBPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle select change for category, weight, etc.
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleProductTypeChange = async (productId: string) => {
+    // Optionally, fetch the latest product data by ID
+    let product = products.find(p => p.product_id === productId);
+    
+    product = await fetchProductById(productId);
+  
+    setSelectedProduct(product || null);
+
+    if (product && product.variants && Array.isArray(product.variants)) {
+      const weights = product.variants.map(variant => variant.weight);
+      console.log("Weights" , weights);
+      setAvailableWeights(weights);
+      setFormData(prev => ({
+        ...prev,
+        productType: productId,
+        weight: "",
+        maximumQuantity: ""
+      }));
+    } else {
+      setAvailableWeights([]);
+      setFormData(prev => ({
+        ...prev,
+        productType: productId,
+        weight: "",
+        maximumQuantity: ""
+      }));
+    }
+  };
+
+  console.log(formData);
+
+// Get max quantity for selected weight
+  const getMaxQuantityForWeight = (weight: string): number => {
+    if (!selectedProduct || !selectedProduct.variants || !Array.isArray(selectedProduct.variants)) {
+      return 0;
+    }
+    const variant = selectedProduct.variants.find(v => v.weight === weight);
+    return variant ? variant.stock : 0;
+  };
+
+  const handleWeightChange = (weight: string) => {
+    setFormData(prev => ({
+      ...prev,
+      weight,
+      maximumQuantity: ""
+    }));
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
+    // Get product name for the form data
+    const productName = selectedProduct ? selectedProduct.name : "";
+    const maxAvailable = formData.weight ? getMaxQuantityForWeight(formData.weight) : 0;
+    
+    const submissionData = {
+      ...formData,
+      productName,
+      maxAvailableStock: maxAvailable
+    };
+    
     // Simulate form submission
     setTimeout(() => {
-      console.log("Form submitted:", formData);
+      console.log("Form submitted:", submissionData);
       setLoading(false);
       
       // Reset form after submission
@@ -51,8 +137,12 @@ const BYOBPage = () => {
         contactNumber: "",
         email: "",
         address: "",
-        minimumOrder: ""
+        productType: "",
+        weight: "",
+        maximumQuantity: ""
       });
+      setSelectedProduct(null);
+      setAvailableWeights([]);
     }, 1500);
   };
 
@@ -107,7 +197,6 @@ const BYOBPage = () => {
                       />
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="category" className="dark:text-gray-300 mb-2 block">Business Category *</Label>
@@ -139,7 +228,6 @@ const BYOBPage = () => {
                       />
                     </div>
                   </div>
-                  
                   <div>
                     <Label htmlFor="email" className="dark:text-gray-300 mb-2 block">Email Address *</Label>
                     <StyledInput
@@ -152,7 +240,6 @@ const BYOBPage = () => {
                       placeholder="email@example.com"
                     />
                   </div>
-                  
                   <div>
                     <Label htmlFor="address" className="dark:text-gray-300 mb-2 block">Business Address *</Label>
                     <StyledTextarea
@@ -165,19 +252,67 @@ const BYOBPage = () => {
                       placeholder="Enter your business address..."
                     />
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="minimumOrder" className="dark:text-gray-300 mb-2 block">Minimum Order Quantity (MOQ) *</Label>
-                    <StyledInput
-                      id="minimumOrder"
-                      name="minimumOrder"
-                      value={formData.minimumOrder}
-                      onChange={handleChange}
-                      required
-                      placeholder="e.g., 10 cases"
-                    />
+                  {/* Product Selection Section */}
+                  <div className="border-t dark:border-gray-700 pt-6">
+                    <h3 className="text-lg font-semibold mb-4 dark:text-white">Product Requirements</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="productType" className="dark:text-gray-300 mb-2 block">Product Type *</Label>
+                        <StyledSelect
+                          id="productType"
+                          name="productType"
+                          value={formData.productType}
+                          onValueChange={handleProductTypeChange}
+                          placeholder={productsLoading ? "Loading products..." : "Select product type"}
+                          required
+                          disabled={productsLoading}
+                        >
+                          {products.map((product) => (
+                            <SelectItem key={product.product_id} value={product.product_id}>
+                              {product.name}
+                            </SelectItem>
+                          ))}
+                        </StyledSelect>
+                      </div>
+                      <div>
+                        <Label htmlFor="weight" className="dark:text-gray-300 mb-2 block">Weight/Size *</Label>
+                        <StyledSelect
+                          id="weight"
+                          name="weight"
+                          value={formData.weight}
+                          onValueChange={handleWeightChange}
+                          placeholder="Select weight"
+                          required
+                          disabled={!selectedProduct || availableWeights.length === 0}
+                        >
+                          {availableWeights.map((weight) => (
+                            <SelectItem key={weight} value={weight}>
+                              {weight}
+                            </SelectItem>
+                          ))}
+                        </StyledSelect>
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <Label htmlFor="maximumQuantity" className="dark:text-gray-300 mb-2 block">
+                        Maximum Quantity Required *
+                        
+                      </Label>
+                      <StyledInput
+                        id="maximumQuantity"
+                        name="maximumQuantity"
+                        type="number"
+                        min="1"
+                        max={formData.weight ? getMaxQuantityForWeight(formData.weight) : undefined}
+                        value={formData.maximumQuantity}
+                        onChange={handleChange}
+                        required
+                        placeholder="Enter maximum quantity needed"
+                        disabled={!formData.weight}
+                      />
+                      
+                    </div>
                   </div>
-                  
                   <Button
                     type="submit"
                     variant="sendMessage"
@@ -223,7 +358,7 @@ const BYOBPage = () => {
                     <div className="flex items-start">
                       <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-3 mr-4 text-yooboba-purple dark:text-pink-400">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                       </div>
                       <div>
@@ -288,7 +423,7 @@ const BYOBPage = () => {
                     <div className="flex flex-col items-center p-4 bg-yooboba-light/50 dark:bg-gray-700/50 rounded-lg text-center">
                       <div className="mb-3 text-yooboba-purple dark:text-pink-400">
                         <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002 2V8m-9 4h4"></path>
                         </svg>
                       </div>
                       <span className="font-medium dark:text-white">Mini Bars</span>
