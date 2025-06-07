@@ -12,6 +12,13 @@ interface OrderReceiptDialogProps {
 export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDialogProps) => {
   if (!order) return null;
 
+  // Add safety checks for order data
+  const orderId = order.id || 'N/A';
+  const orderStatus = order.status || 'pending';
+  const orderItems = order.items || [];
+  const orderCustomer = order.customer;
+  const orderShippingAddress = order.shippingAddress;
+
   const getStatusIcon = (status: OrderStatus) => {
     switch (status?.toLowerCase()) {
       case "pending": return "🕐";
@@ -54,17 +61,17 @@ export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDi
           <div className="mb-4">
             <div className="flex justify-between mb-1">
               <span>Order #:</span>
-              <span className="font-semibold">{order.id.slice(-8)}</span>
+              <span className="font-semibold">{orderId.toString().slice(-8)}</span>
             </div>
             <div className="flex justify-between mb-1">
               <span>Date:</span>
-              <span>{new Date(order.created_at).toLocaleDateString()}</span>
+              <span>{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</span>
             </div>
             <div className="flex justify-between mb-2">
               <span>Status:</span>
-              <Badge className={`${getStatusColor(order.status)} text-xs`}>
-                <span className="mr-1">{getStatusIcon(order.status)}</span>
-                {order.status?.toUpperCase()}
+              <Badge className={`${getStatusColor(orderStatus)} text-xs`}>
+                <span className="mr-1">{getStatusIcon(orderStatus)}</span>
+                {orderStatus?.toUpperCase()}
               </Badge>
             </div>
             <Separator className="my-2" />
@@ -73,23 +80,23 @@ export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDi
           {/* Customer Info */}
           <div className="mb-4">
             <p className="font-semibold mb-1">Customer:</p>
-            <p className="text-xs">{order.customer.firstName} {order.customer.lastName}</p>
-            <p className="text-xs">{order.customer.email}</p>
-            <p className="text-xs">{order.customer.phone}</p>
+            <p className="text-xs">{orderCustomer?.firstName || (orderCustomer as any)?.first_name || ''} {orderCustomer?.lastName || (orderCustomer as any)?.last_name || ''}</p>
+            <p className="text-xs">{orderCustomer?.email || (orderCustomer as any)?.emailaddress || 'N/A'}</p>
+            <p className="text-xs">{orderCustomer?.phone || (orderCustomer as any)?.contactno || 'N/A'}</p>
             <Separator className="my-2" />
           </div>
 
           {/* Items */}
           <div className="mb-4">
             <p className="font-semibold mb-2">Items:</p>
-            {order.items.map((item, index) => (
+            {orderItems.map((item, index) => (
               <div key={item.id || index} className="mb-2">
                 <div className="flex justify-between">
-                  <span className="text-xs">{item.name}</span>
+                  <span className="text-xs">{item.name || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{item.quantity} x Rs.{item.price}</span>
-                  <span>Rs.{(item.price * item.quantity).toFixed(2)}</span>
+                  <span>{item.quantity || 0} x Rs.{typeof item.price === 'string' ? parseFloat(item.price) : item.price || 0}</span>
+                  <span>Rs.{((typeof item.price === 'string' ? parseFloat(item.price) : item.price || 0) * (item.quantity || 0)).toFixed(2)}</span>
                 </div>
               </div>
             ))}
@@ -100,11 +107,11 @@ export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDi
           <div className="mb-4">
             <div className="flex justify-between font-bold">
               <span>TOTAL:</span>
-              <span>Rs.{order.total_amount}</span>
+              <span>Rs.{order.total_amount || (order as any).total || 0}</span>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Payment:</span>
-              <span>{order.payment_method}</span>
+              <span>{order.payment_method || (order as any).paymentMethod || 'N/A'}</span>
             </div>
           </div>
 
@@ -112,10 +119,10 @@ export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDi
           <div className="mb-4">
             <p className="font-semibold mb-1 text-xs">Shipping to:</p>
             <div className="text-xs text-muted-foreground">
-              <p>{order.shippingAddress.street1}</p>
-              {order.shippingAddress.street2 && <p>{order.shippingAddress.street2}</p>}
-              <p>{order.shippingAddress.city}, {order.shippingAddress.state}</p>
-              <p>{order.shippingAddress.zipCode}, {order.shippingAddress.country}</p>
+              <p>{orderShippingAddress?.street1 || 'N/A'}</p>
+              {orderShippingAddress?.street2 && <p>{orderShippingAddress.street2}</p>}
+              <p>{orderShippingAddress?.city || 'N/A'}, {orderShippingAddress?.state || 'N/A'}</p>
+              <p>{orderShippingAddress?.zipCode || 'N/A'}, {orderShippingAddress?.country || 'N/A'}</p>
             </div>
           </div>
 
