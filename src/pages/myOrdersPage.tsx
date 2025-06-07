@@ -33,7 +33,7 @@ const MyOrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("date-desc");
   const [error, setError] = useState<string | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
 
   useEffect(() => {

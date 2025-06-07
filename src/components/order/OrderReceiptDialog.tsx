@@ -34,6 +34,7 @@ export const OrderReceiptDialog = ({ open, onOpenChange, order }: OrderReceiptDi
 
   // Add safety checks for order data
   const orderId = order.id || 'N/A';
+  console.log("Order ID:", orderId);
   const orderStatus = order.status || 'pending';
   const orderItems = order.items || [];
   const orderCustomer = order.customer;
