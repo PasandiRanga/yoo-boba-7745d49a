@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Package,
   Clock,
@@ -16,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/authContext";
 import { Order, OrderStatus } from "@/models/OrderModel";
-import { fetchOrdersByCustomer } from "@/services/orderService";
+import { fetchOrdersByCustomer, fetchOrderById } from "@/services/orderService";
+import { OrderReceiptDialog } from "@/components/order/OrderReceiptDialog";
 
 // Layout components
 import Navbar from "@/components/layout/Navbar";
@@ -26,7 +26,6 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const MyOrdersPage = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +33,8 @@ const MyOrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("date-desc");
   const [error, setError] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserOrders = async () => {
@@ -126,8 +127,18 @@ const MyOrdersPage = () => {
     }
   };
 
-  const handleViewOrder = (orderId: string) => {
-    navigate(`/order/${orderId}`);
+  const handleViewOrder = async (orderId: string) => {
+    try {
+      const orderData = await fetchOrderById(orderId);
+      setSelectedOrder(orderData);
+      setIsReceiptDialogOpen(true);
+    } catch (error) {
+      toast({
+        title: "Error Loading Order",
+        description: "We couldn't load the order details. Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDownloadReceipt = (order: Order) => {
@@ -256,6 +267,12 @@ const MyOrdersPage = () => {
       </main>
       <Footer />
       <BackToTopButton />
+      
+      <OrderReceiptDialog 
+        open={isReceiptDialogOpen}
+        onOpenChange={setIsReceiptDialogOpen}
+        order={selectedOrder}
+      />
     </div>
   );
 };

@@ -24,7 +24,6 @@ import NotFound from "@/pages/NotFound";
 import PaymentPortal from "@/pages/paymentPortalPage";
 import PaymentCompletePage from "./pages/paymentCompletePage";
 import MyOrdersPage from "@/pages/myOrdersPage";
-import OrderDetailPage from "@/pages/OrderDetailPage";
 
 // Create a new QueryClient instance inside the component to ensure proper React context
 const App = () => {
@@ -61,7 +60,6 @@ const App = () => {
                         <Route path="/payment-portal" element={<PaymentPortal />} />
                         <Route path="/payment-complete" element={<PaymentCompletePage />} />
                         <Route path="/my-orders" element={<MyOrdersPage />} />
-                        <Route path="/order/:orderId" element={<OrderDetailPage />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </BrowserRouter>
