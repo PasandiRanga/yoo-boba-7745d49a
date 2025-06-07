@@ -2,12 +2,13 @@ import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BackToTopButton from "@/components/ui/back-to-top";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
+import StyledInput from "@/components/ui/styledInput";
+import StyledTextarea from "@/components/ui/styledTextArea";
+import StyledSelect from "@/components/ui/styledSelect";
 
 const BYOBPage = () => {
   const [formData, setFormData] = useState({
@@ -61,6 +62,7 @@ const BYOBPage = () => {
       <main className="flex-grow">
         {/* Hero Section with Floating Bubbles */}
         <section className="bg-gradient-to-r from-yooboba-blue/10 via-yooboba-purple/10 to-yooboba-pink/10 dark:from-yooboba-blue/20 dark:via-yooboba-purple/20 dark:to-yooboba-pink/20 py-16 md:py-24 relative overflow-hidden">
+          <FloatingBubbles />
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold font-display mb-6 dark:text-white">
@@ -83,98 +85,96 @@ const BYOBPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="name" className="dark:text-gray-300">Full Name *</Label>
-                      <Input
+                      <Label htmlFor="name" className="dark:text-gray-300 mb-2 block">Full Name *</Label>
+                      <StyledInput
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                        placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="organizationName" className="dark:text-gray-300">Organization Name *</Label>
-                      <Input
+                      <Label htmlFor="organizationName" className="dark:text-gray-300 mb-2 block">Organization Name *</Label>
+                      <StyledInput
                         id="organizationName"
                         name="organizationName"
                         value={formData.organizationName}
                         onChange={handleChange}
                         required
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                        placeholder="Your Business Name"
                       />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="category" className="dark:text-gray-300">Business Category *</Label>
-                      <Select 
-                        onValueChange={(value) => handleSelectChange("category", value)}
+                      <Label htmlFor="category" className="dark:text-gray-300 mb-2 block">Business Category *</Label>
+                      <StyledSelect
+                        id="category"
+                        name="category"
                         value={formData.category}
+                        onValueChange={(value) => handleSelectChange("category", value)}
+                        placeholder="Select category"
+                        required
                       >
-                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent className="dark:bg-gray-700">
-                          <SelectItem value="cafe">Cafe</SelectItem>
-                          <SelectItem value="hotel">Hotel</SelectItem>
-                          <SelectItem value="restaurant">Restaurant</SelectItem>
-                          <SelectItem value="villa">Villa</SelectItem>
-                          <SelectItem value="miniBar">Mini Bar</SelectItem>
-                          <SelectItem value="catering">Catering</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <SelectItem value="cafe">Cafe</SelectItem>
+                        <SelectItem value="hotel">Hotel</SelectItem>
+                        <SelectItem value="restaurant">Restaurant</SelectItem>
+                        <SelectItem value="villa">Villa</SelectItem>
+                        <SelectItem value="miniBar">Mini Bar</SelectItem>
+                        <SelectItem value="catering">Catering</SelectItem>
+                      </StyledSelect>
                     </div>
                     <div>
-                      <Label htmlFor="contactNumber" className="dark:text-gray-300">Contact Number *</Label>
-                      <Input
+                      <Label htmlFor="contactNumber" className="dark:text-gray-300 mb-2 block">Contact Number *</Label>
+                      <StyledInput
                         id="contactNumber"
                         name="contactNumber"
                         value={formData.contactNumber}
                         onChange={handleChange}
                         required
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                        placeholder="(555) 123-4567"
                       />
                     </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="email" className="dark:text-gray-300">Email Address *</Label>
-                    <Input
+                    <Label htmlFor="email" className="dark:text-gray-300 mb-2 block">Email Address *</Label>
+                    <StyledInput
                       id="email"
                       name="email"
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                      placeholder="email@example.com"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="address" className="dark:text-gray-300">Business Address *</Label>
-                    <Textarea
+                    <Label htmlFor="address" className="dark:text-gray-300 mb-2 block">Business Address *</Label>
+                    <StyledTextarea
                       id="address"
                       name="address"
                       rows={3}
                       value={formData.address}
                       onChange={handleChange}
                       required
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
+                      placeholder="Enter your business address..."
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="minimumOrder" className="dark:text-gray-300">Minimum Order Quantity (MOQ) *</Label>
-                    <Input
+                    <Label htmlFor="minimumOrder" className="dark:text-gray-300 mb-2 block">Minimum Order Quantity (MOQ) *</Label>
+                    <StyledInput
                       id="minimumOrder"
                       name="minimumOrder"
                       value={formData.minimumOrder}
                       onChange={handleChange}
                       required
                       placeholder="e.g., 10 cases"
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-yooboba-purple/70"
                     />
                   </div>
                   
