@@ -197,21 +197,44 @@ export const updateCustomer = async (req: Request, res: Response) => {
   }
 };
 
+// First, add a column to your customers table:
+// ALTER TABLE customers ADD COLUMN deleted_at TIMESTAMP DEFAULT NULL;
+// ALTER TABLE customers ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
 export const deleteCustomer = async (req: Request, res: Response) => {
   const { id } = req.params;
+  
   try {
     const { rowCount } = await pool.query(`
-      DELETE FROM customers
-      WHERE customerid = $1
+      UPDATE customers 
+      SET is_active = FALSE, deleted_at = NOW() 
+      WHERE customerid = $1 AND is_active = TRUE
     `, [id]);
     
     if (rowCount === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
+      return res.status(404).json({ message: 'Customer not found or already deleted' });
     }
     
     res.status(204).send();
+    
   } catch (error) {
     console.error(`Error deleting customer with id ${id}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Update your get customers queries to exclude deleted customers:
+export const getCustomers = async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM customers 
+      WHERE is_active = TRUE 
+      ORDER BY customerid
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching customers:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
