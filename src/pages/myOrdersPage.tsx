@@ -17,6 +17,8 @@ import { useAuth } from "@/context/authContext";
 import { Order, OrderStatus } from "@/models/OrderModel";
 import { fetchOrdersByCustomer, fetchOrderById } from "@/services/orderService";
 import { OrderReceiptDialog } from "@/components/order/OrderReceiptDialog";
+import { generateAndDownloadReceipt } from "@/components/order/downloadOrder";
+
 
 // Layout components
 import Navbar from "@/components/layout/Navbar";
@@ -35,6 +37,8 @@ const MyOrdersPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState<string | null>(null); // Track which order is being downloaded
+
 
   useEffect(() => {
     const fetchUserOrders = async () => {
@@ -144,11 +148,13 @@ const MyOrdersPage = () => {
     }
   };
 
-  const handleDownloadReceipt = (order: Order) => {
-    toast({
-      title: "Download Started",
-      description: `Receipt for order #${order.id} is being downloaded.`,
-    });
+  const handleDownloadReceipt = async (order: Order) => {
+    setIsDownloading(order.id); // Set loading state for this specific order
+    try {
+      await generateAndDownloadReceipt(order, toast);
+    } finally {
+      setIsDownloading(null); // Clear loading state
+    }
   };
 
   const handleRetryFetch = () => {
