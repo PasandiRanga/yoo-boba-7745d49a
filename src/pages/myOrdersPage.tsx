@@ -128,8 +128,10 @@ const MyOrdersPage = () => {
   };
 
   const handleViewOrder = async (orderId: string) => {
+    console.log(`Fetching details for order ID1: ${orderId}`);
     try {
       const orderData = await fetchOrderById(orderId);
+      console.log(orderData);
       setSelectedOrder(orderData);
       setIsReceiptDialogOpen(true);
     } catch (error) {
