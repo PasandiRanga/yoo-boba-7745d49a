@@ -42,7 +42,7 @@ export const createCustomer = async (customerData: Omit<Customer, 'id'>): Promis
       body: JSON.stringify({
         first_name: customerData.FullName.split(' ')[0],
         last_name: customerData.FullName.split(' ').slice(1).join(' '),
-        email: customerData.EmailAddress,
+        email: customerData.emailaddress,
         phone: customerData.ContactNo,
         password: customerData.Password,
         address: customerData.Address,

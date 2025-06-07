@@ -206,7 +206,8 @@ useEffect(() => {
 
     try {
       // Convert selected cart items to order items
-      const orderItems = selectedItems.map((item) => ({
+      const orderItems = selectedItems.map((item, index) => ({
+        id: index + 1, // Add required id property
         productId: item.id,
         name: item.name,
         price: item.price,

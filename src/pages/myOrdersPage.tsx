@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Package,
   Clock,
@@ -25,6 +26,7 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const MyOrdersPage = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -125,10 +127,7 @@ const MyOrdersPage = () => {
   };
 
   const handleViewOrder = (orderId: string) => {
-    toast({
-      title: "Order Details",
-      description: `Viewing details for order #${orderId}`,
-    });
+    navigate(`/order/${orderId}`);
   };
 
   const handleDownloadReceipt = (order: Order) => {
