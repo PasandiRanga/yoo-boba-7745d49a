@@ -128,11 +128,12 @@ const MyOrdersPage = () => {
   };
 
   const handleViewOrder = async (orderId: string) => {
-    console.log(`Fetching details for order ID1: ${orderId}`);
     try {
-      const orderData: any = await fetchOrderById(orderId);
-      console.log(orderData);
-      setSelectedOrder(orderData.order);
+      const orderData = await fetchOrderById(orderId);
+      const extractOrder = orderData.order;
+      console.log("Fetched Order Data:", orderData);
+      console.log("Extracted Order:", extractOrder);
+      setSelectedOrder(extractOrder as unknown as Order);
       setIsReceiptDialogOpen(true);
     } catch (error) {
       toast({

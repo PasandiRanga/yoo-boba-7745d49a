@@ -30,6 +30,7 @@ export interface OrderItem {
 }
 
 export interface Order {
+  order:string;
   id: string;
   customer: Customer;
   shippingAddress: Address;
@@ -85,6 +86,7 @@ export const createOrder = (
   const isGuestOrder = !customer.customerid;
 
   const order: Order = {
+    order: uuidv4(),
     id: uuidv4(),
     customer,
     shippingAddress,

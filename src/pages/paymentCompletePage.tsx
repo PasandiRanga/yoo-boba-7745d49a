@@ -77,7 +77,7 @@ const PaymentCompletePage = () => {
         }
 
         // Ensure the response matches our expected type
-        const orderResponse = fetchedOrderResponse as DatabaseOrderResponse;
+        const orderResponse = fetchedOrderResponse as unknown as DatabaseOrderResponse;
         
         // Transform the database response to match our expected structure
         const transformedOrder = transformDatabaseOrder(orderResponse);
