@@ -157,13 +157,12 @@ export const createCustomer = async (req: Request, res: Response) => {
 
 export const updateCustomer = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { 
+  const {
     first_name,
     last_name,
-    email,
-    phone,
+    emailaddress, // Changed from 'email' to match frontend
+    contactno,    // Changed from 'phone' to match frontend
     address,
-    status,
     notes
   } = req.body;
 
@@ -174,29 +173,26 @@ export const updateCustomer = async (req: Request, res: Response) => {
           last_name = $2,
           emailaddress = $3,
           contactno = $4,
-          address = $5,
-          status = $6,
-          notes = $7,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE customerid = $8
-      RETURNING customerid, first_name, last_name, email, phone, addres
-    `, [first_name, last_name, email, phone, address, status, id]);
-    
+          address = $5
+      WHERE customerid = $6
+      RETURNING customerid, first_name, last_name, emailaddress, contactno, address
+    `, [first_name, last_name, emailaddress, contactno, address, id]);
+
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Customer not found' });
     }
-    
+
     res.json(rows[0]);
   } catch (error) {
     console.error(`Error updating customer with id ${id}:`, error);
-    
+
     interface PgError extends Error {
       code?: string;
     }
     if (error instanceof Error && (error as PgError).code === '23505') { // Unique violation (e.g., duplicate email)
       return res.status(409).json({ message: 'Another customer with this email already exists' });
     }
-    
+
     res.status(500).json({ message: 'Internal server error' });
   }
 };
