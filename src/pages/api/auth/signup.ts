@@ -50,11 +50,16 @@ export default async function handler(
       customerId: result.rows[0].CustomerID
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Signup error:', error);
     
     // Handle unique constraint violation (duplicate email)
-    if (error.code === '23505') {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code?: string }).code === '23505'
+    ) {
       return res.status(400).json({
         success: false,
         message: 'An account with this email already exists'
