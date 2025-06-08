@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { createOrder, PaymentMethod } from "@/models/OrderModel";
+import { createPendingOrder } from "@/services/orderService";
 import { toast } from "@/components/ui/use-toast";
 import { fetchCustomerById } from "@/services/customerService";
 
@@ -194,7 +195,7 @@ useEffect(() => {
   };
 
   // Process the order
-  const handleSubmitOrder = (e) => {
+  const handleSubmitOrder = async (e) => {
     e.preventDefault();
     
     // Validate form
@@ -248,34 +249,35 @@ useEffect(() => {
             customerEmail: customer.email
           } 
         });
-      } else if (paymentMethod === "bank_transfer") {
-        // Handle bank transfer
-        clearCart();
-        toast({
-          title: "Order Placed!",
-          description: `Your order #${order.id} has been placed. Please complete the bank transfer to finalize your order.`,
-        });
-        navigate("/order-confirmation", { 
-          state: { 
-            orderId: order.id,
-            paymentMethod: "bank_transfer",
-            orderDetails: order
-          } 
-        });
       } else {
-        // For Cash on Delivery, complete the order directly
+        // For Cash on Delivery and Bank Transfer, create order in database
+        const pendingOrderData = {
+          orderId: order.id,
+          customer: {
+            ...customer,
+            customerid: customer.userId // Map userId to customerid for backend
+          },
+          shippingAddress,
+          billingAddress: sameAsBilling ? shippingAddress : billingAddress,
+          items: orderItems,
+          amount: orderTotal,
+          paymentMethod,
+          status: 'pending' as const
+        };
+
+        // Create order in database
+        const createdOrder = await createPendingOrder(pendingOrderData);
+        
         clearCart();
         toast({
           title: "Order Placed!",
-          description: `Your order #${order.id} has been placed successfully.`,
+          description: paymentMethod === "bank_transfer" 
+            ? `Your order #${order.id} has been placed. Please complete the bank transfer to finalize your order.`
+            : `Your order #${order.id} has been placed successfully.`,
         });
-        navigate("/order-confirmation", { 
-          state: { 
-            orderId: order.id,
-            paymentMethod: "cash_on_delivery",
-            orderDetails: order
-          } 
-        });
+        
+        // Navigate to payment complete page with order ID
+        navigate(`/payment-complete?order_id=${order.id}`);
       }
     } catch (error) {
       console.error("Checkout error:", error);
