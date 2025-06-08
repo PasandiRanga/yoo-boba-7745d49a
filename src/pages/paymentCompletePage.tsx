@@ -29,6 +29,9 @@ const PaymentCompletePage = () => {
   const paymentProcessedRef = useRef(false);
 
   useEffect(() => {
+    // Scroll to top when component loads
+    window.scrollTo(0, 0);
+    
     // Prevent running multiple times
     if (paymentProcessedRef.current) {
       return;
@@ -103,8 +106,16 @@ const PaymentCompletePage = () => {
         
         setOrderData(transformedOrder);
         toast({
-          title: "Payment Successful",
-          description: `Your order #${orderRef} has been confirmed and is being processed.`,
+          title: transformedOrder.paymentMethod === "cash_on_delivery" 
+            ? "Order Confirmed" 
+            : transformedOrder.paymentMethod === "bank_transfer"
+            ? "Order Placed"
+            : "Payment Successful",
+          description: transformedOrder.paymentMethod === "cash_on_delivery" 
+            ? `Your order #${orderRef} has been confirmed. You can pay upon delivery.`
+            : transformedOrder.paymentMethod === "bank_transfer"
+            ? `Your order #${orderRef} has been placed. Please complete the bank transfer.`
+            : `Your order #${orderRef} has been confirmed and is being processed.`,
         });
         
       } catch (error) {
@@ -167,10 +178,20 @@ const PaymentCompletePage = () => {
                 <Heart className="h-6 w-6 text-pink-400 absolute -top-2 -right-2 animate-pulse" />
               </div>
               <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Payment Successful! 🎉
+                {order.paymentMethod === "cash_on_delivery" 
+                  ? "Order Confirmed! 📦" 
+                  : order.paymentMethod === "bank_transfer"
+                  ? "Order Placed! 🏦"
+                  : "Payment Successful! 🎉"
+                }
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                Thank you for your order! Your boba adventure is being prepared with love 💕
+                {order.paymentMethod === "cash_on_delivery" 
+                  ? "Thank you for your order! Your boba will be prepared and you can pay upon delivery 🚚" 
+                  : order.paymentMethod === "bank_transfer"
+                  ? "Thank you for your order! Please complete the bank transfer to process your boba adventure 💰"
+                  : "Thank you for your order! Your boba adventure is being prepared with love 💕"
+                }
               </p>
               {order.isGuestOrder && (
                 <div className="inline-flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/30 rounded-full px-4 py-2 border border-blue-200 dark:border-blue-700">
