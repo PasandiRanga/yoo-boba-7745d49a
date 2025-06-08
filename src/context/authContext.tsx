@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }));
   };
 
-  // Logout function - Now triggers cart sync
+  // Logout function - Now triggers cart sync and redirects to home
   const logout = () => {
     // Dispatch logout event before clearing state
     window.dispatchEvent(new CustomEvent('auth-logout'));
@@ -71,6 +71,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('customer');
+    
+    // Redirect to home page
+    window.location.href = '/';
   };
 
   // Update user function
