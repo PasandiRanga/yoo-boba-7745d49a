@@ -381,7 +381,7 @@ const ProfilePage = () => {
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 View your order history and track current orders.<br/><br/>
               </p>
-              <button className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <button onClick={() => navigate("/my-orders")} className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg">
                 View Orders
               </button>
             </div>
