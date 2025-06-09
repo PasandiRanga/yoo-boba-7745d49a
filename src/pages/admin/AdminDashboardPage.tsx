@@ -368,7 +368,7 @@ const AdminDashboardPage: React.FC = () => {
                           <TableCell>
                             {order.customer?.firstName} {order.customer?.lastName}
                           </TableCell>
-                          <TableCell>Rs. {order.total_amount.toFixed(2)}</TableCell>
+                          <TableCell>Rs. {(Number(order.total_amount) || 0).toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(order.status)}>
                               {order.status}
@@ -404,7 +404,7 @@ const AdminDashboardPage: React.FC = () => {
                                       <h3 className="font-semibold mb-2">Order Information</h3>
                                       <p><strong>Status:</strong> {order.status}</p>
                                       <p><strong>Payment:</strong> {order.payment_method}</p>
-                                      <p><strong>Total:</strong> Rs. {order.total_amount}</p>
+                                      <p><strong>Total:</strong> Rs. {(Number(order.total_amount) || 0).toFixed(2)}</p>
                                     </div>
                                   </div>
                                   <div>
@@ -413,7 +413,7 @@ const AdminDashboardPage: React.FC = () => {
                                       {order.items.map((item, index) => (
                                         <div key={index} className="flex justify-between items-center p-2 border rounded">
                                           <span>{item.name}</span>
-                                          <span>{item.quantity}x Rs. {item.price}</span>
+                                          <span>{item.quantity}x Rs. {(Number(item.price) || 0).toFixed(2)}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -657,7 +657,7 @@ const AdminDashboardPage: React.FC = () => {
                           <TableRow key={`${product.product_id}-${variant.weight}`}>
                             <TableCell>{product.name}</TableCell>
                             <TableCell>{variant.weight}</TableCell>
-                            <TableCell>Rs. {variant.price}</TableCell>
+                            <TableCell>Rs. {(Number(variant.price) || 0).toFixed(2)}</TableCell>
                             <TableCell>
                               <Badge variant={variant.stock < 10 ? "destructive" : "default"}>
                                 {variant.stock}
