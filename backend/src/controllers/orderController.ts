@@ -146,7 +146,13 @@ export const createOrder = async (req: Request, res: Response) => {
       }
 
       // Save to Excel spreadsheet based on user type
-      await saveOrderToExcel(order, customer, shippingAddress, billingAddress, items, isGuestOrder);
+      try {
+        await saveOrderToExcel(order, customer, shippingAddress, billingAddress, items, isGuestOrder);
+        console.log(`Order ${orderId} successfully saved to Excel`);
+      } catch (excelError) {
+        console.error(`Failed to save order ${orderId} to Excel:`, excelError);
+        // Don't fail the order creation, just log the error
+      }
 
       // Commit transaction
       await client.query('COMMIT');
@@ -464,18 +470,52 @@ async function saveOrderToExcel(
   items: Item[],
   isGuestOrder: boolean
 ) {
+  console.log(`Starting Excel save for order ${order.id}, isGuestOrder: ${isGuestOrder}`);
+  
   try {
+    // Ensure the excel directory exists
+    if (!fs.existsSync(excelDir)) {
+      console.log(`Creating Excel directory: ${excelDir}`);
+      fs.mkdirSync(excelDir, { recursive: true });
+    }
+
     const workbook = new ExcelJS.Workbook();
     const fileName = isGuestOrder ? 'guest_orders.xlsx' : 'user_orders.xlsx';
     const filePath = path.join(excelDir, fileName);
+    
+    console.log(`Excel file path: ${filePath}`);
     
     let worksheet;
     
     // Check if file exists
     if (fs.existsSync(filePath)) {
+      console.log(`Reading existing Excel file: ${fileName}`);
       await workbook.xlsx.readFile(filePath);
       worksheet = workbook.getWorksheet('Orders');
+      
+      // If worksheet doesn't exist in the file, create it
+      if (!worksheet) {
+        console.log('Orders worksheet not found, creating new one');
+        worksheet = workbook.addWorksheet('Orders');
+        
+        // Add headers
+        worksheet.columns = [
+          { header: 'Order ID', key: 'orderId', width: 36 },
+          { header: 'Date', key: 'date', width: 20 },
+          { header: 'Customer Name', key: 'customerName', width: 30 },
+          { header: 'Email', key: 'email', width: 30 },
+          { header: 'Phone', key: 'phone', width: 15 },
+          { header: 'Address', key: 'address', width: 40 },
+          { header: 'City', key: 'city', width: 15 },
+          { header: 'Items', key: 'items', width: 50 },
+          { header: 'Total', key: 'total', width: 10 },
+          { header: 'Payment Method', key: 'paymentMethod', width: 15 },
+          { header: 'Payment Status', key: 'paymentStatus', width: 15 },
+          { header: 'Order Status', key: 'orderStatus', width: 15 }
+        ];
+      }
     } else {
+      console.log(`Creating new Excel file: ${fileName}`);
       worksheet = workbook.addWorksheet('Orders');
       
       // Add headers
@@ -495,30 +535,40 @@ async function saveOrderToExcel(
       ];
     }
     
+    // Prepare the order data
+    const orderData = {
+      orderId: order.id,
+      date: new Date(order.created_at).toLocaleString(),
+      customerName: `${customer.firstName} ${customer.lastName}`,
+      email: customer.email,
+      phone: customer.phone,
+      address: `${shippingAddress.street1} ${shippingAddress.street2 || ''}`.trim(),
+      city: shippingAddress.city,
+      items: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
+      total: order.total_amount,
+      paymentMethod: order.payment_method,
+      paymentStatus: order.payment_status,
+      orderStatus: order.status
+    };
+
+    console.log('Adding order data to Excel:', orderData);
+    
     // Add row if worksheet is defined
     if (worksheet) {
-      worksheet.addRow({
-        orderId: order.id,
-        date: new Date(order.created_at).toLocaleString(),
-        customerName: `${customer.firstName} ${customer.lastName}`,
-        email: customer.email,
-        phone: customer.phone,
-        address: `${shippingAddress.street1} ${shippingAddress.street2 || ''}`,
-        city: shippingAddress.city,
-        items: items.map(item => `${item.quantity}x ${item.name}`).join(', '),
-        total: order.total_amount,
-        paymentMethod: order.payment_method,
-        paymentStatus: order.payment_status,
-        orderStatus: order.status
-      });
+      const newRow = worksheet.addRow(orderData);
+      console.log(`Added row ${newRow.number} to Excel worksheet`);
+    } else {
+      throw new Error('Worksheet could not be created or found');
     }
     
     // Save the file
+    console.log(`Saving Excel file: ${filePath}`);
     await workbook.xlsx.writeFile(filePath);
+    console.log(`Excel file saved successfully: ${fileName}`);
     
   } catch (error) {
     console.error('Error saving to Excel:', error);
-    // Don't throw error to prevent breaking the main flow
+    throw error; // Re-throw so the calling function can handle it
   }
 }
 
