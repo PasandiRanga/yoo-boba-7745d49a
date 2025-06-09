@@ -8,9 +8,13 @@ import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeProvider";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { LoadingProvider } from "@/context/LoadingContext";
-import { AuthProvider } from "@/context/authContext"; // Add AuthProvider import
+import { AuthProvider } from "@/context/authContext";
+import { AdminProvider, AdminProtectedRoute } from "@/context/adminContext";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import SignUp from "@/components/signin/signUp";
+import AdminLoginPage from "@/pages/admin/AdminLoginPage";
+import AdminRegisterPage from "@/pages/admin/AdminRegisterPage";
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 
 import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
@@ -43,8 +47,9 @@ const App = () => {
           <CurrencyProvider>
             <CartProvider>
               <LoadingProvider>
-                <AuthProvider> {/* Add AuthProvider here */}
-                  <TooltipProvider>
+                <AuthProvider>
+                  <AdminProvider>
+                    <TooltipProvider>
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
@@ -62,11 +67,19 @@ const App = () => {
                         <Route path="/payment-portal" element={<PaymentPortal />} />
                         <Route path="/payment-complete" element={<PaymentCompletePage />} />
                         <Route path="/my-orders" element={<MyOrdersPage />} />
+                        <Route path="/admin/login" element={<AdminLoginPage />} />
+                        <Route path="/admin/register" element={<AdminRegisterPage />} />
+                        <Route path="/admin/dashboard" element={
+                          <AdminProtectedRoute>
+                            <AdminDashboardPage />
+                          </AdminProtectedRoute>
+                        } />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </BrowserRouter>
-                  </TooltipProvider>
-                </AuthProvider> {/* Close AuthProvider here */}
+                    </TooltipProvider>
+                  </AdminProvider>
+                </AuthProvider>
               </LoadingProvider>
             </CartProvider>
           </CurrencyProvider>
