@@ -62,7 +62,7 @@ const PaymentForm = ({
           </Label>
         </div>
 
-        <div className="flex items-center p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
+        {/* <div className="flex items-center p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
           <input
             type="radio"
             id="bank_transfer"
@@ -76,7 +76,7 @@ const PaymentForm = ({
           <Label htmlFor="bank_transfer" className="cursor-pointer flex-grow">
             Direct Bank Transfer
           </Label>
-        </div>
+        </div> */}
 
         {paymentMethod === "bank_transfer" && (
           <div className="p-4 bg-gray-50 rounded-md border border-gray-200 ml-8">
