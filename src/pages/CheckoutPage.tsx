@@ -381,7 +381,7 @@ useEffect(() => {
               </div>
 
               {/* Submit Button */}
-              {/* <Button
+              <Button
                 type="submit"
                 className="w-full bg-yooboba-gradient hover:opacity-90"
                 size="lg"
@@ -391,7 +391,7 @@ useEffect(() => {
                   paymentMethod === "payhere" ? "Proceed to Payment" : 
                   paymentMethod === "bank_transfer" ? "Place Order & Pay via Bank Transfer" :
                   "Place Order (Pay on Delivery)"}
-              </Button> */}
+              </Button>
             </form>
           </div>
 
