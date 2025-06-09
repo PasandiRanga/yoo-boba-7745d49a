@@ -260,7 +260,7 @@ const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
+  const totalRevenue = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
   const pendingOrders = orders.filter(order => order.status === 'pending').length;
   const totalProducts = products.length;
 
