@@ -12,10 +12,21 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/authContext";
 import { Order, OrderStatus } from "@/models/OrderModel";
-import { fetchOrdersByCustomer, fetchOrderById } from "@/services/orderService";
+import { fetchOrdersByCustomer, fetchOrderById, cancelOrder } from "@/services/orderService";
 import { OrderReceiptDialog } from "@/components/order/OrderReceiptDialog";
 import { generateAndDownloadReceipt } from "@/components/order/downloadOrder";
 
@@ -154,6 +165,40 @@ const MyOrdersPage = () => {
       await generateAndDownloadReceipt(order, toast);
     } finally {
       setIsDownloading(null); // Clear loading state
+    }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      await cancelOrder(orderId, "Cancelled by customer");
+      
+      // Update the local state to reflect the cancellation
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId 
+            ? { ...order, status: 'cancelled' as OrderStatus }
+            : order
+        )
+      );
+      setFilteredOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId 
+            ? { ...order, status: 'cancelled' as OrderStatus }
+            : order
+        )
+      );
+
+      toast({
+        title: "Order Cancelled",
+        description: "Your order has been successfully cancelled.",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error Cancelling Order",
+        description: "We couldn't cancel your order. Please try again later.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -363,6 +408,45 @@ const MyOrdersPage = () => {
                           </>
                         )}
                       </Button>
+                      
+                      {/* Cancel Button - Only show for orders that can be cancelled */}
+                      {order.status && !['cancelled', 'delivered', 'shipped'].includes(order.status.toLowerCase()) && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="flex-1 border-2 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
+                            >
+                              <span className="mr-2">❌</span>
+                              Cancel Order
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="sm:max-w-[425px]">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2">
+                                <span className="text-2xl">⚠️</span>
+                                Cancel Order?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-base">
+                                Are you sure you want to cancel Order #{order.id?.toString().slice(-6)}? 
+                                This action cannot be undone and your order will be permanently cancelled.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="gap-3">
+                              <AlertDialogCancel className="rounded-xl">
+                                Keep Order
+                              </AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleCancelOrder(order.id)}
+                                className="bg-red-600 hover:bg-red-700 rounded-xl"
+                              >
+                                Yes, Cancel Order
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
 
                     {/* Hover Effect Overlay */}

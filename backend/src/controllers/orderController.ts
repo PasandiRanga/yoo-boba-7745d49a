@@ -308,6 +308,53 @@ export const deleteOrder = async (req: Request, res: Response) => {
   }
 };
 
+export const cancelOrder = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const client = await pool.connect();
+
+    try {
+      // Start transaction
+      await client.query('BEGIN');
+
+      // Update order status to cancelled
+      const result = await client.query(
+        `UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = $1 RETURNING *`,
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      const updatedOrder = result.rows[0];
+
+      // Update Excel file with cancelled status
+      await updateOrderInExcel(id, 'cancelled');
+
+      // Commit transaction
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        message: 'Order cancelled successfully',
+        order: updatedOrder
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error(`Error cancelling order with id ${id}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 export const getOrdersByCustomerId = async (req: Request, res: Response) => {
   const { customerId } = req.params;
 
@@ -471,6 +518,42 @@ async function saveOrderToExcel(
     
   } catch (error) {
     console.error('Error saving to Excel:', error);
+    // Don't throw error to prevent breaking the main flow
+  }
+}
+
+// Helper function to update order status in Excel files
+async function updateOrderInExcel(orderId: string, newStatus: string) {
+  try {
+    const filePaths = [
+      path.join(excelDir, 'guest_orders.xlsx'),
+      path.join(excelDir, 'user_orders.xlsx')
+    ];
+
+    for (const filePath of filePaths) {
+      if (fs.existsSync(filePath)) {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+        const worksheet = workbook.getWorksheet('Orders');
+        
+        if (worksheet) {
+          // Find the row with the matching order ID and update status
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber > 1) { // Skip header row
+              const orderIdCell = row.getCell(1); // Order ID is in first column
+              if (orderIdCell.value === orderId) {
+                row.getCell(12).value = newStatus.toUpperCase(); // Order Status is in 12th column
+              }
+            }
+          });
+          
+          // Save the updated file
+          await workbook.xlsx.writeFile(filePath);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error updating Excel file:', error);
     // Don't throw error to prevent breaking the main flow
   }
 }
