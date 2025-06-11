@@ -67,6 +67,20 @@ const AdminDashboardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showAddProductForm, setShowAddProductForm] = useState(false);
+  const [priceUpdateDialog, setPriceUpdateDialog] = useState<{open: boolean, productId: string, weight: string, currentPrice: number}>({
+    open: false,
+    productId: '',
+    weight: '',
+    currentPrice: 0
+  });
+  const [stockUpdateDialog, setStockUpdateDialog] = useState<{open: boolean, productId: string, weight: string, currentStock: number}>({
+    open: false,
+    productId: '',
+    weight: '',
+    currentStock: 0
+  });
+  const [newPriceValue, setNewPriceValue] = useState('');
+  const [newStockValue, setNewStockValue] = useState('');
   const [newProduct, setNewProduct] = useState({
     productId: '',
     name: '',
@@ -682,44 +696,38 @@ const AdminDashboardPage: React.FC = () => {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
-                                <Input
-                                  type="number"
-                                  placeholder="New price"
-                                  className="w-24"
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      const newPrice = Number((e.target as HTMLInputElement).value);
-                                      if (newPrice > 0) {
-                                        if (confirm(`Are you sure you want to update the price to Rs. ${newPrice}?`)) {
-                                          handlePriceUpdate(product.product_id, variant.weight, newPrice);
-                                          (e.target as HTMLInputElement).value = '';
-                                        }
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setPriceUpdateDialog({
+                                    open: true,
+                                    productId: product.product_id,
+                                    weight: variant.weight,
+                                    currentPrice: variant.price
+                                  });
+                                  setNewPriceValue('');
+                                }}
+                              >
+                                Update Price
+                              </Button>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
-                                <Input
-                                  type="number"
-                                  placeholder="Add stock"
-                                  className="w-24"
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      const stockToAdd = Number((e.target as HTMLInputElement).value);
-                                      if (stockToAdd > 0) {
-                                        if (confirm(`Are you sure you want to add ${stockToAdd} items to stock? Current stock: ${variant.stock}`)) {
-                                          handleStockUpdate(product.product_id, variant.weight, stockToAdd);
-                                          (e.target as HTMLInputElement).value = '';
-                                        }
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setStockUpdateDialog({
+                                    open: true,
+                                    productId: product.product_id,
+                                    weight: variant.weight,
+                                    currentStock: variant.stock
+                                  });
+                                  setNewStockValue('');
+                                }}
+                              >
+                                Add Stock
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))
@@ -732,6 +740,114 @@ const AdminDashboardPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Price Update Dialog */}
+      <Dialog open={priceUpdateDialog.open} onOpenChange={(open) => setPriceUpdateDialog(prev => ({...prev, open}))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Price</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Current price: Rs. {priceUpdateDialog.currentPrice.toFixed(2)}
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Product: {products.find(p => p.product_id === priceUpdateDialog.productId)?.name} - {priceUpdateDialog.weight}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="newPrice">New Price (Rs.)</Label>
+              <Input
+                id="newPrice"
+                type="number"
+                placeholder="Enter new price"
+                value={newPriceValue}
+                onChange={(e) => setNewPriceValue(e.target.value)}
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setPriceUpdateDialog(prev => ({...prev, open: false}))}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  const newPrice = Number(newPriceValue);
+                  if (newPrice > 0) {
+                    handlePriceUpdate(priceUpdateDialog.productId, priceUpdateDialog.weight, newPrice);
+                    setPriceUpdateDialog(prev => ({...prev, open: false}));
+                    setNewPriceValue('');
+                  }
+                }}
+                disabled={!newPriceValue || Number(newPriceValue) <= 0}
+              >
+                Update Price
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stock Update Dialog */}
+      <Dialog open={stockUpdateDialog.open} onOpenChange={(open) => setStockUpdateDialog(prev => ({...prev, open}))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Stock</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Current stock: {stockUpdateDialog.currentStock} items
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Product: {products.find(p => p.product_id === stockUpdateDialog.productId)?.name} - {stockUpdateDialog.weight}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="newStock">Stock to Add</Label>
+              <Input
+                id="newStock"
+                type="number"
+                placeholder="Enter quantity to add"
+                value={newStockValue}
+                onChange={(e) => setNewStockValue(e.target.value)}
+                min="1"
+              />
+              {newStockValue && Number(newStockValue) > 0 && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  New total stock will be: {stockUpdateDialog.currentStock + Number(newStockValue)} items
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setStockUpdateDialog(prev => ({...prev, open: false}))}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  const stockToAdd = Number(newStockValue);
+                  if (stockToAdd > 0) {
+                    handleStockUpdate(stockUpdateDialog.productId, stockUpdateDialog.weight, stockToAdd);
+                    setStockUpdateDialog(prev => ({...prev, open: false}));
+                    setNewStockValue('');
+                  }
+                }}
+                disabled={!newStockValue || Number(newStockValue) <= 0}
+              >
+                Add Stock
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
