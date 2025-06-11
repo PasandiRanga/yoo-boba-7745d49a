@@ -204,18 +204,3 @@ export const deleteProduct = async (productId: string, token: string) => {
 
   return await response.json();
 };
-
-// Customers
-export const fetchAllCustomers = async (token: string) => {
-  const response = await fetch(`${API_URL}/admin/customers`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch customers');
-  }
-
-  return await response.json();
-};
