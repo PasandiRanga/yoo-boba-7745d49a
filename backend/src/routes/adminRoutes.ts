@@ -9,7 +9,8 @@ import {
   updateProductPrice,
   addNewProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getAllCustomers
 } from '../controllers/adminController';
 
 const router = Router();
@@ -21,6 +22,9 @@ router.post('/login', loginAdmin);
 // Order management routes
 router.get('/orders', getAllOrdersForAdmin);
 router.patch('/orders/:orderId/status', updateOrderStatusAdmin);
+
+// Customer management routes
+router.get('/customers', getAllCustomers);
 
 // Product management routes
 router.get('/products', getAllProductsWithDetails);

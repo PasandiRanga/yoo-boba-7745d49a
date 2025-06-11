@@ -376,3 +376,14 @@ export const deleteProduct = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+// Customer management
+export const getAllCustomers = async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query('SELECT customerid, fullname, emailaddress, contactno, address FROM customer');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    res.status(500).json({ error: 'Failed to fetch customers' });
+  }
+};
