@@ -7,12 +7,8 @@ import {
   updateProductStock, 
   updateProductPrice, 
   addNewProduct,
-  deleteProduct,
-  fetchAllCustomers
+  deleteProduct 
 } from '../../services/adminService';
-import { Product, ProductVariant } from '../../models/ProductModel';
-import { Customer } from '../../models/CustomerModel';
-import { Order } from '../../models/OrderModel';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
@@ -32,31 +28,58 @@ import {
   Edit, 
   Trash2, 
   Plus,
-  Eye,
-  X 
+  Eye 
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../components/ui/alert-dialog';
 
-interface AdminOrder {
+interface Customer {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
+interface Address {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
+interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface Order {
   id: string;
   total_amount: number;
   status: string;
   payment_method: string;
   payment_status: string;
   created_at: string;
-  customer: any;
-  items: any[];
-  shippingAddress: any;
-  billingAddress: any;
+  customer: Customer;
+  items: OrderItem[];
+  shippingAddress: Address;
+  billingAddress: Address;
 }
 
-interface AdminProduct {
+interface Product {
   product_id: string;
   name: string;
   description: string;
   images: string;
-  attributes: any;
+  attributes: {
+    color: string;
+    flavor: string;
+    texture: string;
+    cookingTime: string;
+    ingredients: string[];
+    storageInstructions: string;
+  };
   featured: boolean;
   variants: Array<{
     weight: string;
@@ -65,22 +88,12 @@ interface AdminProduct {
   }>;
 }
 
-interface AdminCustomer {
-  customerid: string;
-  fullname: string;
-  emailaddress: string;
-  contactno?: string;
-  address?: string;
-}
-
 const AdminDashboardPage: React.FC = () => {
   const { admin, logout, token } = useAdmin();
-  const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [products, setProducts] = useState<AdminProduct[]>([]);
-  const [customers, setCustomers] = useState<AdminCustomer[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
-  const [showAddProductForm, setShowAddProductForm] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [newProduct, setNewProduct] = useState({
     productId: '',
     name: '',
@@ -112,14 +125,12 @@ const AdminDashboardPage: React.FC = () => {
     
     try {
       setIsLoading(true);
-      const [ordersData, productsData, customersData] = await Promise.all([
+      const [ordersData, productsData] = await Promise.all([
         fetchAllOrdersForAdmin(token),
-        fetchAllProductsWithDetails(token),
-        fetchAllCustomers(token)
+        fetchAllProductsWithDetails(token)
       ]);
       setOrders(ordersData);
       setProducts(productsData);
-      setCustomers(customersData);
     } catch (error) {
       toast({
         title: "Error",
@@ -152,32 +163,24 @@ const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  const handleStockUpdate = async (productId: string, weight: string, stockToAdd: number) => {
+  const handleStockUpdate = async (productId: string, weight: string, stock: number) => {
     if (!token) return;
     
-    const product = products.find(p => p.product_id === productId);
-    const variant = product?.variants.find(v => v.weight === weight);
-    const currentStock = variant?.stock || 0;
-    const newStock = currentStock + stockToAdd;
-    
-    const confirmed = window.confirm(`Add ${stockToAdd} units to existing stock of ${currentStock}? New total will be ${newStock}.`);
-    if (!confirmed) return;
-    
     try {
-      await updateProductStock({ productId, weight, stock: newStock }, token);
+      await updateProductStock({ productId, weight, stock }, token);
       setProducts(prev => prev.map(product => 
         product.product_id === productId 
           ? {
               ...product,
               variants: product.variants.map(variant =>
-                variant.weight === weight ? { ...variant, stock: newStock } : variant
+                variant.weight === weight ? { ...variant, stock } : variant
               )
             }
           : product
       ));
       toast({
         title: "Success",
-        description: `Stock updated successfully. Added ${stockToAdd} units.`,
+        description: "Stock updated successfully",
       });
     } catch (error) {
       toast({
@@ -190,9 +193,6 @@ const AdminDashboardPage: React.FC = () => {
 
   const handlePriceUpdate = async (productId: string, weight: string, price: number) => {
     if (!token) return;
-    
-    const confirmed = window.confirm(`Update price for ${productId} (${weight}) to Rs. ${price.toFixed(2)}?`);
-    if (!confirmed) return;
     
     try {
       await updateProductPrice({ productId, weight, price }, token);
@@ -245,7 +245,6 @@ const AdminDashboardPage: React.FC = () => {
         ]
       });
       await loadData();
-      setShowAddProductForm(false);
       toast({
         title: "Success",
         description: "Product added successfully",
@@ -364,220 +363,12 @@ const AdminDashboardPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="products" className="space-y-4">
+        <Tabs defaultValue="orders" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="customers">Customers</TabsTrigger>
           </TabsList>
-
-          {/* Products Tab */}
-          <TabsContent value="products">
-            <div className="space-y-6">
-              {/* Products List */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Products List</CardTitle>
-                  <Button onClick={() => setShowAddProductForm(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Product ID</TableHead>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Featured</TableHead>
-                          <TableHead>Variants</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products.map((product) => (
-                          <TableRow key={product.product_id}>
-                            <TableCell className="font-mono">{product.product_id}</TableCell>
-                            <TableCell>{product.name}</TableCell>
-                            <TableCell>
-                              <Badge variant={product.featured ? "default" : "secondary"}>
-                                {product.featured ? "Yes" : "No"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{product.variants.length} variants</TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button variant="outline" size="sm">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Delete Product</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to delete this product? This action cannot be undone.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleDeleteProduct(product.product_id)}>
-                                        Delete
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Add New Product Form */}
-              {showAddProductForm && (
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Add New Product</CardTitle>
-                    <Button variant="outline" onClick={() => setShowAddProductForm(false)}>
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="productId">Product ID</Label>
-                        <Input
-                          id="productId"
-                          value={newProduct.productId}
-                          onChange={(e) => setNewProduct(prev => ({ ...prev, productId: e.target.value }))}
-                          placeholder="P006"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="productName">Product Name</Label>
-                        <Input
-                          id="productName"
-                          value={newProduct.name}
-                          onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Product Name"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="productDescription">Description</Label>
-                      <Textarea
-                        id="productDescription"
-                        value={newProduct.description}
-                        onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Product description"
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="productImages">Image URL</Label>
-                      <Input
-                        id="productImages"
-                        value={newProduct.images}
-                        onChange={(e) => setNewProduct(prev => ({ ...prev, images: e.target.value }))}
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="color">Color</Label>
-                        <Input
-                          id="color"
-                          value={newProduct.attributes.color}
-                          onChange={(e) => setNewProduct(prev => ({
-                            ...prev,
-                            attributes: { ...prev.attributes, color: e.target.value }
-                          }))}
-                          placeholder="Black"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="flavor">Flavor</Label>
-                        <Input
-                          id="flavor"
-                          value={newProduct.attributes.flavor}
-                          onChange={(e) => setNewProduct(prev => ({
-                            ...prev,
-                            attributes: { ...prev.attributes, flavor: e.target.value }
-                          }))}
-                          placeholder="Vanilla"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cookingTime">Cooking Time</Label>
-                        <Input
-                          id="cookingTime"
-                          value={newProduct.attributes.cookingTime}
-                          onChange={(e) => setNewProduct(prev => ({
-                            ...prev,
-                            attributes: { ...prev.attributes, cookingTime: e.target.value }
-                          }))}
-                          placeholder="25 minutes"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <Label className="text-lg font-semibold">Product Variants</Label>
-                      <div className="grid grid-cols-3 gap-4">
-                        {newProduct.variants.map((variant, index) => (
-                          <div key={variant.weight} className="space-y-2 p-4 border rounded">
-                            <Label className="font-medium">{variant.weight}</Label>
-                            <div>
-                              <Label htmlFor={`price-${index}`} className="text-sm">Price (Rs.)</Label>
-                              <Input
-                                id={`price-${index}`}
-                                type="number"
-                                placeholder="Price"
-                                value={variant.price}
-                                onChange={(e) => {
-                                  const newVariants = [...newProduct.variants];
-                                  newVariants[index].price = Number(e.target.value);
-                                  setNewProduct(prev => ({ ...prev, variants: newVariants }));
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor={`stock-${index}`} className="text-sm">Stock Quantity</Label>
-                              <Input
-                                id={`stock-${index}`}
-                                type="number"
-                                placeholder="Stock"
-                                value={variant.stock}
-                                onChange={(e) => {
-                                  const newVariants = [...newProduct.variants];
-                                  newVariants[index].stock = Number(e.target.value);
-                                  setNewProduct(prev => ({ ...prev, variants: newVariants }));
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <Button onClick={handleAddProduct} className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Product
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
 
           {/* Orders Tab */}
           <TabsContent value="orders">
@@ -657,23 +448,21 @@ const AdminDashboardPage: React.FC = () => {
                                   </div>
                                 </DialogContent>
                               </Dialog>
-                              {order.status !== 'cancelled' && (
-                                <Select
-                                  value={order.status}
-                                  onValueChange={(status) => handleOrderStatusUpdate(order.id, status)}
-                                >
-                                  <SelectTrigger className="w-32">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="processing">Processing</SelectItem>
-                                    <SelectItem value="shipped">Shipped</SelectItem>
-                                    <SelectItem value="delivered">Delivered</SelectItem>
-                                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )}
+                              <Select
+                                value={order.status}
+                                onValueChange={(status) => handleOrderStatusUpdate(order.id, status)}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="processing">Processing</SelectItem>
+                                  <SelectItem value="shipped">Shipped</SelectItem>
+                                  <SelectItem value="delivered">Delivered</SelectItem>
+                                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -685,6 +474,193 @@ const AdminDashboardPage: React.FC = () => {
             </Card>
           </TabsContent>
 
+          {/* Products Tab */}
+          <TabsContent value="products">
+            <div className="space-y-6">
+              {/* Add New Product */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add New Product</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="productId">Product ID</Label>
+                      <Input
+                        id="productId"
+                        value={newProduct.productId}
+                        onChange={(e) => setNewProduct(prev => ({ ...prev, productId: e.target.value }))}
+                        placeholder="P006"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="productName">Product Name</Label>
+                      <Input
+                        id="productName"
+                        value={newProduct.name}
+                        onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Product Name"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="productDescription">Description</Label>
+                    <Textarea
+                      id="productDescription"
+                      value={newProduct.description}
+                      onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Product description"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="productImages">Image URL</Label>
+                    <Input
+                      id="productImages"
+                      value={newProduct.images}
+                      onChange={(e) => setNewProduct(prev => ({ ...prev, images: e.target.value }))}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="color">Color</Label>
+                      <Input
+                        id="color"
+                        value={newProduct.attributes.color}
+                        onChange={(e) => setNewProduct(prev => ({
+                          ...prev,
+                          attributes: { ...prev.attributes, color: e.target.value }
+                        }))}
+                        placeholder="Black"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="flavor">Flavor</Label>
+                      <Input
+                        id="flavor"
+                        value={newProduct.attributes.flavor}
+                        onChange={(e) => setNewProduct(prev => ({
+                          ...prev,
+                          attributes: { ...prev.attributes, flavor: e.target.value }
+                        }))}
+                        placeholder="Vanilla"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cookingTime">Cooking Time</Label>
+                      <Input
+                        id="cookingTime"
+                        value={newProduct.attributes.cookingTime}
+                        onChange={(e) => setNewProduct(prev => ({
+                          ...prev,
+                          attributes: { ...prev.attributes, cookingTime: e.target.value }
+                        }))}
+                        placeholder="25 minutes"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    {newProduct.variants.map((variant, index) => (
+                      <div key={variant.weight} className="space-y-2">
+                        <Label>{variant.weight}</Label>
+                        <Label>Price</Label>
+                        <Input
+                          type="number"
+                          placeholder="Price"
+                          value={variant.price}
+                          onChange={(e) => {
+                            const newVariants = [...newProduct.variants];
+                            newVariants[index].price = Number(e.target.value);
+                            setNewProduct(prev => ({ ...prev, variants: newVariants }));
+                          }}
+                        />
+                        <Label>Stock</Label>
+                        <Input
+                          type="number"
+                          placeholder="Stock"
+                          value={variant.stock}
+                          onChange={(e) => {
+                            const newVariants = [...newProduct.variants];
+                            newVariants[index].stock = Number(e.target.value);
+                            setNewProduct(prev => ({ ...prev, variants: newVariants }));
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <Button onClick={handleAddProduct}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Products List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Products List</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product ID</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Featured</TableHead>
+                          <TableHead>Variants</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {products.map((product) => (
+                          <TableRow key={product.product_id}>
+                            <TableCell className="font-mono">{product.product_id}</TableCell>
+                            <TableCell>{product.name}</TableCell>
+                            <TableCell>
+                              <Badge variant={product.featured ? "default" : "secondary"}>
+                                {product.featured ? "Yes" : "No"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{product.variants.length} variants</TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Product</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete this product? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteProduct(product.product_id)}>
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           {/* Inventory Tab */}
           <TabsContent value="inventory">
@@ -739,13 +715,13 @@ const AdminDashboardPage: React.FC = () => {
                               <div className="flex gap-2">
                                 <Input
                                   type="number"
-                                  placeholder="Add stock"
+                                  placeholder="New stock"
                                   className="w-24"
                                   onKeyPress={(e) => {
                                     if (e.key === 'Enter') {
-                                      const stockToAdd = Number((e.target as HTMLInputElement).value);
-                                      if (stockToAdd > 0) {
-                                        handleStockUpdate(product.product_id, variant.weight, stockToAdd);
+                                      const newStock = Number((e.target as HTMLInputElement).value);
+                                      if (newStock >= 0) {
+                                        handleStockUpdate(product.product_id, variant.weight, newStock);
                                         (e.target as HTMLInputElement).value = '';
                                       }
                                     }
@@ -756,41 +732,6 @@ const AdminDashboardPage: React.FC = () => {
                           </TableRow>
                         ))
                       )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Customers Tab */}
-          <TabsContent value="customers">
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Customer ID</TableHead>
-                        <TableHead>Full Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Address</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customers.map((customer) => (
-                        <TableRow key={customer.customerid}>
-                          <TableCell className="font-mono">{customer.customerid}</TableCell>
-                          <TableCell>{customer.fullname}</TableCell>
-                          <TableCell>{customer.emailaddress}</TableCell>
-                          <TableCell>{customer.contactno || 'N/A'}</TableCell>
-                          <TableCell>{customer.address || 'N/A'}</TableCell>
-                        </TableRow>
-                      ))}
                     </TableBody>
                   </Table>
                 </div>
