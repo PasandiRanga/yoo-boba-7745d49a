@@ -218,8 +218,7 @@ export const updateProductStock = async (req: Request, res: Response) => {
 
   try {
     const result = await pool.query(
-      'UPDATE product_details SET stock = stock + $1 WHERE product_id = $2 AND weight = $3 RETURNING *',
-      [stock, productId, weight]
+    'UPDATE product_details SET stock = stock + $1 WHERE product_id = $2 AND weight = $3 RETURNING *',      [stock, productId, weight]
     );
 
     if (result.rows.length === 0) {
