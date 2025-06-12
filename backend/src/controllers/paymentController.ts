@@ -12,8 +12,8 @@ export class PaymentController {
       const { orderId, paymentId, status } = req.body;
       
       // Get secret key from environment
-      const merchantId = process.env.PAYHERE_MERCHANT_ID;
-      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
+      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
+      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
 
       console.log('Merchant ID:', merchantId);
       console.log('Secret Key:', secretKey);
@@ -125,7 +125,7 @@ export class PaymentController {
       } = req.body;
 
       // Get secret key from environment
-      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
+      const secretKey = "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
       if (!secretKey) {
         throw new Error('PayHere secret key not configured');
       }
@@ -252,8 +252,8 @@ export class PaymentController {
       const shippingAddress = order.shipping_address;
       
       // Get PayHere credentials from environment
-      const merchantId = process.env.PAYHERE_MERCHANT_ID;
-      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
+      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
+      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
       
       if (!merchantId || !secretKey) {
         return res.status(500).json({ message: 'Payment gateway configuration error' });
@@ -270,7 +270,7 @@ export class PaymentController {
         merchant_id: merchantId,
         return_url: `http://localhost:8081/payment-complete?order_id=${orderId}`,
         cancel_url: `http://localhost:8081/checkout`,
-        notify_url: `https://f472-2402-d000-a400-4cad-a4f8-69d1-7d5a-c3d1.ngrok-free.app/api/payments/notify`,
+        notify_url: `https://e8b1-2402-d000-a400-267d-a99d-3634-3b3c-bd19.ngrok-free.app/api/payments/notify`,
         
         order_id: orderId,
         items: (order.items as OrderItem[]).map((item) => item.name).join(', '),

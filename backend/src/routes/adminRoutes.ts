@@ -11,13 +11,12 @@ import {
   updateProduct,
   deleteProduct
 } from '../controllers/adminController';
-import { authRateLimit } from '../middleware/security';
 
 const router = Router();
 
-// Authentication routes with rate limiting
-router.post('/register', authRateLimit, registerAdmin);
-router.post('/login', authRateLimit, loginAdmin);
+// Authentication routes
+router.post('/register', registerAdmin);
+router.post('/login', loginAdmin);
 
 // Order management routes
 router.get('/orders', getAllOrdersForAdmin);
