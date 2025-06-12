@@ -1,36 +1,42 @@
-import jwt from 'jsonwebtoken';
-
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 
-// Extend Express Request interface to include 'user'
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any;
-    }
+// Define the expected shape of your JWT payload
+interface UserPayload extends JwtPayload {
+  id: string;
+  email: string;
+  // Add more fields if your JWT includes them
+}
+
+// Module augmentation to add 'user' to Express's Request type
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: UserPayload;
   }
 }
 
-const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
-      message: 'Access token required'
+      message: 'Access token required',
     });
+    return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
-    if (err) {
-      return res.status(403).json({
+  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, decoded) => {
+    if (err || typeof decoded !== 'object' || !decoded) {
+      res.status(403).json({
         success: false,
-        message: 'Invalid or expired token'
+        message: 'Invalid or expired token',
       });
+      return;
     }
-    
-    req.user = user;
+
+    req.user = decoded as UserPayload;
     next();
   });
 };
