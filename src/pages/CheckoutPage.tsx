@@ -11,16 +11,13 @@ import { createPendingOrder } from "@/services/orderService";
 import { toast } from "@/components/ui/use-toast";
 import { fetchCustomerById } from "@/services/customerService";
 
-// Import styled components
-import StyledInput from "@/components/ui/styledInput";
-import StyledSelect from "@/components/ui/styledSelect";
-import StyledTextarea from "@/components/ui/styledTextArea";
-import { SelectItem } from "@/components/ui/select";
-
 // Import our components
+import CustomerInfoForm from "@/components/checkout/CustomerInfoForm";
+import AddressForm from "@/components/checkout/AddressForm";
 import PaymentForm from "@/components/checkout/PaymentForm";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import EmptyCart from "@/components/checkout/EmptyCart";
+import BillingAddressForm from "@/components/checkout/BillingAddressForm";
 
 const CheckoutPage = () => {
   // Get selected items instead of all items
@@ -64,59 +61,61 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere"); // Default to PayHere
 
   // Effect to load user data from session storage
-  useEffect(() => {
-    const loadUserData = async () => {
-      const storedUser = sessionStorage.getItem("customer");
-      console.log("Stored user data:", storedUser);
-      
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          console.log("Stored user id", userData.customerid);
+  // Effect to load user data from session storage
+// Effect to load user data from session storage
+useEffect(() => {
+  const loadUserData = async () => {
+    const storedUser = sessionStorage.getItem("customer");
+    console.log("Stored user data:", storedUser);
+    
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        console.log("Stored user id", userData.customerid);
 
-          // Properly await the async function
-          const fetchedUserData = await fetchCustomerById(userData.customerid);
-          console.log("Fetched user data:", fetchedUserData);
+        // Properly await the async function
+        const fetchedUserData = await fetchCustomerById(userData.customerid);
+        console.log("Fetched user data:", fetchedUserData);
+        
+        // Map fetched user data to Order model Customer interface
+        setCustomer(prev => ({
+          ...prev,
+          firstName: fetchedUserData.first_name || "",
+          lastName: fetchedUserData.last_name || "",
+          email: fetchedUserData.emailaddress || "",
+          phone: fetchedUserData.contactno || "",
+          company: fetchedUserData.company || "",
+          userId: fetchedUserData.customerid || undefined,
+        }));
+
+        // Pre-fill address if available in user data
+        // Address is a string in the fetched data
+        if (fetchedUserData.address && typeof fetchedUserData.address === 'string') {
+          const userAddress = {
+            street1: fetchedUserData.address,
+            street2: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "Sri Lanka",
+          };
           
-          // Map fetched user data to Order model Customer interface
-          setCustomer(prev => ({
-            ...prev,
-            firstName: fetchedUserData.first_name || "",
-            lastName: fetchedUserData.last_name || "",
-            email: fetchedUserData.emailaddress || "",
-            phone: fetchedUserData.contactno || "",
-            company: fetchedUserData.company || "",
-            userId: fetchedUserData.customerid || undefined,
-          }));
-
-          // Pre-fill address if available in user data
-          // Address is a string in the fetched data
-          if (fetchedUserData.address && typeof fetchedUserData.address === 'string') {
-            const userAddress = {
-              street1: fetchedUserData.address,
-              street2: "",
-              city: "",
-              state: "",
-              zipCode: "",
-              country: "Sri Lanka",
-            };
-            
-            setShippingAddress(userAddress);
-            if (sameAsBilling) {
-              setBillingAddress(userAddress);
-            }
+          setShippingAddress(userAddress);
+          if (sameAsBilling) {
+            setBillingAddress(userAddress);
           }
-        } catch (error) {
-          console.error("Error parsing user data from session or fetching from API:", error);
-          // Clear invalid session data
-          sessionStorage.removeItem("customer");
         }
+      } catch (error) {
+        console.error("Error parsing user data from session or fetching from API:", error);
+        // Clear invalid session data
+        sessionStorage.removeItem("customer");
       }
-    };
+    }
+  };
 
-    // Call the async function
-    loadUserData();
-  }, [sameAsBilling]);
+  // Call the async function
+  loadUserData();
+}, [sameAsBilling]);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -137,19 +136,6 @@ const CheckoutPage = () => {
   const handleBillingChange = (e) => {
     const { name, value } = e.target;
     setBillingAddress((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Handle country change for shipping address
-  const handleShippingCountryChange = (value: string) => {
-    setShippingAddress((prev) => ({ ...prev, country: value }));
-    if (sameAsBilling) {
-      setBillingAddress((prev) => ({ ...prev, country: value }));
-    }
-  };
-
-  // Handle country change for billing address
-  const handleBillingCountryChange = (value: string) => {
-    setBillingAddress((prev) => ({ ...prev, country: value }));
   };
 
   // Validate the form
@@ -345,82 +331,10 @@ const CheckoutPage = () => {
                     </span>
                   )}
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      First Name *
-                    </label>
-                    <StyledInput
-                      type="text"
-                      name="firstName"
-                      id="firstName"
-                      placeholder="Enter your first name"
-                      value={customer.firstName}
-                      onChange={handleCustomerChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Last Name *
-                    </label>
-                    <StyledInput
-                      type="text"
-                      name="lastName"
-                      id="lastName"
-                      placeholder="Enter your last name"
-                      value={customer.lastName}
-                      onChange={handleCustomerChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email Address *
-                    </label>
-                    <StyledInput
-                      type="email"
-                      name="email"
-                      id="email"
-                      placeholder="Enter your email address"
-                      value={customer.email}
-                      onChange={handleCustomerChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Phone Number *
-                    </label>
-                    <StyledInput
-                      type="tel"
-                      name="phone"
-                      id="phone"
-                      placeholder="Enter your phone number"
-                      value={customer.phone}
-                      onChange={handleCustomerChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <label htmlFor="company" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Company (Optional)
-                    </label>
-                    <StyledInput
-                      type="text"
-                      name="company"
-                      id="company"
-                      placeholder="Enter company name"
-                      value={customer.company}
-                      onChange={handleCustomerChange}
-                    />
-                  </div>
-                </div>
+                <CustomerInfoForm 
+                  customer={customer} 
+                  handleCustomerChange={handleCustomerChange} 
+                />
               </div>
 
               {/* Shipping Address */}
@@ -433,227 +347,21 @@ const CheckoutPage = () => {
                     </span>
                   )}
                 </div>
-                
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label htmlFor="shipping_street1" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Street Address *
-                    </label>
-                    <StyledInput
-                      type="text"
-                      name="street1"
-                      id="shipping_street1"
-                      placeholder="Enter street address"
-                      value={shippingAddress.street1}
-                      onChange={handleShippingChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="shipping_street2" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Apartment, suite, etc. (Optional)
-                    </label>
-                    <StyledInput
-                      type="text"
-                      name="street2"
-                      id="shipping_street2"
-                      placeholder="Apartment, suite, etc."
-                      value={shippingAddress.street2}
-                      onChange={handleShippingChange}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="shipping_city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        City *
-                      </label>
-                      <StyledInput
-                        type="text"
-                        name="city"
-                        id="shipping_city"
-                        placeholder="Enter city"
-                        value={shippingAddress.city}
-                        onChange={handleShippingChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="shipping_state" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        State/Province *
-                      </label>
-                      <StyledInput
-                        type="text"
-                        name="state"
-                        id="shipping_state"
-                        placeholder="Enter state/province"
-                        value={shippingAddress.state}
-                        onChange={handleShippingChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="shipping_zipCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        ZIP/Postal Code *
-                      </label>
-                      <StyledInput
-                        type="text"
-                        name="zipCode"
-                        id="shipping_zipCode"
-                        placeholder="Enter ZIP/postal code"
-                        value={shippingAddress.zipCode}
-                        onChange={handleShippingChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="shipping_country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Country *
-                      </label>
-                      <StyledSelect
-                        name="country"
-                        id="shipping_country"
-                        placeholder="Select country"
-                        value={shippingAddress.country}
-                        onValueChange={handleShippingCountryChange}
-                        required
-                      >
-                        <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
-                        <SelectItem value="India">India</SelectItem>
-                        <SelectItem value="Maldives">Maldives</SelectItem>
-                        <SelectItem value="Bangladesh">Bangladesh</SelectItem>
-                        <SelectItem value="Pakistan">Pakistan</SelectItem>
-                      </StyledSelect>
-                    </div>
-                  </div>
-                </div>
+                <AddressForm 
+                  title=""
+                  address={shippingAddress} 
+                  handleAddressChange={handleShippingChange} 
+                />
               </div>
 
               {/* Billing Address */}
               <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold mb-4">Billing Address</h2>
-                
-                <div className="mb-4">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sameAsBilling}
-                      onChange={(e) => setSameAsBilling(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Same as shipping address
-                    </span>
-                  </label>
-                </div>
-                
-                {!sameAsBilling && (
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label htmlFor="billing_street1" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Street Address *
-                      </label>
-                      <StyledInput
-                        type="text"
-                        name="street1"
-                        id="billing_street1"
-                        placeholder="Enter street address"
-                        value={billingAddress.street1}
-                        onChange={handleBillingChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="billing_street2" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Apartment, suite, etc. (Optional)
-                      </label>
-                      <StyledInput
-                        type="text"
-                        name="street2"
-                        id="billing_street2"
-                        placeholder="Apartment, suite, etc."
-                        value={billingAddress.street2}
-                        onChange={handleBillingChange}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="billing_city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          City *
-                        </label>
-                        <StyledInput
-                          type="text"
-                          name="city"
-                          id="billing_city"
-                          placeholder="Enter city"
-                          value={billingAddress.city}
-                          onChange={handleBillingChange}
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="billing_state" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          State/Province *
-                        </label>
-                        <StyledInput
-                          type="text"
-                          name="state"
-                          id="billing_state"
-                          placeholder="Enter state/province"
-                          value={billingAddress.state}
-                          onChange={handleBillingChange}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="billing_zipCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          ZIP/Postal Code *
-                        </label>
-                        <StyledInput
-                          type="text"
-                          name="zipCode"
-                          id="billing_zipCode"
-                          placeholder="Enter ZIP/postal code"
-                          value={billingAddress.zipCode}
-                          onChange={handleBillingChange}
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="billing_country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Country *
-                        </label>
-                        <StyledSelect
-                          name="country"
-                          id="billing_country"
-                          placeholder="Select country"
-                          value={billingAddress.country}
-                          onValueChange={handleBillingCountryChange}
-                          required
-                        >
-                          <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
-                          <SelectItem value="India">India</SelectItem>
-                          <SelectItem value="Maldives">Maldives</SelectItem>
-                          <SelectItem value="Bangladesh">Bangladesh</SelectItem>
-                          <SelectItem value="Pakistan">Pakistan</SelectItem>
-                        </StyledSelect>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <BillingAddressForm 
+                  sameAsBilling={sameAsBilling} 
+                  setSameAsBilling={setSameAsBilling}
+                  billingAddress={billingAddress}
+                  handleBillingChange={handleBillingChange}
+                />
               </div>
 
               {/* Payment Information */}
