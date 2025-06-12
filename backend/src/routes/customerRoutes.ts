@@ -8,10 +8,11 @@ import {
   getCustomerOrders,
   loginCustomer
 } from '../controllers/customerController';
+import { authRateLimit } from '../middleware/security';
 
 const router = Router();
-//Login 
-router.post('/login', loginCustomer);
+//Login with rate limiting
+router.post('/login', authRateLimit, loginCustomer);
 
 // GET routes
 router.get('/', getAllCustomers);

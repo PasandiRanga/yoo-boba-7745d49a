@@ -12,8 +12,8 @@ export class PaymentController {
       const { orderId, paymentId, status } = req.body;
       
       // Get secret key from environment
-      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
-      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
+      const merchantId = process.env.PAYHERE_MERCHANT_ID;
+      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
 
       console.log('Merchant ID:', merchantId);
       console.log('Secret Key:', secretKey);
@@ -125,7 +125,7 @@ export class PaymentController {
       } = req.body;
 
       // Get secret key from environment
-      const secretKey = "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
+      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
       if (!secretKey) {
         throw new Error('PayHere secret key not configured');
       }
@@ -252,8 +252,8 @@ export class PaymentController {
       const shippingAddress = order.shipping_address;
       
       // Get PayHere credentials from environment
-      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
-      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
+      const merchantId = process.env.PAYHERE_MERCHANT_ID;
+      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
       
       if (!merchantId || !secretKey) {
         return res.status(500).json({ message: 'Payment gateway configuration error' });
