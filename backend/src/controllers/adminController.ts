@@ -212,13 +212,13 @@ export const getAllProductsWithDetails = async (req: Request, res: Response) => 
   }
 };
 
-// Update Product Stock (Additive)
+// Update Product Stock
 export const updateProductStock = async (req: Request, res: Response) => {
   const { productId, weight, stock } = req.body;
 
   try {
     const result = await pool.query(
-      'UPDATE product_details SET stock = stock + $1 WHERE product_id = $2 AND weight = $3 RETURNING *',
+      'UPDATE product_details SET stock = $1 WHERE product_id = $2 AND weight = $3 RETURNING *',
       [stock, productId, weight]
     );
 
@@ -374,5 +374,16 @@ export const deleteProduct = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting product:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Customer management
+export const getAllCustomers = async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query('SELECT customerid, fullname, emailaddress, contactno, address FROM customer');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    res.status(500).json({ error: 'Failed to fetch customers' });
   }
 };
