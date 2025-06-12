@@ -66,10 +66,6 @@ const AdminDashboardPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('');
-  const [cityFilter, setCityFilter] = useState<string>('');
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [priceUpdateDialog, setPriceUpdateDialog] = useState<{open: boolean, productId: string, weight: string, currentPrice: number}>({
     open: false,
@@ -110,31 +106,6 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [token]);
-
-  useEffect(() => {
-    let filtered = orders;
-
-    // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => order.status.toLowerCase() === statusFilter.toLowerCase());
-    }
-
-    // Filter by date
-    if (dateFilter) {
-      filtered = filtered.filter(order => 
-        new Date(order.created_at).toISOString().split('T')[0] === dateFilter
-      );
-    }
-
-    // Filter by city
-    if (cityFilter) {
-      filtered = filtered.filter(order => 
-        order.shippingAddress?.city?.toLowerCase().includes(cityFilter.toLowerCase())
-      );
-    }
-
-    setFilteredOrders(filtered);
-  }, [orders, statusFilter, dateFilter, cityFilter]);
 
   const loadData = async () => {
     if (!token) return;
@@ -394,43 +365,6 @@ const AdminDashboardPage: React.FC = () => {
                 <CardTitle>Order Management</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Filter Section */}
-                <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="statusFilter">Filter by Status</Label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="dateFilter">Filter by Date</Label>
-                    <Input
-                      id="dateFilter"
-                      type="date"
-                      value={dateFilter}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cityFilter">Filter by City</Label>
-                    <Input
-                      id="cityFilter"
-                      placeholder="Enter city name"
-                      value={cityFilter}
-                      onChange={(e) => setCityFilter(e.target.value)}
-                    />
-                  </div>
-                </div>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -444,7 +378,7 @@ const AdminDashboardPage: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredOrders.map((order) => (
+                      {orders.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-mono text-sm">{order.id}</TableCell>
                           <TableCell>
@@ -471,59 +405,33 @@ const AdminDashboardPage: React.FC = () => {
                                     <Eye className="h-4 w-4" />
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                                <DialogContent className="max-w-4xl">
                                   <DialogHeader>
                                     <DialogTitle>Order Details - {order.id}</DialogTitle>
                                   </DialogHeader>
-                                  <div className="space-y-6">
-                                    <div className="grid grid-cols-2 gap-6">
-                                      <div>
-                                        <h3 className="font-semibold mb-2">Customer Information</h3>
-                                        <p><strong>Name:</strong> {order.customer?.firstName} {order.customer?.lastName}</p>
-                                        <p><strong>Email:</strong> {order.customer?.email}</p>
-                                        <p><strong>Phone:</strong> {order.customer?.phone}</p>
-                                      </div>
-                                      <div>
-                                        <h3 className="font-semibold mb-2">Order Information</h3>
-                                        <p><strong>Status:</strong> {order.status}</p>
-                                        <p><strong>Payment:</strong> {order.payment_method}</p>
-                                        <p><strong>Total:</strong> Rs. {(Number(order.total_amount) || 0).toFixed(2)}</p>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-6">
-                                      <div>
-                                        <h3 className="font-semibold mb-2">Shipping Address</h3>
-                                        <div className="text-sm">
-                                          <p>{order.shippingAddress?.street1}</p>
-                                          {order.shippingAddress?.street2 && <p>{order.shippingAddress?.street2}</p>}
-                                          <p>{order.shippingAddress?.city}, {order.shippingAddress?.state}</p>
-                                          <p>{order.shippingAddress?.zipCode}</p>
-                                          <p>{order.shippingAddress?.country}</p>
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <h3 className="font-semibold mb-2">Billing Address</h3>
-                                        <div className="text-sm">
-                                          <p>{order.billingAddress?.street1}</p>
-                                          {order.billingAddress?.street2 && <p>{order.billingAddress?.street2}</p>}
-                                          <p>{order.billingAddress?.city}, {order.billingAddress?.state}</p>
-                                          <p>{order.billingAddress?.zipCode}</p>
-                                          <p>{order.billingAddress?.country}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-
+                                  <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                      <h3 className="font-semibold mb-2">Items</h3>
-                                      <div className="space-y-2">
-                                        {order.items.map((item, index) => (
-                                          <div key={index} className="flex justify-between items-center p-2 border rounded">
-                                            <span>{item.name}</span>
-                                            <span>{item.quantity}x Rs. {(Number(item.price) || 0).toFixed(2)}</span>
-                                          </div>
-                                        ))}
-                                      </div>
+                                      <h3 className="font-semibold mb-2">Customer Information</h3>
+                                      <p><strong>Name:</strong> {order.customer?.firstName} {order.customer?.lastName}</p>
+                                      <p><strong>Email:</strong> {order.customer?.email}</p>
+                                      <p><strong>Phone:</strong> {order.customer?.phone}</p>
+                                    </div>
+                                    <div>
+                                      <h3 className="font-semibold mb-2">Order Information</h3>
+                                      <p><strong>Status:</strong> {order.status}</p>
+                                      <p><strong>Payment:</strong> {order.payment_method}</p>
+                                      <p><strong>Total:</strong> Rs. {(Number(order.total_amount) || 0).toFixed(2)}</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold mb-2">Items</h3>
+                                    <div className="space-y-2">
+                                      {order.items.map((item, index) => (
+                                        <div key={index} className="flex justify-between items-center p-2 border rounded">
+                                          <span>{item.name}</span>
+                                          <span>{item.quantity}x Rs. {(Number(item.price) || 0).toFixed(2)}</span>
+                                        </div>
+                                      ))}
                                     </div>
                                   </div>
                                 </DialogContent>
