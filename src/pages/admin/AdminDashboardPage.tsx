@@ -33,27 +33,6 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../components/ui/alert-dialog';
 
-interface Customer {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-}
-
-interface Address {
-  street?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-}
-
-interface OrderItem {
-  name: string;
-  quantity: number;
-  price: number;
-}
-
 interface Order {
   id: string;
   total_amount: number;
@@ -61,10 +40,10 @@ interface Order {
   payment_method: string;
   payment_status: string;
   created_at: string;
-  customer: Customer;
-  items: OrderItem[];
-  shippingAddress: Address;
-  billingAddress: Address;
+  customer: any;
+  items: any[];
+  shippingAddress: any;
+  billingAddress: any;
 }
 
 interface Product {
@@ -72,14 +51,7 @@ interface Product {
   name: string;
   description: string;
   images: string;
-  attributes: {
-    color: string;
-    flavor: string;
-    texture: string;
-    cookingTime: string;
-    ingredients: string[];
-    storageInstructions: string;
-  };
+  attributes: any;
   featured: boolean;
   variants: Array<{
     weight: string;
@@ -94,6 +66,25 @@ const AdminDashboardPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('');
+  const [cityFilter, setCityFilter] = useState<string>('');
+  const [showAddProductForm, setShowAddProductForm] = useState(false);
+  const [priceUpdateDialog, setPriceUpdateDialog] = useState<{open: boolean, productId: string, weight: string, currentPrice: number}>({
+    open: false,
+    productId: '',
+    weight: '',
+    currentPrice: 0
+  });
+  const [stockUpdateDialog, setStockUpdateDialog] = useState<{open: boolean, productId: string, weight: string, currentStock: number}>({
+    open: false,
+    productId: '',
+    weight: '',
+    currentStock: 0
+  });
+  const [newPriceValue, setNewPriceValue] = useState('');
+  const [newStockValue, setNewStockValue] = useState('');
   const [newProduct, setNewProduct] = useState({
     productId: '',
     name: '',
@@ -119,6 +110,31 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [token]);
+
+  useEffect(() => {
+    let filtered = orders;
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status.toLowerCase() === statusFilter.toLowerCase());
+    }
+
+    // Filter by date
+    if (dateFilter) {
+      filtered = filtered.filter(order => 
+        new Date(order.created_at).toISOString().split('T')[0] === dateFilter
+      );
+    }
+
+    // Filter by city
+    if (cityFilter) {
+      filtered = filtered.filter(order => 
+        order.shippingAddress?.city?.toLowerCase().includes(cityFilter.toLowerCase())
+      );
+    }
+
+    setFilteredOrders(filtered);
+  }, [orders, statusFilter, dateFilter, cityFilter]);
 
   const loadData = async () => {
     if (!token) return;
@@ -163,24 +179,24 @@ const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  const handleStockUpdate = async (productId: string, weight: string, stock: number) => {
+  const handleStockUpdate = async (productId: string, weight: string, stockToAdd: number) => {
     if (!token) return;
     
     try {
-      await updateProductStock({ productId, weight, stock }, token);
+      await updateProductStock({ productId, weight, stock: stockToAdd }, token);
       setProducts(prev => prev.map(product => 
         product.product_id === productId 
           ? {
               ...product,
               variants: product.variants.map(variant =>
-                variant.weight === weight ? { ...variant, stock } : variant
+                variant.weight === weight ? { ...variant, stock: variant.stock + stockToAdd } : variant
               )
             }
           : product
       ));
       toast({
         title: "Success",
-        description: "Stock updated successfully",
+        description: `Added ${stockToAdd} items to stock successfully`,
       });
     } catch (error) {
       toast({
@@ -244,6 +260,7 @@ const AdminDashboardPage: React.FC = () => {
           { weight: '1kg', price: 0, stock: 0 }
         ]
       });
+      setShowAddProductForm(false);
       await loadData();
       toast({
         title: "Success",
@@ -377,6 +394,43 @@ const AdminDashboardPage: React.FC = () => {
                 <CardTitle>Order Management</CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Filter Section */}
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="statusFilter">Filter by Status</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="dateFilter">Filter by Date</Label>
+                    <Input
+                      id="dateFilter"
+                      type="date"
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="cityFilter">Filter by City</Label>
+                    <Input
+                      id="cityFilter"
+                      placeholder="Enter city name"
+                      value={cityFilter}
+                      onChange={(e) => setCityFilter(e.target.value)}
+                    />
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -390,7 +444,7 @@ const AdminDashboardPage: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orders.map((order) => (
+                      {filteredOrders.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-mono text-sm">{order.id}</TableCell>
                           <TableCell>
@@ -417,52 +471,80 @@ const AdminDashboardPage: React.FC = () => {
                                     <Eye className="h-4 w-4" />
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-4xl">
+                                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
                                   <DialogHeader>
                                     <DialogTitle>Order Details - {order.id}</DialogTitle>
                                   </DialogHeader>
-                                  <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                      <h3 className="font-semibold mb-2">Customer Information</h3>
-                                      <p><strong>Name:</strong> {order.customer?.firstName} {order.customer?.lastName}</p>
-                                      <p><strong>Email:</strong> {order.customer?.email}</p>
-                                      <p><strong>Phone:</strong> {order.customer?.phone}</p>
+                                  <div className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-6">
+                                      <div>
+                                        <h3 className="font-semibold mb-2">Customer Information</h3>
+                                        <p><strong>Name:</strong> {order.customer?.firstName} {order.customer?.lastName}</p>
+                                        <p><strong>Email:</strong> {order.customer?.email}</p>
+                                        <p><strong>Phone:</strong> {order.customer?.phone}</p>
+                                      </div>
+                                      <div>
+                                        <h3 className="font-semibold mb-2">Order Information</h3>
+                                        <p><strong>Status:</strong> {order.status}</p>
+                                        <p><strong>Payment:</strong> {order.payment_method}</p>
+                                        <p><strong>Total:</strong> Rs. {(Number(order.total_amount) || 0).toFixed(2)}</p>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <h3 className="font-semibold mb-2">Order Information</h3>
-                                      <p><strong>Status:</strong> {order.status}</p>
-                                      <p><strong>Payment:</strong> {order.payment_method}</p>
-                                      <p><strong>Total:</strong> Rs. {(Number(order.total_amount) || 0).toFixed(2)}</p>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <h3 className="font-semibold mb-2">Items</h3>
-                                    <div className="space-y-2">
-                                      {order.items.map((item, index) => (
-                                        <div key={index} className="flex justify-between items-center p-2 border rounded">
-                                          <span>{item.name}</span>
-                                          <span>{item.quantity}x Rs. {(Number(item.price) || 0).toFixed(2)}</span>
+                                    
+                                    <div className="grid grid-cols-2 gap-6">
+                                      <div>
+                                        <h3 className="font-semibold mb-2">Shipping Address</h3>
+                                        <div className="text-sm">
+                                          <p>{order.shippingAddress?.street1}</p>
+                                          {order.shippingAddress?.street2 && <p>{order.shippingAddress?.street2}</p>}
+                                          <p>{order.shippingAddress?.city}, {order.shippingAddress?.state}</p>
+                                          <p>{order.shippingAddress?.zipCode}</p>
+                                          <p>{order.shippingAddress?.country}</p>
                                         </div>
-                                      ))}
+                                      </div>
+                                      <div>
+                                        <h3 className="font-semibold mb-2">Billing Address</h3>
+                                        <div className="text-sm">
+                                          <p>{order.billingAddress?.street1}</p>
+                                          {order.billingAddress?.street2 && <p>{order.billingAddress?.street2}</p>}
+                                          <p>{order.billingAddress?.city}, {order.billingAddress?.state}</p>
+                                          <p>{order.billingAddress?.zipCode}</p>
+                                          <p>{order.billingAddress?.country}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <h3 className="font-semibold mb-2">Items</h3>
+                                      <div className="space-y-2">
+                                        {order.items.map((item, index) => (
+                                          <div key={index} className="flex justify-between items-center p-2 border rounded">
+                                            <span>{item.name}</span>
+                                            <span>{item.quantity}x Rs. {(Number(item.price) || 0).toFixed(2)}</span>
+                                          </div>
+                                        ))}
+                                      </div>
                                     </div>
                                   </div>
                                 </DialogContent>
                               </Dialog>
-                              <Select
-                                value={order.status}
-                                onValueChange={(status) => handleOrderStatusUpdate(order.id, status)}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="processing">Processing</SelectItem>
-                                  <SelectItem value="shipped">Shipped</SelectItem>
-                                  <SelectItem value="delivered">Delivered</SelectItem>
-                                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              {order.status.toLowerCase() !== 'cancelled' && (
+                                <Select
+                                  value={order.status}
+                                  onValueChange={(status) => handleOrderStatusUpdate(order.id, status)}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="processing">Processing</SelectItem>
+                                    <SelectItem value="shipped">Shipped</SelectItem>
+                                    <SelectItem value="delivered">Delivered</SelectItem>
+                                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -477,129 +559,14 @@ const AdminDashboardPage: React.FC = () => {
           {/* Products Tab */}
           <TabsContent value="products">
             <div className="space-y-6">
-              {/* Add New Product */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add New Product</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="productId">Product ID</Label>
-                      <Input
-                        id="productId"
-                        value={newProduct.productId}
-                        onChange={(e) => setNewProduct(prev => ({ ...prev, productId: e.target.value }))}
-                        placeholder="P006"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="productName">Product Name</Label>
-                      <Input
-                        id="productName"
-                        value={newProduct.name}
-                        onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Product Name"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="productDescription">Description</Label>
-                    <Textarea
-                      id="productDescription"
-                      value={newProduct.description}
-                      onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Product description"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="productImages">Image URL</Label>
-                    <Input
-                      id="productImages"
-                      value={newProduct.images}
-                      onChange={(e) => setNewProduct(prev => ({ ...prev, images: e.target.value }))}
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="color">Color</Label>
-                      <Input
-                        id="color"
-                        value={newProduct.attributes.color}
-                        onChange={(e) => setNewProduct(prev => ({
-                          ...prev,
-                          attributes: { ...prev.attributes, color: e.target.value }
-                        }))}
-                        placeholder="Black"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="flavor">Flavor</Label>
-                      <Input
-                        id="flavor"
-                        value={newProduct.attributes.flavor}
-                        onChange={(e) => setNewProduct(prev => ({
-                          ...prev,
-                          attributes: { ...prev.attributes, flavor: e.target.value }
-                        }))}
-                        placeholder="Vanilla"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="cookingTime">Cooking Time</Label>
-                      <Input
-                        id="cookingTime"
-                        value={newProduct.attributes.cookingTime}
-                        onChange={(e) => setNewProduct(prev => ({
-                          ...prev,
-                          attributes: { ...prev.attributes, cookingTime: e.target.value }
-                        }))}
-                        placeholder="25 minutes"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    {newProduct.variants.map((variant, index) => (
-                      <div key={variant.weight} className="space-y-2">
-                        <Label>{variant.weight}</Label>
-                        <Label>Price</Label>
-                        <Input
-                          type="number"
-                          placeholder="Price"
-                          value={variant.price}
-                          onChange={(e) => {
-                            const newVariants = [...newProduct.variants];
-                            newVariants[index].price = Number(e.target.value);
-                            setNewProduct(prev => ({ ...prev, variants: newVariants }));
-                          }}
-                        />
-                        <Label>Stock</Label>
-                        <Input
-                          type="number"
-                          placeholder="Stock"
-                          value={variant.stock}
-                          onChange={(e) => {
-                            const newVariants = [...newProduct.variants];
-                            newVariants[index].stock = Number(e.target.value);
-                            setNewProduct(prev => ({ ...prev, variants: newVariants }));
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <Button onClick={handleAddProduct}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
-                </CardContent>
-              </Card>
-
               {/* Products List */}
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Products List</CardTitle>
+                  <Button onClick={() => setShowAddProductForm(!showAddProductForm)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {showAddProductForm ? 'Cancel' : 'Add Product'}
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -659,6 +626,133 @@ const AdminDashboardPage: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Add New Product Form */}
+              {showAddProductForm && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Add New Product</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="productId">Product ID</Label>
+                        <Input
+                          id="productId"
+                          value={newProduct.productId}
+                          onChange={(e) => setNewProduct(prev => ({ ...prev, productId: e.target.value }))}
+                          placeholder="P006"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="productName">Product Name</Label>
+                        <Input
+                          id="productName"
+                          value={newProduct.name}
+                          onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Product Name"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="productDescription">Description</Label>
+                      <Textarea
+                        id="productDescription"
+                        value={newProduct.description}
+                        onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Product description"
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="productImages">Image URL</Label>
+                      <Input
+                        id="productImages"
+                        value={newProduct.images}
+                        onChange={(e) => setNewProduct(prev => ({ ...prev, images: e.target.value }))}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="color">Color</Label>
+                        <Input
+                          id="color"
+                          value={newProduct.attributes.color}
+                          onChange={(e) => setNewProduct(prev => ({
+                            ...prev,
+                            attributes: { ...prev.attributes, color: e.target.value }
+                          }))}
+                          placeholder="Black"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="flavor">Flavor</Label>
+                        <Input
+                          id="flavor"
+                          value={newProduct.attributes.flavor}
+                          onChange={(e) => setNewProduct(prev => ({
+                            ...prev,
+                            attributes: { ...prev.attributes, flavor: e.target.value }
+                          }))}
+                          placeholder="Vanilla"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="cookingTime">Cooking Time</Label>
+                        <Input
+                          id="cookingTime"
+                          value={newProduct.attributes.cookingTime}
+                          onChange={(e) => setNewProduct(prev => ({
+                            ...prev,
+                            attributes: { ...prev.attributes, cookingTime: e.target.value }
+                          }))}
+                          placeholder="25 minutes"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      {newProduct.variants.map((variant, index) => (
+                        <div key={variant.weight} className="space-y-2">
+                          <Label className="font-semibold">{variant.weight}</Label>
+                          <div>
+                            <Label htmlFor={`price-${index}`} className="text-sm">Price</Label>
+                            <Input
+                              id={`price-${index}`}
+                              type="number"
+                              placeholder="Price"
+                              value={variant.price}
+                              onChange={(e) => {
+                                const newVariants = [...newProduct.variants];
+                                newVariants[index].price = Number(e.target.value);
+                                setNewProduct(prev => ({ ...prev, variants: newVariants }));
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`stock-${index}`} className="text-sm">Stock</Label>
+                            <Input
+                              id={`stock-${index}`}
+                              type="number"
+                              placeholder="Stock"
+                              value={variant.stock}
+                              onChange={(e) => {
+                                const newVariants = [...newProduct.variants];
+                                newVariants[index].stock = Number(e.target.value);
+                                setNewProduct(prev => ({ ...prev, variants: newVariants }));
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button onClick={handleAddProduct}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Product
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
@@ -694,40 +788,38 @@ const AdminDashboardPage: React.FC = () => {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
-                                <Input
-                                  type="number"
-                                  placeholder="New price"
-                                  className="w-24"
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      const newPrice = Number((e.target as HTMLInputElement).value);
-                                      if (newPrice > 0) {
-                                        handlePriceUpdate(product.product_id, variant.weight, newPrice);
-                                        (e.target as HTMLInputElement).value = '';
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setPriceUpdateDialog({
+                                    open: true,
+                                    productId: product.product_id,
+                                    weight: variant.weight,
+                                    currentPrice: variant.price
+                                  });
+                                  setNewPriceValue('');
+                                }}
+                              >
+                                Update Price
+                              </Button>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
-                                <Input
-                                  type="number"
-                                  placeholder="New stock"
-                                  className="w-24"
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      const newStock = Number((e.target as HTMLInputElement).value);
-                                      if (newStock >= 0) {
-                                        handleStockUpdate(product.product_id, variant.weight, newStock);
-                                        (e.target as HTMLInputElement).value = '';
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setStockUpdateDialog({
+                                    open: true,
+                                    productId: product.product_id,
+                                    weight: variant.weight,
+                                    currentStock: variant.stock
+                                  });
+                                  setNewStockValue('');
+                                }}
+                              >
+                                Add Stock
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))
@@ -740,6 +832,114 @@ const AdminDashboardPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Price Update Dialog */}
+      <Dialog open={priceUpdateDialog.open} onOpenChange={(open) => setPriceUpdateDialog(prev => ({...prev, open}))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Price</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Current price: Rs. {priceUpdateDialog.currentPrice.toFixed(2)}
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Product: {products.find(p => p.product_id === priceUpdateDialog.productId)?.name} - {priceUpdateDialog.weight}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="newPrice">New Price (Rs.)</Label>
+              <Input
+                id="newPrice"
+                type="number"
+                placeholder="Enter new price"
+                value={newPriceValue}
+                onChange={(e) => setNewPriceValue(e.target.value)}
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setPriceUpdateDialog(prev => ({...prev, open: false}))}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  const newPrice = Number(newPriceValue);
+                  if (newPrice > 0) {
+                    handlePriceUpdate(priceUpdateDialog.productId, priceUpdateDialog.weight, newPrice);
+                    setPriceUpdateDialog(prev => ({...prev, open: false}));
+                    setNewPriceValue('');
+                  }
+                }}
+                disabled={!newPriceValue || Number(newPriceValue) <= 0}
+              >
+                Update Price
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stock Update Dialog */}
+      <Dialog open={stockUpdateDialog.open} onOpenChange={(open) => setStockUpdateDialog(prev => ({...prev, open}))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Stock</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Current stock: {stockUpdateDialog.currentStock} items
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Product: {products.find(p => p.product_id === stockUpdateDialog.productId)?.name} - {stockUpdateDialog.weight}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="newStock">Stock to Add</Label>
+              <Input
+                id="newStock"
+                type="number"
+                placeholder="Enter quantity to add"
+                value={newStockValue}
+                onChange={(e) => setNewStockValue(e.target.value)}
+                min="1"
+              />
+              {newStockValue && Number(newStockValue) > 0 && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  New total stock will be: {stockUpdateDialog.currentStock + Number(newStockValue)} items
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setStockUpdateDialog(prev => ({...prev, open: false}))}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  const stockToAdd = Number(newStockValue);
+                  if (stockToAdd > 0) {
+                    handleStockUpdate(stockUpdateDialog.productId, stockUpdateDialog.weight, stockToAdd);
+                    setStockUpdateDialog(prev => ({...prev, open: false}));
+                    setNewStockValue('');
+                  }
+                }}
+                disabled={!newStockValue || Number(newStockValue) <= 0}
+              >
+                Add Stock
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
