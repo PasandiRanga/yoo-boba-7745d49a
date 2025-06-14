@@ -48,29 +48,19 @@ const benefits = [
 
 
 const BYOBBenefits = () => (
-  <div className="space-y-6">
-    <h2 className="text-3xl font-bold font-display mb-8 text-center dark:text-white">Partnership Benefits</h2>
-    {benefits.map((b, i) => (
-      <div key={i} className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-lg">
-        {/* Horizontal Layout */}
-        <div className="flex flex-col md:flex-row items-start md:items-center">
-          {/* Icon Section */}
-          <div className="w-full md:w-1/4 flex justify-center md:justify-start mb-4 md:mb-0">
-            <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-6 text-yooboba-purple dark:text-pink-400 transform transition-transform hover:scale-110">
-              <div className="w-8 h-8">
-                {b.icon}
-              </div>
-            </div>
-          </div>
-          
-          {/* Content Section */}
-          <div className="flex-1 md:pl-8 text-center md:text-left">
-            <h3 className="font-semibold text-2xl mb-3 dark:text-white">{b.title}</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">{b.desc}</p>
+  <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm dark:shadow-gray-900/30 mb-8 border border-gray-100 dark:border-gray-700">
+    <h2 className="text-2xl font-bold font-display mb-6 dark:text-white">Partnership Benefits</h2>
+    <div className="space-y-6">
+      {benefits.map((b, i) => (
+        <div className="flex items-start" key={i}>
+          <div className="bg-yooboba-light dark:bg-gray-700 rounded-full p-3 mr-4 text-yooboba-purple dark:text-pink-400">{b.icon}</div>
+          <div>
+            <h3 className="font-semibold text-lg mb-1 dark:text-white">{b.title}</h3>
+            <p className="text-gray-600 dark:text-gray-400">{b.desc}</p>
           </div>
         </div>
-      </div>
-    ))}
+      ))}
+    </div>
   </div>
 );
 
