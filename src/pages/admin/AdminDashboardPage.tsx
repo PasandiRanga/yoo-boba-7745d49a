@@ -101,6 +101,20 @@ const AdminDashboardPage: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<string>('');
   const [cityFilter, setCityFilter] = useState<string>('');
   const [showAddProductForm, setShowAddProductForm] = useState(false);
+  const [priceUpdateDialog, setPriceUpdateDialog] = useState<{open: boolean, productId: string, weight: string, currentPrice: number}>({
+    open: false,
+    productId: '',
+    weight: '',
+    currentPrice: 0
+  });
+  const [stockUpdateDialog, setStockUpdateDialog] = useState<{open: boolean, productId: string, weight: string, currentStock: number}>({
+    open: false,
+    productId: '',
+    weight: '',
+    currentStock: 0
+  });
+  const [newPriceValue, setNewPriceValue] = useState('');
+  const [newStockValue, setNewStockValue] = useState('');
   const [newProduct, setNewProduct] = useState({
     productId: '',
     name: '',
@@ -265,6 +279,7 @@ const AdminDashboardPage: React.FC = () => {
           <TabsList>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
           </TabsList>
 
           {/* Orders Tab */}
@@ -448,8 +463,191 @@ const AdminDashboardPage: React.FC = () => {
             />
           </TabsContent>
 
+          {/* Inventory Tab */}
+          <TabsContent value="inventory">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inventory Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Weight</TableHead>
+                        <TableHead>Current Price</TableHead>
+                        <TableHead>Current Stock</TableHead>
+                        <TableHead>Update Price</TableHead>
+                        <TableHead>Update Stock</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products.map((product) =>
+                        product.variants.map((variant) => (
+                          <TableRow key={`${product.product_id}-${variant.weight}`}>
+                            <TableCell>{product.name}</TableCell>
+                            <TableCell>{variant.weight}</TableCell>
+                            <TableCell>Rs. {(Number(variant.price) || 0).toFixed(2)}</TableCell>
+                            <TableCell>
+                              <Badge variant={variant.stock < 10 ? "destructive" : "default"}>
+                                {variant.stock}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setPriceUpdateDialog({
+                                    open: true,
+                                    productId: product.product_id,
+                                    weight: variant.weight,
+                                    currentPrice: variant.price
+                                  });
+                                  setNewPriceValue('');
+                                }}
+                              >
+                                Update Price
+                              </Button>
+                            </TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setStockUpdateDialog({
+                                    open: true,
+                                    productId: product.product_id,
+                                    weight: variant.weight,
+                                    currentStock: variant.stock
+                                  });
+                                  setNewStockValue('');
+                                }}
+                              >
+                                Add Stock
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </div>
+
+      {/* Price Update Dialog */}
+      <Dialog open={priceUpdateDialog.open} onOpenChange={(open) => setPriceUpdateDialog(prev => ({...prev, open}))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Price</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Current price: Rs. {priceUpdateDialog.currentPrice.toFixed(2)}
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Product: {products.find(p => p.product_id === priceUpdateDialog.productId)?.name} - {priceUpdateDialog.weight}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="newPrice">New Price (Rs.)</Label>
+              <Input
+                id="newPrice"
+                type="number"
+                placeholder="Enter new price"
+                value={newPriceValue}
+                onChange={(e) => setNewPriceValue(e.target.value)}
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setPriceUpdateDialog(prev => ({...prev, open: false}))}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  const newPrice = Number(newPriceValue);
+                  if (newPrice > 0) {
+                    handlePriceUpdate(priceUpdateDialog.productId, priceUpdateDialog.weight, newPrice);
+                    setPriceUpdateDialog(prev => ({...prev, open: false}));
+                    setNewPriceValue('');
+                  }
+                }}
+                disabled={!newPriceValue || Number(newPriceValue) <= 0}
+              >
+                Update Price
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stock Update Dialog */}
+      <Dialog open={stockUpdateDialog.open} onOpenChange={(open) => setStockUpdateDialog(prev => ({...prev, open}))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Stock</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Current stock: {stockUpdateDialog.currentStock} items
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Product: {products.find(p => p.product_id === stockUpdateDialog.productId)?.name} - {stockUpdateDialog.weight}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="newStock">Stock to Add</Label>
+              <Input
+                id="newStock"
+                type="number"
+                placeholder="Enter quantity to add"
+                value={newStockValue}
+                onChange={(e) => setNewStockValue(e.target.value)}
+                min="1"
+              />
+              {newStockValue && Number(newStockValue) > 0 && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  New total stock will be: {stockUpdateDialog.currentStock + Number(newStockValue)} items
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setStockUpdateDialog(prev => ({...prev, open: false}))}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  const stockToAdd = Number(newStockValue);
+                  if (stockToAdd > 0) {
+                    handleStockUpdate(stockUpdateDialog.productId, stockUpdateDialog.weight, stockToAdd);
+                    setStockUpdateDialog(prev => ({...prev, open: false}));
+                    setNewStockValue('');
+                  }
+                }}
+                disabled={!newStockValue || Number(newStockValue) <= 0}
+              >
+                Add Stock
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
