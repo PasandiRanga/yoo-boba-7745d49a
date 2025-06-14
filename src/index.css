@@ -195,6 +195,69 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* Enhanced dark mode styles */
+.dark {
+  --color-yooboba-blue: #00c3ff;
+  --color-yooboba-pink: #ff40c0;
+  --color-yooboba-purple: #c040ff;
+  --color-yooboba-light: #b0e0e6;
+}
+
+/* Global dark mode component enhancements */
+.dark body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Dark mode component specific styles */
+.dark .product-card {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dark .card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark .input {
+  background-color: hsl(var(--input));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .button {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.dark .navbar {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+.dark .footer {
+  background-color: hsl(var(--card));
+}
+
+/* Dark mode gradients */
+.dark .bg-yooboba-gradient {
+  background: linear-gradient(90deg, #00c3ff 0%, #c040ff 50%, #ff40c0 100%);
+}
+
+/* Dark mode shadows and effects */
+.dark .shadow-glow {
+  box-shadow: 0 0 20px rgba(0, 195, 255, 0.3);
+}
+
+.dark .shadow-glow-sm {
+  box-shadow: 0 0 10px rgba(0, 195, 255, 0.2);
+}
+
+.dark .shadow-glow-lg {
+  box-shadow: 0 0 30px rgba(0, 195, 255, 0.4);
+}
+
 /* Custom theme toggle styles */
 .theme-toggle-container {
   position: relative;
