@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { pool } from '../db';
+import { sendOrderReceiptEmail } from '../services/emailService';
 
 export class PaymentController {
   /**
@@ -66,6 +67,15 @@ export class PaymentController {
          WHERE id = $4`,
         [paymentStatus, paymentId, paymentStatus === 'completed' ? 'processing' : 'failed', orderId]
       );
+
+      // Send order receipt email when payment is completed
+      if (paymentStatus === 'completed') {
+        try {
+          await PaymentController.sendOrderReceiptAfterPayment(orderId);
+        } catch (emailError) {
+          console.error(`Failed to send receipt email for order ${orderId}:`, emailError);
+        }
+      }
 
       // // Log payment details
       // await pool.query(
@@ -161,6 +171,15 @@ export class PaymentController {
       );
 
       console.error("Updated values");
+
+      // Send order receipt email when payment is completed
+      if (paymentStatus === 'completed') {
+        try {
+          await PaymentController.sendOrderReceiptAfterPayment(order_id);
+        } catch (emailError) {
+          console.error(`Failed to send receipt email for order ${order_id}:`, emailError);
+        }
+      }
 
       // Log payment notification
       // await pool.query(
@@ -346,5 +365,104 @@ export class PaymentController {
   private static getMd5(input: string): string {
     const md5Hash = crypto.createHash('md5').update(input).digest('hex');
     return md5Hash.toUpperCase();
+  }
+
+  /**
+   * Send order receipt email after successful payment
+   */
+  private static async sendOrderReceiptAfterPayment(orderId: string) {
+    try {
+      // Get complete order details
+      const orderResult = await pool.query(
+        `SELECT o.*, 
+                CASE WHEN gc.order_id IS NOT NULL THEN 
+                  json_build_object(
+                    'firstName', gc.first_name,
+                    'lastName', gc.last_name,
+                    'email', gc.email,
+                    'phone', gc.phone
+                  )
+                ELSE
+                  json_build_object(
+                    'firstName', u.first_name,
+                    'lastName', u.last_name,
+                    'email', u.emailaddress,
+                    'phone', u.contactno
+                  )
+                END as customer
+         FROM orders o
+         LEFT JOIN guest_customers gc ON o.id = gc.order_id
+         LEFT JOIN user_orders uo ON o.id = uo.order_id
+         LEFT JOIN customers u ON uo.customerid = u.customerid
+         WHERE o.id = $1`,
+        [orderId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        throw new Error(`Order ${orderId} not found`);
+      }
+
+      const order = orderResult.rows[0];
+      const customer = order.customer;
+
+      // Get order addresses
+      const addressesResult = await pool.query(
+        `SELECT * FROM order_addresses WHERE order_id = $1`,
+        [orderId]
+      );
+      
+      const shippingAddress = addressesResult.rows.find(addr => addr.address_type === 'shipping');
+      const billingAddress = addressesResult.rows.find(addr => addr.address_type === 'billing');
+
+      // Get order items
+      const itemsResult = await pool.query(
+        `SELECT * FROM order_items WHERE order_id = $1`,
+        [orderId]
+      );
+
+      // Define a type for order item
+      interface OrderItemRow {
+        name: string;
+        quantity: number;
+        price: number;
+        [key: string]: unknown; // for any additional columns, if needed
+      }
+
+      const customerName = `${customer.firstName} ${customer.lastName}`;
+      const customerEmail = customer.email;
+
+      if (customerEmail) {
+        await sendOrderReceiptEmail(customerEmail, customerName, {
+          orderId,
+          totalAmount: order.total_amount,
+          paymentMethod: order.payment_method,
+          items: itemsResult.rows.map((item: OrderItemRow) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          shippingAddress: {
+            street1: shippingAddress?.street1 || '',
+            street2: shippingAddress?.street2 || '',
+            city: shippingAddress?.city || '',
+            state: shippingAddress?.state || '',
+            zipCode: shippingAddress?.zip_code || '',
+            country: shippingAddress?.country || ''
+          },
+          billingAddress: {
+            street1: billingAddress?.street1 || '',
+            street2: billingAddress?.street2 || '',
+            city: billingAddress?.city || '',
+            state: billingAddress?.state || '',
+            zipCode: billingAddress?.zip_code || '',
+            country: billingAddress?.country || ''
+          }
+        });
+        console.log(`Order receipt email sent successfully for order ${orderId}`);
+      }
+    } catch (error) {
+      console.error(`Error sending order receipt email for order ${orderId}:`, error);
+      throw error;
+    }
   }
 }
