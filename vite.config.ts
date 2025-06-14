@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8081,
     allowedHosts: [
-      'b6c6-2402-d000-a400-92d5-d4d4-c25b-78a2-8b4d.ngrok-free.app',
+      '0854-2402-d000-a400-da2d-7939-f9d5-726c-6d75.ngrok-free.app',
       // Keep any existing allowed hosts
     ],
   },
