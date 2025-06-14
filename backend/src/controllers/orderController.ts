@@ -171,7 +171,7 @@ export const createOrder = async (req: Request, res: Response) => {
             orderId,
             totalAmount: amount,
             paymentMethod,
-            items: items.map(item => ({
+            items: items.map((item: Item) => ({
               name: item.name,
               quantity: item.quantity,
               price: item.price
