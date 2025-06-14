@@ -93,7 +93,7 @@ const ProductsPage = () => {
           <div className="container mx-auto px-4 md:px-6">
             
             {products.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="max-w-4xl mx-auto space-y-6">
                 {products.map((product, index) => (
                   <ScrollAnimation
                     key={product.product_id}
