@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { Product, NewProduct } from '../../types/admin';
+import { EditProductDialog } from './EditProductDialog';
 
 interface ProductsTabProps {
   products: Product[];
@@ -17,6 +18,7 @@ interface ProductsTabProps {
   onToggleAddProductForm: () => void;
   onNewProductChange: (product: NewProduct) => void;
   onAddProduct: () => void;
+  onUpdateProduct: (productId: string, productData: Partial<NewProduct>) => Promise<boolean>;
   onDeleteProduct: (productId: string) => void;
 }
 
@@ -27,8 +29,10 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
   onToggleAddProductForm,
   onNewProductChange,
   onAddProduct,
+  onUpdateProduct,
   onDeleteProduct,
 }) => {
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   return (
     <div className="space-y-6">
       {/* Products List */}
@@ -65,7 +69,11 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     <TableCell>{product.variants.length} variants</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setEditingProduct(product)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
@@ -225,6 +233,13 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
           </CardContent>
         </Card>
       )}
+
+      <EditProductDialog
+        product={editingProduct}
+        isOpen={!!editingProduct}
+        onClose={() => setEditingProduct(null)}
+        onUpdate={onUpdateProduct}
+      />
     </div>
   );
 };

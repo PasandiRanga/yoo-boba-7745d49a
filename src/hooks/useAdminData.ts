@@ -8,6 +8,7 @@ import {
   updateProductStock, 
   updateProductPrice, 
   addNewProduct,
+  updateProduct,
   deleteProduct 
 } from '../services/adminService';
 import { Order, Product, NewProduct } from '../types/admin';
@@ -139,6 +140,27 @@ export const useAdminData = () => {
     }
   };
 
+  const handleUpdateProduct = async (productId: string, productData: Partial<NewProduct>) => {
+    if (!token) return;
+    
+    try {
+      await updateProduct(productId, productData, token);
+      await loadData(); // Reload data to get updated product
+      toast({
+        title: "Success",
+        description: "Product updated successfully",
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const handleDeleteProduct = async (productId: string) => {
     if (!token) return;
     
@@ -171,6 +193,7 @@ export const useAdminData = () => {
     handleStockUpdate,
     handlePriceUpdate,
     handleAddProduct,
+    handleUpdateProduct,
     handleDeleteProduct,
   };
 };
