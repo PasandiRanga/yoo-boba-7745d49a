@@ -405,6 +405,9 @@ export class PaymentController {
       const order = orderResult.rows[0];
       const customer = order.customer;
 
+      console.error(order);
+      console.error(customer);
+
       // Get order addresses
       const addressesResult = await pool.query(
         `SELECT * FROM order_addresses WHERE order_id = $1`,
@@ -429,7 +432,7 @@ export class PaymentController {
       }
 
       const customerName = `${customer.firstName} ${customer.lastName}`;
-      const customerEmail = customer.email;
+      const customerEmail = customer.emailaddress || customer.email;
 
       if (customerEmail) {
         await sendOrderReceiptEmail(customerEmail, customerName, {
