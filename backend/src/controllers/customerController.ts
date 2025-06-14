@@ -287,12 +287,12 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour from now
 
-    // Store reset token in database
+    // Store reset token in separate table
     await pool.query(
-      'UPDATE customers SET reset_token = $1, reset_token_expiry = $2 WHERE customerid = $3',
-      [resetToken, resetTokenExpiry, customer.customerid]
+      'INSERT INTO password_reset_tokens (customer_id, token, expires_at) VALUES ($1, $2, $3)',
+      [customer.customerid, resetToken, expiresAt]
     );
 
     // In a real application, you would send an email here
@@ -316,9 +316,9 @@ export const resetPassword = async (req: Request, res: Response) => {
   const { token, newPassword } = req.body;
 
   try {
-    // Find customer with valid reset token
+    // Find valid reset token
     const { rows } = await pool.query(
-      'SELECT customerid FROM customers WHERE reset_token = $1 AND reset_token_expiry > NOW()',
+      'SELECT customer_id FROM password_reset_tokens WHERE token = $1 AND expires_at > NOW() AND used_at IS NULL',
       [token]
     );
 
@@ -326,16 +326,22 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
 
-    const customer = rows[0];
+    const resetRecord = rows[0];
 
     // Hash new password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    // Update password and clear reset token
+    // Update password
     await pool.query(
-      'UPDATE customers SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE customerid = $2',
-      [hashedPassword, customer.customerid]
+      'UPDATE customers SET password = $1 WHERE customerid = $2',
+      [hashedPassword, resetRecord.customer_id]
+    );
+
+    // Mark token as used
+    await pool.query(
+      'UPDATE password_reset_tokens SET used_at = NOW() WHERE token = $1',
+      [token]
     );
 
     res.json({ message: 'Password has been reset successfully' });
