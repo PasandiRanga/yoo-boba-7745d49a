@@ -10,6 +10,7 @@ import { createOrder, PaymentMethod } from "@/models/OrderModel";
 import { createPendingOrder } from "@/services/orderService";
 import { toast } from "@/components/ui/use-toast";
 import { fetchCustomerById } from "@/services/customerService";
+import { useAuth } from "@/context/authContext";
 
 // Import styled components
 import StyledInput from "@/components/ui/styledInput";
@@ -63,60 +64,44 @@ const CheckoutPage = () => {
   // Payment information
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere"); // Default to PayHere
 
-  // Effect to load user data from session storage
+  // Effect to load user data from auth context
   useEffect(() => {
-    const loadUserData = async () => {
-      const storedUser = sessionStorage.getItem("customer");
-      console.log("Stored user data:", storedUser);
+    if (isAuthenticated && user) {
+      console.log("Loading user data from auth context:", user);
       
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          console.log("Stored user id", userData.customerid);
+      // Extract first and last names from FullName if available
+      const fullName = user.FullName || "";
+      const nameParts = fullName.split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
+      // Map user data from auth context to customer state
+      setCustomer(prev => ({
+        ...prev,
+        firstName: firstName,
+        lastName: lastName,
+        email: user.emailaddress || "",
+        phone: user.ContactNo || "",
+        company: (user as any).company || "",
+        userId: user.customerid || undefined,
+      }));
 
-          // Properly await the async function
-          const fetchedUserData = await fetchCustomerById(userData.customerid);
-          console.log("Fetched user data:", fetchedUserData);
-          
-          // Map fetched user data to Order model Customer interface
-          setCustomer(prev => ({
-            ...prev,
-            firstName: fetchedUserData.first_name || "",
-            lastName: fetchedUserData.last_name || "",
-            email: fetchedUserData.emailaddress || "",
-            phone: fetchedUserData.contactno || "",
-            company: fetchedUserData.company || "",
-            userId: fetchedUserData.customerid || undefined,
-          }));
-
-          // Pre-fill address if available in user data
-          // Address is a string in the fetched data
-          if (fetchedUserData.address && typeof fetchedUserData.address === 'string') {
-            const userAddress = {
-              street1: fetchedUserData.address,
-              street2: "",
-              city: "",
-              state: "",
-              zipCode: "",
-              country: "Sri Lanka",
-            };
-            
-            setShippingAddress(userAddress);
-            if (sameAsBilling) {
-              setBillingAddress(userAddress);
-            }
-          }
-        } catch (error) {
-          console.error("Error parsing user data from session or fetching from API:", error);
-          // Clear invalid session data
-          sessionStorage.removeItem("customer");
-        }
+      // Pre-fill address if available in user data
+      if (user.Address && typeof user.Address === 'string') {
+        const userAddress = {
+          street1: user.Address,
+          street2: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          country: "Sri Lanka",
+        };
+        
+        setShippingAddress(userAddress);
+        setBillingAddress(userAddress);
       }
-    };
-
-    // Call the async function
-    loadUserData();
-  }, []);
+    }
+  }, [isAuthenticated, user]);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
