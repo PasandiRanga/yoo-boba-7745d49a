@@ -226,7 +226,7 @@ export const sendOrderReceiptEmail = async (
 ) => {
   try {
     const transporter = createTransporter();
-    
+    console.error("Sending order receipt email to:", email);
     // Calculate subtotal and format items
     const subtotal = orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0);
     const itemsHtml = orderData.items.map(item => `

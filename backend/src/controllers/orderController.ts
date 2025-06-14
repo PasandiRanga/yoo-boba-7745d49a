@@ -167,6 +167,7 @@ export const createOrder = async (req: Request, res: Response) => {
         const customerEmail = isGuestOrder ? customer.email : customer.emailaddress;
 
         if (customerEmail) {
+          console.log(`Sending order receipt email to ${customerEmail} for order ${orderId}`);
           await sendOrderReceiptEmail(customerEmail, customerName, {
             orderId,
             totalAmount: amount,
