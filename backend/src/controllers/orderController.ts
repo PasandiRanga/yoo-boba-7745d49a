@@ -3,6 +3,7 @@ import { pool } from '../db/index';
 import * as ExcelJS from 'exceljs';
 import path from 'path';
 import fs from 'fs';
+import { sendOrderReceiptEmail } from '../services/emailService';
 
 // Create Excel directory if it doesn't exist
 const excelDir = path.join(__dirname, '../excel');
@@ -156,6 +157,48 @@ export const createOrder = async (req: Request, res: Response) => {
 
       // Commit transaction
       await client.query('COMMIT');
+
+      // Send order receipt email after successful order creation
+      try {
+        const customerName = isGuestOrder 
+          ? `${customer.firstName} ${customer.lastName}`
+          : customer.FullName || customer.emailaddress || 'Customer';
+
+        const customerEmail = isGuestOrder ? customer.email : customer.emailaddress;
+
+        if (customerEmail) {
+          await sendOrderReceiptEmail(customerEmail, customerName, {
+            orderId,
+            totalAmount: amount,
+            paymentMethod,
+            items: items.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price
+            })),
+            shippingAddress: {
+              street1: shippingAddress.street1,
+              street2: shippingAddress.street2,
+              city: shippingAddress.city,
+              state: shippingAddress.state,
+              zipCode: shippingAddress.zipCode,
+              country: shippingAddress.country
+            },
+            billingAddress: {
+              street1: billingAddress.street1,
+              street2: billingAddress.street2,
+              city: billingAddress.city,
+              state: billingAddress.state,
+              zipCode: billingAddress.zipCode,
+              country: billingAddress.country
+            }
+          });
+          console.log(`Order receipt email sent successfully for order ${orderId}`);
+        }
+      } catch (emailError) {
+        console.error(`Failed to send receipt email for order ${orderId}:`, emailError);
+        // Don't fail the order creation if email fails, just log the error
+      }
 
       res.status(201).json({
         success: true,
