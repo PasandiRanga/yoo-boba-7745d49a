@@ -6,12 +6,18 @@ import {
   updateCustomer,
   deleteCustomer,
   getCustomerOrders,
-  loginCustomer
+  loginCustomer,
+  requestPasswordReset,
+  resetPassword
 } from '../controllers/customerController';
 
 const router = Router();
 //Login 
 router.post('/login', loginCustomer);
+
+// Password reset routes
+router.post('/forgot-password', requestPasswordReset);
+router.post('/reset-password', resetPassword);
 
 // GET routes
 router.get('/', getAllCustomers);

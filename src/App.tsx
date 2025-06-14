@@ -29,6 +29,7 @@ import PaymentPortal from "@/pages/paymentPortalPage";
 import PaymentCompletePage from "./pages/paymentCompletePage";
 import MyOrdersPage from "@/pages/myOrdersPage";
 import ProfilePage from "@/pages/ProfilePage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
 // Create a new QueryClient instance inside the component to ensure proper React context
 const App = () => {
@@ -64,6 +65,7 @@ const App = () => {
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/byob" element={<BYOBPage />} />
                         <Route path="/signup" element={<SignUp />} />
+                        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                         <Route path="/payment-portal" element={<PaymentPortal />} />
                         <Route path="/payment-complete" element={<PaymentCompletePage />} />
                         <Route path="/my-orders" element={<MyOrdersPage />} />

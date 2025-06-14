@@ -4,6 +4,7 @@ import { User, AlertCircle } from "lucide-react";
 import { loginCustomer } from "@/services/customerService";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/authContext';
+import ForgotPasswordDialog from './ForgotPasswordDialog';
 
 // StyledInput component with proper TypeScript types
 interface StyledInputProps {
@@ -75,6 +76,7 @@ const SignInDialog: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -261,6 +263,7 @@ const SignInDialog: React.FC = () => {
               
               <button 
                 type="button" 
+                onClick={() => setShowForgotPassword(true)}
                 className="w-full text-center text-purple-600 dark:text-blue-500 hover:text-pink-500 dark:hover:text-pink-500 mt-4 transition-transform hover:scale-105"
               >
                 Forgot Password
@@ -287,6 +290,12 @@ const SignInDialog: React.FC = () => {
           </div>
         </div>
       )}
+      
+      <ForgotPasswordDialog
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onBackToLogin={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 };

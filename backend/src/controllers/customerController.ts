@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { pool } from '../db/index';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Replace with environment variable in production
@@ -263,6 +264,84 @@ export const getCustomerOrders = async (req: Request, res: Response) => {
     res.json(rows);
   } catch (error) {
     console.error(`Error fetching orders for customer ${id}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Forgot Password - Request reset
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  try {
+    // Check if customer exists
+    const { rows } = await pool.query(
+      'SELECT customerid, first_name FROM customers WHERE emailaddress = $1',
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'No account found with this email address' });
+    }
+
+    const customer = rows[0];
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+    // Store reset token in database
+    await pool.query(
+      'UPDATE customers SET reset_token = $1, reset_token_expiry = $2 WHERE customerid = $3',
+      [resetToken, resetTokenExpiry, customer.customerid]
+    );
+
+    // In a real application, you would send an email here
+    // For now, we'll just return the token (remove this in production)
+    console.log(`Password reset token for ${email}: ${resetToken}`);
+
+    res.json({ 
+      message: 'Password reset link has been sent to your email address',
+      // Remove this line in production - only for testing
+      resetToken: resetToken 
+    });
+
+  } catch (error) {
+    console.error('Error requesting password reset:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Reset Password - Validate token and update password
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    // Find customer with valid reset token
+    const { rows } = await pool.query(
+      'SELECT customerid FROM customers WHERE reset_token = $1 AND reset_token_expiry > NOW()',
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    const customer = rows[0];
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password and clear reset token
+    await pool.query(
+      'UPDATE customers SET password = $1, reset_token = NULL, reset_token_expiry = NULL WHERE customerid = $2',
+      [hashedPassword, customer.customerid]
+    );
+
+    res.json({ message: 'Password has been reset successfully' });
+
+  } catch (error) {
+    console.error('Error resetting password:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
