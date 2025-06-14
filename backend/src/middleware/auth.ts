@@ -27,7 +27,18 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction): voi
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, decoded) => {
+  // Ensure JWT secret is configured
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('JWT_SECRET environment variable is not configured');
+    res.status(500).json({
+      success: false,
+      message: 'Server configuration error',
+    });
+    return;
+  }
+
+  jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err || typeof decoded !== 'object' || !decoded) {
       res.status(403).json({
         success: false,
