@@ -170,7 +170,7 @@ const MyOrdersPage = () => {
 
   const handleCancelOrder = async (orderId: string) => {
     try {
-      await cancelOrder(orderId, "Cancelled by customer");
+      await cancelOrder(orderId, "Cancelled by customer.");
       
       // Update the local state to reflect the cancellation
       setOrders(prevOrders => 
