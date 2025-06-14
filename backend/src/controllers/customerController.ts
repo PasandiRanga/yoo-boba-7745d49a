@@ -2,10 +2,9 @@ import { Request, Response } from 'express';
 import { pool } from '../db/index';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { SecurityLogger } from '../utils/logger';
 
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Replace with environment variable in production
 
 
 export const loginCustomer = async (req: Request, res: Response) => {
@@ -20,7 +19,6 @@ export const loginCustomer = async (req: Request, res: Response) => {
     `, [email]);
 
     if (rows.length === 0) {
-      SecurityLogger.logFailedLogin(req, email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
@@ -29,14 +27,7 @@ export const loginCustomer = async (req: Request, res: Response) => {
     // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      SecurityLogger.logFailedLogin(req, email);
       return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Ensure JWT secret is configured
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET environment variable is not configured');
-      return res.status(500).json({ message: 'Server configuration error' });
     }
 
     // Generate JWT token
