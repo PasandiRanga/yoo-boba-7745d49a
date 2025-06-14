@@ -122,11 +122,10 @@ const Hero = ({ user }) => {
           <div className="max-w-7xl mx-auto">
             <BlurText
               text={`Welcome back, ${user.FullName || user.first_name || user.emailaddress || 'User'}!`}
-              className="text-xl sm:text-2xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-yooboba-purple to-yooboba-pink dark:from-yooboba-blue dark:to-yooboba-pink"
-              delay={150}
+              className="text-xl font-medium text-gray-700 dark:text-gray-300"
+              delay={100}
               animateBy="words"
               direction="top"
-              stepDuration={0.4}
             />
           </div>
         </div>
