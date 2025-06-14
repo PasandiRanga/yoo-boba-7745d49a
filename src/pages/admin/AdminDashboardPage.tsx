@@ -95,8 +95,8 @@ const AdminDashboardPage: React.FC = () => {
     handleDeleteProduct 
   } = useAdminData();
   
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
   const [cityFilter, setCityFilter] = useState<string>('');
