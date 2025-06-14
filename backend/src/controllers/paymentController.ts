@@ -439,7 +439,7 @@ export class PaymentController {
           items: itemsResult.rows.map((item: OrderItemRow) => ({
             name: item.name,
             quantity: item.quantity,
-            price: item.price
+            price: Number(item.price)
           })),
           shippingAddress: {
             street1: shippingAddress?.street1 || '',
