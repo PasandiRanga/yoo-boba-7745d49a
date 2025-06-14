@@ -116,7 +116,7 @@ const CheckoutPage = () => {
 
     // Call the async function
     loadUserData();
-  }, [sameAsBilling]);
+  }, []);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
