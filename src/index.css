@@ -201,3 +201,70 @@
   display: inline-block;
   margin-right: 10px;
 }
+
+/* Mobile responsiveness and touch enhancements */
+@layer components {
+  /* Better touch targets for mobile */
+  .mobile-touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Improved button spacing on mobile */
+  @media (max-width: 640px) {
+    button:not(.no-mobile-padding) {
+      @apply py-3 px-4 text-base;
+    }
+    
+    .button-sm {
+      @apply py-2 px-3 text-sm;
+    }
+    
+    /* Better form input sizing on mobile */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="number"],
+    textarea,
+    select {
+      @apply text-base; /* Prevents zoom on iOS */
+    }
+    
+    /* Improved table responsiveness */
+    .table-responsive {
+      @apply overflow-x-auto -mx-4 px-4;
+    }
+    
+    /* Better modal sizing on mobile */
+    .modal-mobile {
+      @apply mx-4 max-w-none w-auto;
+    }
+    
+    /* Enhanced tab sizing */
+    .tab-mobile {
+      @apply text-xs px-2 py-2;
+    }
+  }
+  
+  /* Enhanced scroll behavior for mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better focus styles for keyboard navigation */
+  .focus-enhanced:focus-visible {
+    @apply outline-2 outline-offset-2 outline-blue-500;
+  }
+  
+  /* Improved card interactions on mobile */
+  .card-mobile {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+  
+  /* Better dropdown positioning on mobile */
+  @media (max-width: 640px) {
+    .dropdown-mobile {
+      @apply fixed inset-x-4 bottom-4 top-auto max-h-60 overflow-auto;
+    }
+  }
+}

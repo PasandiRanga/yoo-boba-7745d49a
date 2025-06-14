@@ -42,11 +42,11 @@ const AdminLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-center">Admin Login</CardTitle>
+          <CardDescription className="text-center text-sm sm:text-base">
             Enter your credentials to access the admin dashboard
           </CardDescription>
         </CardHeader>

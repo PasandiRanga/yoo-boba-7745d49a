@@ -220,12 +220,12 @@ const AdminDashboardPage: React.FC = () => {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-sm text-gray-600">Welcome back, {admin?.name}</p>
             </div>
-            <Button variant="outline" onClick={logout}>
+            <Button variant="outline" onClick={logout} className="w-full sm:w-auto">
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
@@ -233,53 +233,53 @@ const AdminDashboardPage: React.FC = () => {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="p-3 sm:p-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">Rs. {totalRevenue.toFixed(2)}</div>
+            <CardContent className="p-0">
+              <div className="text-lg sm:text-2xl font-bold">Rs. {totalRevenue.toFixed(2)}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-3 sm:p-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Orders</CardTitle>
+              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{orders.length}</div>
+            <CardContent className="p-0">
+              <div className="text-lg sm:text-2xl font-bold">{orders.length}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-3 sm:p-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Pending Orders</CardTitle>
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingOrders}</div>
+            <CardContent className="p-0">
+              <div className="text-lg sm:text-2xl font-bold">{pendingOrders}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+          <Card className="p-3 sm:p-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Products</CardTitle>
+              <Package className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
+            <CardContent className="p-0">
+              <div className="text-lg sm:text-2xl font-bold">{totalProducts}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content */}
         <Tabs defaultValue="orders" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="orders" className="text-xs sm:text-sm">Orders</TabsTrigger>
+            <TabsTrigger value="products" className="text-xs sm:text-sm">Products</TabsTrigger>
+            <TabsTrigger value="inventory" className="text-xs sm:text-sm">Inventory</TabsTrigger>
           </TabsList>
 
           {/* Orders Tab */}
