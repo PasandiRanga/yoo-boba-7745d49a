@@ -340,21 +340,30 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     const resetRecord = rows[0];
 
-    console.error(newPassword);
+    console.log('Reset record customer_id:', resetRecord.customer_id);
 
     // Hash new password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    console.error('Hashed password' , hashedPassword);
+    console.log('Hashed password:', hashedPassword);
 
     // Update password
-    await pool.query(
+    const updateResult = await pool.query(
       'UPDATE customers SET password = $1 WHERE customerid = $2',
       [hashedPassword, resetRecord.customer_id]
     );
 
-    console.error(`Password for customer ${resetRecord.customerid} has been reset successfully`);
+    console.log('Update result rowCount:', updateResult.rowCount);
+    console.log('Updating customer with ID:', resetRecord.customer_id);
+
+    // Verify the update worked
+    const verifyResult = await pool.query(
+      'SELECT password FROM customers WHERE customerid = $1',
+      [resetRecord.customer_id]
+    );
+    
+    console.log('Password in database after update:', verifyResult.rows[0]?.password);
 
     // Mark token as used
     await pool.query(
