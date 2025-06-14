@@ -29,10 +29,7 @@ const CheckoutPage = () => {
   const selectedItems = getSelectedItems();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [loggedInUser, setLoggedInUser] = useState(null);
-
-  // Get authentication state and user from auth context
-  const { isAuthenticated, user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   // Customer Information - Initialize with empty values
   const [customer, setCustomer] = useState({
@@ -72,20 +69,14 @@ const CheckoutPage = () => {
     if (isAuthenticated && user) {
       console.log("Loading user data from auth context:", user);
       
-      // Extract first and last names from FullName if available
-      const fullName = user.FullName || "";
-      const nameParts = fullName.split(" ");
-      const firstName = nameParts[0] || "";
-      const lastName = nameParts.slice(1).join(" ") || "";
-      
       // Map user data from auth context to customer state
       setCustomer(prev => ({
         ...prev,
-        firstName: firstName,
-        lastName: lastName,
+        firstName: (user as any).first_name || "",
+        lastName: (user as any).last_name || "",
         email: user.emailaddress || "",
         phone: user.ContactNo || "",
-        company: (user as { company?: string }).company || "",
+        company: (user as any).company || "",
         userId: user.customerid || undefined,
       }));
 
@@ -101,10 +92,12 @@ const CheckoutPage = () => {
         };
         
         setShippingAddress(userAddress);
-        setBillingAddress(userAddress);
+        if (sameAsBilling) {
+          setBillingAddress(userAddress);
+        }
       }
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, sameAsBilling]);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -313,9 +306,9 @@ const CheckoutPage = () => {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold font-display">Checkout</h1>
           {/* Show logged in user info */}
-          {loggedInUser && (
+          {user && (
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Logged in as: <span className="font-medium text-gray-800 dark:text-gray-200">{loggedInUser.first_name} {loggedInUser.last_name}</span>
+              Logged in as: <span className="font-medium text-gray-800 dark:text-gray-200">{user.FullName}</span>
             </div>
           )}
         </div>
@@ -327,7 +320,7 @@ const CheckoutPage = () => {
               <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Customer Information</h2>
-                  {loggedInUser && (
+                  {user && (
                     <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
                       Auto-filled
                     </span>
@@ -415,7 +408,7 @@ const CheckoutPage = () => {
               <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Shipping Address</h2>
-                  {loggedInUser && loggedInUser.address && (
+                  {user && user.Address && (
                     <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
                       Auto-filled
                     </span>
