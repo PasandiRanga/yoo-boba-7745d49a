@@ -347,7 +347,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     // Update password
     await pool.query(
       'UPDATE customers SET password = $1 WHERE customerid = $2',
-      [hashedPassword, resetRecord.customer_id]
+      [hashedPassword, resetRecord.customerid]
     );
 
     // Mark token as used
