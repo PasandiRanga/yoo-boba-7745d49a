@@ -45,15 +45,15 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-background border-b border-gray-100 dark:border-gray-800 dark:bg-gray-900 shadow-sm dark:shadow-none transition-colors duration-300">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center group">
               <img
                 src="/public/images/LogoWithoutBack.png"
                 alt="YooBoba Logo" 
-                className="h-10 w-10 mr-2 group-hover:scale-105 transition-transform"
+                className="h-8 w-8 sm:h-10 sm:w-10 mr-2 group-hover:scale-105 transition-transform"
               />
-              <span className="text-2xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent dark:bg-gradient-to-r dark:from-yooboba-blue dark:to-yooboba-pink">
+              <span className="text-lg sm:text-2xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent dark:bg-gradient-to-r dark:from-yooboba-blue dark:to-yooboba-pink">
                 YooBoba
               </span>
             </Link>
@@ -65,7 +65,7 @@ const Navbar = () => {
               <Link
                 key={index}
                 to={item.path}
-                className="font-medium text-gray-600 dark:text-gray-300 hover:text-yooboba-purple dark:hover:text-yooboba-blue transition-colors relative group"
+                className="font-medium text-gray-600 dark:text-gray-300 hover:text-yooboba-purple dark:hover:text-yooboba-blue transition-colors relative group py-2 px-1"
               >
                 {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yooboba-gradient dark:bg-gradient-to-r dark:from-yooboba-blue dark:to-yooboba-pink transition-all duration-300 group-hover:w-full"></span>
@@ -73,7 +73,7 @@ const Navbar = () => {
             ))}
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Desktop Controls */}
             <div className="hidden md:flex items-center space-x-4">
               <CurrencyToggle />
@@ -148,9 +148,9 @@ const Navbar = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="md:hidden hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="md:hidden hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors min-h-[44px] min-w-[44px]"
                 >
-                  <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                  <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                   <span className="sr-only">Menu</span>
                 </Button>
               </SheetTrigger>
@@ -158,13 +158,14 @@ const Navbar = () => {
                 side="right" 
                 className="w-full sm:max-w-sm p-0 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
               >
-                <div className="flex flex-col h-full">
-                  <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex flex-col h-full overflow-y-auto">
+                  {/* Mobile Header */}
+                  <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-100 dark:border-gray-800 shrink-0">
                     <div className="flex items-center">
                       <img
                         src="/public/images/LogoWithoutBack.png"
                         alt="YooBoba Logo" 
-                        className="h-8 w-8 mr-2"
+                        className="h-8 w-8 mr-3"
                       />
                       <span className="text-xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent dark:bg-gradient-to-r dark:from-yooboba-blue dark:to-yooboba-pink">
                         YooBoba
@@ -174,116 +175,124 @@ const Navbar = () => {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] min-w-[44px]"
                       >
-                        <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                        <X className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                       </Button>
                     </SheetClose>
                   </div>
                   
                   {/* Mobile Navigation Items */}
-                  <div className="flex flex-col items-center py-8 space-y-6">
-                    {navItems.map((item, index) => (
-                      <SheetClose key={index} asChild>
+                  <div className="flex-1 px-4 py-6">
+                    {/* Navigation Links */}
+                    <div className="space-y-1 mb-8">
+                      {navItems.map((item, index) => (
+                        <SheetClose key={index} asChild>
+                          <Link
+                            to={item.path}
+                            className="flex items-center py-4 px-4 text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 min-h-[56px]"
+                            onClick={() => setOpen(false)}
+                          >
+                            {item.label}
+                          </Link>
+                        </SheetClose>
+                      ))}
+                    </div>
+                    
+                    {/* Cart Link */}
+                    <div className="mb-8">
+                      <SheetClose asChild>
                         <Link
-                          to={item.path}
-                          className="text-xl font-medium text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue transition-colors relative group"
+                          to="/cart"
+                          className="flex items-center justify-between py-4 px-4 text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 min-h-[56px]"
                           onClick={() => setOpen(false)}
                         >
-                          {item.label}
-                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yooboba-gradient dark:bg-gradient-to-r dark:from-yooboba-blue dark:to-yooboba-pink transition-all duration-300 group-hover:w-full"></span>
+                          <div className="flex items-center space-x-3">
+                            <ShoppingCart className="h-6 w-6" />
+                            <span>Shopping Cart</span>
+                          </div>
+                          {totalItems > 0 && (
+                            <span className="bg-yooboba-purple dark:bg-yooboba-blue text-white text-sm rounded-full h-6 w-6 flex items-center justify-center">
+                              {totalItems}
+                            </span>
+                          )}
                         </Link>
                       </SheetClose>
-                    ))}
+                    </div>
                     
-                    {/* Cart Link - Mobile */}
-                    <SheetClose asChild>
-                      <Link
-                        to="/cart"
-                        className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
-                        onClick={() => setOpen(false)}
-                      >
-                        <ShoppingCart className="h-5 w-5" />
-                        <span>Cart {totalItems > 0 && `(${totalItems})`}</span>
-                      </Link>
-                    </SheetClose>
-                    
-                    {/* Theme and Currency Toggles - Mobile */}
-                    <div className="flex items-center space-x-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 w-3/4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Theme:</span>
-                        <ThemeToggle />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Currency:</span>
-                        <CurrencyToggle />
+                    {/* Settings Section */}
+                    <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Settings</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-base text-gray-700 dark:text-gray-300">Theme</span>
+                          <ThemeToggle />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-base text-gray-700 dark:text-gray-300">Currency</span>
+                          <CurrencyToggle />
+                        </div>
                       </div>
                     </div>
                     
-                    {/* User Profile Options or Sign In for mobile */}
-                    <div className="flex flex-col items-center space-y-4 mt-4 border-t border-gray-100 dark:border-gray-800 pt-6 w-full">
+                    {/* User Section */}
+                    <div>
                       {user ? (
-                        <>
-                          <div className="w-full px-6">
-                            <button 
-                              onClick={() => setProfileExpanded(!profileExpanded)}
-                              className="w-full flex items-center justify-between text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue py-2"
+                        <div className="space-y-1">
+                          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
+                            <div className="flex items-center space-x-3 mb-1">
+                              <div className="h-10 w-10 bg-yooboba-gradient rounded-full flex items-center justify-center">
+                                <User className="h-5 w-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                  {user.FullName || 'User'}
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  {user.emailaddress}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <SheetClose asChild>
+                            <Link
+                              to="/profile"
+                              className="flex items-center space-x-3 py-4 px-4 text-base text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 min-h-[56px]"
                             >
-                              <div className="flex items-center space-x-2">
-                                <User className="h-5 w-5" />
-                                <span className="font-medium">{user.FullName || user.emailaddress}</span>
-                              </div>
-                              <svg 
-                                className={`w-5 h-5 transition-transform duration-200 ${profileExpanded ? 'transform rotate-180' : ''}`} 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
+                              <User className="h-5 w-5" />
+                              <span>My Profile</span>
+                            </Link>
+                          </SheetClose>
+                          
+                          <SheetClose asChild>
+                            <Link
+                              to="/my-orders"
+                              className="flex items-center space-x-3 py-4 px-4 text-base text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 min-h-[56px]"
+                            >
+                              <Package className="h-5 w-5" />
+                              <span>My Orders</span>
+                            </Link>
+                          </SheetClose>
+                          
+                          <SheetClose asChild>
+                            <button
+                              onClick={handleLogout}
+                              className="flex items-center space-x-3 py-4 px-4 text-base text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 min-h-[56px] w-full text-left"
+                            >
+                              <LogOut className="h-5 w-5" />
+                              <span>Sign Out</span>
                             </button>
-                            
-                            {profileExpanded && (
-                              <div className="mt-2 ml-7 flex flex-col space-y-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
-                                <SheetClose asChild>
-                                  <Link
-                                    to="/profile"
-                                    className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
-                                  >
-                                    <User className="h-4 w-4" />
-                                    <span>Profile</span>
-                                  </Link>
-                                </SheetClose>
-                                
-                                <SheetClose asChild>
-                                  <Link
-                                    to="/my-orders"
-                                    className="flex items-center space-x-2 text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue"
-                                  >
-                                    <Package className="h-4 w-4" />
-                                    <span>Orders</span>
-                                  </Link>
-                                </SheetClose>
-                                
-                                <SheetClose asChild>
-                                  <button
-                                    onClick={handleLogout}
-                                    className="flex items-center space-x-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                                  >
-                                    <LogOut className="h-4 w-4" />
-                                    <span>Logout</span>
-                                  </button>
-                                </SheetClose>
-                              </div>
-                            )}
-                          </div>
-                        </>
+                          </SheetClose>
+                        </div>
                       ) : (
-                        <SheetClose asChild>
-                          <div className="py-4">
-                            <SignInDialog />
-                          </div>
-                        </SheetClose>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <SheetClose asChild>
+                            <div>
+                              <SignInDialog />
+                            </div>
+                          </SheetClose>
+                        </div>
                       )}
                     </div>
                   </div>
