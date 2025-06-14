@@ -180,22 +180,23 @@ const ProfilePage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900">
+      <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+            <h2 className="text-2xl font-bold mb-4">
               Please log in to view your profile
             </h2>
           </div>
         </div>
         <Footer />
+        <BackToTopButton />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900 relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300 relative overflow-hidden">
       <FloatingBubbles />
       
       <Navbar />
@@ -407,6 +408,9 @@ const ProfilePage = () => {
         </div>
       </div>
 
+      <Footer />
+      <BackToTopButton />
+
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -475,9 +479,6 @@ const ProfilePage = () => {
           </div>
         </div>
       )}
-      
-      <Footer />
-      <BackToTopButton />
     </div>
   );
 };

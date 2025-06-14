@@ -7,6 +7,7 @@ import BobaSendingToast from "@/components/ui/bobaSendingToast";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
 import StyledInput from "@/components/ui/styledInput";
 import StyledTextarea from "@/components/ui/styledTextArea";
+import BackToTopButton from "@/components/ui/back-to-top";
 import { submitContactRequest } from '@/services/contactService';
 
 const ContactPage = () => {
@@ -68,7 +69,7 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section with Floating Bubbles */}
@@ -291,6 +292,7 @@ const ContactPage = () => {
         </section>
       </main>
       <Footer />
+      <BackToTopButton />
 
       {/* Boba Sending Toast Modal */}
       {showToast && (

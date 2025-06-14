@@ -9,6 +9,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useState, useEffect } from "react";
 import { IncrementController, DecrementController } from "@/components/ui/quantityController";
 import CustomCheckbox from "@/components/ui/customCheckBox";
+import BackToTopButton from "@/components/ui/back-to-top";
 
 const CartPage = () => {
   const { 
@@ -74,7 +75,7 @@ const CartPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold font-display mb-8 text-gray-900 dark:text-white">Your Cart</h1>
@@ -273,6 +274,7 @@ const CartPage = () => {
         )}
       </main>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 };

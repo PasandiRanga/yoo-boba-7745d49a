@@ -26,7 +26,7 @@ const BYOBPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
       <Navbar />
       <main className="flex-grow">
         <BYOBHero />

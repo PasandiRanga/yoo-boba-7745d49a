@@ -3,10 +3,11 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
+import BackToTopButton from "@/components/ui/back-to-top";
 
 const AboutPage = () => {
   return (
-    <div className="flex flex-col min-h-screen dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -195,6 +196,7 @@ const AboutPage = () => {
         </section>
       </main>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 };

@@ -44,7 +44,7 @@ const ProductsPage = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
+      <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
         <Navbar />
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center p-8">
@@ -53,22 +53,23 @@ const ProductsPage = () => {
           </div>
         </main>
         <Footer />
+        <BackToTopButton />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen dark:bg-gray-900 dark:text-white">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
       <Navbar />
       
       <main className="flex-grow">
-        <section className="py-12 md:py-16 bg-gray-50 dark:bg-gray-800/50">
+        <section className="py-12 md:py-16 bg-muted dark:bg-gray-800/50">
           <div className="container mx-auto px-4 md:px-6">
             <ScrollAnimation animation="animate-reveal-text" className="text-center max-w-3xl mx-auto mb-12">
               <h1 className="text-3xl md:text-4xl font-bold font-display mb-4">
                 Our Boba Pearl Collection
               </h1>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-muted-foreground">
                 Explore our premium selection of tapioca pearls and popping boba for your bubble tea shop.
               </p>
             </ScrollAnimation>
@@ -88,7 +89,7 @@ const ProductsPage = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="dark:text-gray-300">No products available at this time.</p>
+                <p className="text-muted-foreground">No products available at this time.</p>
               </div>
             )}
           </div>

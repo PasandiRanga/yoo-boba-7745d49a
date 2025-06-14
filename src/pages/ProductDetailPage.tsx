@@ -82,14 +82,14 @@ const ProductDetailPage = () => {
   // Error state or product not found
   if (error || !product) {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-white">
+      <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
         <Navbar />
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">
               {error || "Product Not Found"}
             </h1>
-            <p className="mb-6 text-gray-600 dark:text-gray-300">Sorry, we couldn't find the product you're looking for.</p>
+            <p className="mb-6 text-muted-foreground">Sorry, we couldn't find the product you're looking for.</p>
             <Button asChild>
               <Link to="/products">Back to Products</Link>
             </Button>
@@ -142,7 +142,7 @@ const ProductDetailPage = () => {
   const isOutOfStock = selectedVariant && selectedVariant.stock === 0;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-white">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-gray-900 text-foreground transition-colors duration-300">
       <Navbar />
 
       <main className="flex-grow">
