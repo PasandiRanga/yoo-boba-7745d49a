@@ -27,6 +27,7 @@ const Navbar = () => {
   const { user, logout } = useAuth(); // Use auth context
   const [open, setOpen] = useState(false);
   const [profileExpanded, setProfileExpanded] = useState(false);
+  const [showMobileSignIn, setShowMobileSignIn] = useState(false);
   
   const handleLogout = () => {
     logout(); // Use the logout function from auth context
@@ -34,6 +35,10 @@ const Navbar = () => {
     setProfileExpanded(false); // Close profile dropdown if open
   };
   
+  const handleMobileSignIn = () => {
+    setOpen(false); // Close mobile menu
+    setShowMobileSignIn(true); // Open sign in dialog
+  };
   const navItems = [
     { label: "Home", path: "/" },
     { label: "Buy Now", path: "/products" },
@@ -287,7 +292,13 @@ const Navbar = () => {
                         </div>
                       ) : (
                         <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <SignInDialog variant="mobile" onDialogOpen={() => setOpen(false)} />
+                          <button
+                            onClick={handleMobileSignIn}
+                            className="flex items-center space-x-3 py-4 px-4 text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 min-h-[56px] w-full text-left"
+                          >
+                            <User className="h-6 w-6" />
+                            <span>Sign In</span>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -298,6 +309,16 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      
+      {/* Mobile SignIn Dialog - rendered outside of Sheet */}
+      {showMobileSignIn && (
+        <SignInDialog 
+          variant="mobile" 
+          onDialogOpen={() => {}} 
+          isOpen={showMobileSignIn}
+          onClose={() => setShowMobileSignIn(false)}
+        />
+      )}
     </nav>
   );
 };

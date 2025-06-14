@@ -75,12 +75,23 @@ const StyledInput: React.FC<StyledInputProps> = ({
 interface SignInDialogProps {
   onDialogOpen?: () => void;
   variant?: 'mobile' | 'desktop';
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-const SignInDialog: React.FC<SignInDialogProps> = ({ onDialogOpen, variant = 'desktop' }) => {
+const SignInDialog: React.FC<SignInDialogProps> = ({ 
+  onDialogOpen, 
+  variant = 'desktop', 
+  isOpen: externalIsOpen,
+  onClose: externalOnClose 
+}) => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = externalOnClose ? 
+    (open: boolean) => { if (!open) externalOnClose(); } : 
+    setInternalIsOpen;
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -187,7 +198,9 @@ const SignInDialog: React.FC<SignInDialogProps> = ({ onDialogOpen, variant = 'de
       {variant === 'mobile' ? (
         <button
           onClick={() => {
-            setIsOpen(true);
+            if (externalIsOpen === undefined) {
+              setInternalIsOpen(true);
+            }
             onDialogOpen?.();
           }}
           className="flex items-center space-x-3 py-4 px-4 text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 min-h-[56px] w-full text-left"
@@ -201,7 +214,9 @@ const SignInDialog: React.FC<SignInDialogProps> = ({ onDialogOpen, variant = 'de
           size="icon" 
           className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           onClick={() => {
-            setIsOpen(true);
+            if (externalIsOpen === undefined) {
+              setInternalIsOpen(true);
+            }
             onDialogOpen?.();
           }}
         >
