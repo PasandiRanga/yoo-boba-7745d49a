@@ -340,15 +340,21 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     const resetRecord = rows[0];
 
+    console.error(newPassword);
+
     // Hash new password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    console.error('Hashed password' , hashedPassword);
 
     // Update password
     await pool.query(
       'UPDATE customers SET password = $1 WHERE customerid = $2',
       [hashedPassword, resetRecord.customerid]
     );
+
+    console.error(`Password for customer ${resetRecord.customerid} has been reset successfully`);
 
     // Mark token as used
     await pool.query(
