@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import ScrollAnimation from "@/components/animations/ScrollAnimations";
 import FloatingBubbles from "@/components/animations/floatingBubbles";
+import BlurText from "@/components/ui/BlurText";
 // Import the slide animations CSS
 import "@/styles/slideAnimations.css";
 import "@/styles/hero.css";
@@ -119,13 +120,13 @@ const Hero = ({ user }) => {
       {user && (
         <div className="absolute top-4 left-0 right-0 px-4 sm:px-6 lg:px-8 z-10">
           <div className="max-w-7xl mx-auto">
-            <p className="text-xl font-medium text-gray-700 dark:text-gray-300">
-              Welcome back,{" "}
-              <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-yooboba-purple to-yooboba-pink dark:from-yooboba-blue dark:to-yooboba-pink">
-                {user.first_name}
-              </span>
-              !
-            </p>
+            <BlurText
+              text={`Welcome back, ${user.FullName || user.first_name || user.emailaddress || 'User'}!`}
+              className="text-xl font-medium text-gray-700 dark:text-gray-300"
+              delay={100}
+              animateBy="words"
+              direction="top"
+            />
           </div>
         </div>
       )}
