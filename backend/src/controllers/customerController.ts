@@ -300,7 +300,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
     // Store reset token in separate table
     await pool.query(
-      'INSERT INTO password_reset_tokens (customerid, token, expires_at) VALUES ($1, $2, $3)',
+      'INSERT INTO password_reset_tokens (customer_id, token, expires_at) VALUES ($1, $2, $3)',
       [customer.customerid, resetToken, expiresAt]
     );
 
@@ -330,7 +330,7 @@ export const resetPassword = async (req: Request, res: Response) => {
   try {
     // Find valid reset token
     const { rows } = await pool.query(
-      'SELECT customerid FROM password_reset_tokens WHERE token = $1 AND expires_at > NOW() AND used_at IS NULL',
+      'SELECT customer_id FROM password_reset_tokens WHERE token = $1 AND expires_at > NOW() AND used_at IS NULL',
       [token]
     );
 
@@ -347,7 +347,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     // Update password
     await pool.query(
       'UPDATE customers SET password = $1 WHERE customerid = $2',
-      [hashedPassword, resetRecord.customerid]
+      [hashedPassword, resetRecord.customer_id]
     );
 
     // Mark token as used
