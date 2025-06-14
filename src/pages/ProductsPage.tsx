@@ -63,13 +63,13 @@ const ProductsPage = () => {
       <Navbar />
       
       <main className="flex-grow">
-        <section className="py-12 md:py-16 bg-muted dark:bg-gray-800/50">
+        <section className="py-16 bg-white dark:bg-gray-900">
           <div className="container mx-auto px-4 md:px-6">
             <ScrollAnimation animation="animate-reveal-text" className="text-center max-w-3xl mx-auto mb-12">
-              <h1 className="text-3xl md:text-4xl font-bold font-display mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold font-display mb-4 dark:text-white">
                 Our Boba Pearl Collection
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-gray-600 dark:text-gray-300">
                 Explore our premium selection of tapioca pearls and popping boba for your bubble tea shop.
               </p>
             </ScrollAnimation>
@@ -89,7 +89,7 @@ const ProductsPage = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No products available at this time.</p>
+                <p className="text-gray-600 dark:text-gray-300">No products available at this time.</p>
               </div>
             )}
           </div>
