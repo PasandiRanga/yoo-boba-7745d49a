@@ -10,7 +10,6 @@ import { createOrder, PaymentMethod } from "@/models/OrderModel";
 import { createPendingOrder } from "@/services/orderService";
 import { toast } from "@/components/ui/use-toast";
 import { fetchCustomerById } from "@/services/customerService";
-import { useAuth } from "@/context/authContext";
 
 // Import styled components
 import StyledInput from "@/components/ui/styledInput";
@@ -29,7 +28,7 @@ const CheckoutPage = () => {
   const selectedItems = getSelectedItems();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
   // Customer Information - Initialize with empty values
   const [customer, setCustomer] = useState({
@@ -64,40 +63,60 @@ const CheckoutPage = () => {
   // Payment information
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere"); // Default to PayHere
 
-  // Effect to load user data from auth context
+  // Effect to load user data from session storage
   useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log("Loading user data from auth context:", user);
+    const loadUserData = async () => {
+      const storedUser = sessionStorage.getItem("customer");
+      console.log("Stored user data:", storedUser);
       
-      // Map user data from auth context to customer state
-      setCustomer(prev => ({
-        ...prev,
-        firstName: (user as any).first_name || "",
-        lastName: (user as any).last_name || "",
-        email: user.emailaddress || "",
-        phone: user.ContactNo || "",
-        company: (user as any).company || "",
-        userId: user.customerid || undefined,
-      }));
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          console.log("Stored user id", userData.customerid);
 
-      // Pre-fill address if available in user data
-      if (user.Address && typeof user.Address === 'string') {
-        const userAddress = {
-          street1: user.Address,
-          street2: "",
-          city: "",
-          state: "",
-          zipCode: "",
-          country: "Sri Lanka",
-        };
-        
-        setShippingAddress(userAddress);
-        if (sameAsBilling) {
-          setBillingAddress(userAddress);
+          // Properly await the async function
+          const fetchedUserData = await fetchCustomerById(userData.customerid);
+          console.log("Fetched user data:", fetchedUserData);
+          
+          // Map fetched user data to Order model Customer interface
+          setCustomer(prev => ({
+            ...prev,
+            firstName: fetchedUserData.first_name || "",
+            lastName: fetchedUserData.last_name || "",
+            email: fetchedUserData.emailaddress || "",
+            phone: fetchedUserData.contactno || "",
+            company: fetchedUserData.company || "",
+            userId: fetchedUserData.customerid || undefined,
+          }));
+
+          // Pre-fill address if available in user data
+          // Address is a string in the fetched data
+          if (fetchedUserData.address && typeof fetchedUserData.address === 'string') {
+            const userAddress = {
+              street1: fetchedUserData.address,
+              street2: "",
+              city: "",
+              state: "",
+              zipCode: "",
+              country: "Sri Lanka",
+            };
+            
+            setShippingAddress(userAddress);
+            if (sameAsBilling) {
+              setBillingAddress(userAddress);
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing user data from session or fetching from API:", error);
+          // Clear invalid session data
+          sessionStorage.removeItem("customer");
         }
       }
-    }
-  }, [isAuthenticated, user, sameAsBilling]);
+    };
+
+    // Call the async function
+    loadUserData();
+  }, []);
 
   // Handle input changes for customer info
   const handleCustomerChange = (e) => {
@@ -306,9 +325,9 @@ const CheckoutPage = () => {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold font-display">Checkout</h1>
           {/* Show logged in user info */}
-          {user && (
+          {loggedInUser && (
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Logged in as: <span className="font-medium text-gray-800 dark:text-gray-200">{user.FullName}</span>
+              Logged in as: <span className="font-medium text-gray-800 dark:text-gray-200">{loggedInUser.first_name} {loggedInUser.last_name}</span>
             </div>
           )}
         </div>
@@ -320,7 +339,7 @@ const CheckoutPage = () => {
               <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Customer Information</h2>
-                  {user && (
+                  {loggedInUser && (
                     <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
                       Auto-filled
                     </span>
@@ -408,7 +427,7 @@ const CheckoutPage = () => {
               <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Shipping Address</h2>
-                  {user && user.Address && (
+                  {loggedInUser && loggedInUser.address && (
                     <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
                       Auto-filled
                     </span>
