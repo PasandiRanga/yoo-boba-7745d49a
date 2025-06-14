@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { User, AlertCircle } from "lucide-react";
+import { User, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { loginCustomer } from "@/services/customerService";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/authContext';
@@ -77,6 +77,7 @@ const SignInDialog: React.FC = () => {
   const { login } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -235,15 +236,30 @@ const SignInDialog: React.FC = () => {
                     <svg className="h-5 w-5 text-purple-600 dark:text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
                     </svg>
-                    <StyledInput
-                      type="password"
-                      name="password"
-                      id="password"
-                      placeholder="Password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                    />
+                    <div className="relative w-full">
+                      <StyledInput
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        id="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   {errors.password && (
                     <p className="mt-1 text-sm text-red-500">{errors.password}</p>
