@@ -31,6 +31,9 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState(null);
 
+  // Get authentication state and user from auth context
+  const { isAuthenticated, user } = useAuth();
+
   // Customer Information - Initialize with empty values
   const [customer, setCustomer] = useState({
     firstName: "",
@@ -82,7 +85,7 @@ const CheckoutPage = () => {
         lastName: lastName,
         email: user.emailaddress || "",
         phone: user.ContactNo || "",
-        company: (user as any).company || "",
+        company: (user as { company?: string }).company || "",
         userId: user.customerid || undefined,
       }));
 
