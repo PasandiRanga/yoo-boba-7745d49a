@@ -287,11 +287,7 @@ const Navbar = () => {
                         </div>
                       ) : (
                         <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <SheetClose asChild>
-                            <div>
-                              <SignInDialog />
-                            </div>
-                          </SheetClose>
+                          <SignInDialog onDialogOpen={() => setOpen(false)} />
                         </div>
                       )}
                     </div>

@@ -72,7 +72,11 @@ const StyledInput: React.FC<StyledInputProps> = ({
   );
 };
 
-const SignInDialog: React.FC = () => {
+interface SignInDialogProps {
+  onDialogOpen?: () => void;
+}
+
+const SignInDialog: React.FC<SignInDialogProps> = ({ onDialogOpen }) => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -183,7 +187,10 @@ const SignInDialog: React.FC = () => {
         variant="ghost" 
         size="icon" 
         className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          onDialogOpen?.();
+        }}
       >
         <User className="h-5 w-5 text-gray-700 dark:text-gray-300" />
       </Button>
