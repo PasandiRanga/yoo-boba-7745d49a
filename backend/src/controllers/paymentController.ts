@@ -437,7 +437,7 @@ export class PaymentController {
       if (customerEmail) {
         await sendOrderReceiptEmail(customerEmail, customerName, {
           orderId,
-          totalAmount: order.total_amount,
+          totalAmount: Number(order.total_amount),
           paymentMethod: order.payment_method,
           items: itemsResult.rows.map((item: OrderItemRow) => ({
             name: item.name,
