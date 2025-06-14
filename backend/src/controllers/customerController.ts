@@ -3,6 +3,7 @@ import { pool } from '../db/index';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/emailService';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Replace with environment variable in production
@@ -139,6 +140,14 @@ export const createCustomer = async (req: Request, res: Response) => {
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING customerid, first_name, last_name, emailaddress, contactno, address
     `, [first_name, last_name, email, phone, hashedPassword, address]);
+    
+    // Send welcome email (optional)
+    try {
+      await sendWelcomeEmail(email, `${first_name} ${last_name}`);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail the registration if email fails
+    }
     
     res.status(201).json(rows[0]);
   } catch (error) {
@@ -295,14 +304,17 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       [customer.customerid, resetToken, expiresAt]
     );
 
-    // In a real application, you would send an email here
-    // For now, we'll just return the token (remove this in production)
-    console.log(`Password reset token for ${email}: ${resetToken}`);
+    // Send password reset email
+    try {
+      await sendPasswordResetEmail(email, resetToken, customer.first_name);
+      console.log(`Password reset email sent to ${email}`);
+    } catch (emailError) {
+      console.error('Failed to send reset email:', emailError);
+      // Still return success to prevent email enumeration attacks
+    }
 
     res.json({ 
-      message: 'Password reset link has been sent to your email address',
-      // Remove this line in production - only for testing
-      resetToken: resetToken 
+      message: 'If an account with this email exists, you will receive a password reset link shortly.'
     });
 
   } catch (error) {
