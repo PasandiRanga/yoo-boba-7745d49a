@@ -6,7 +6,13 @@ import crypto from 'crypto';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/emailService';
 
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Replace with environment variable in production
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+  return secret;
+};
 
 
 export const loginCustomer = async (req: Request, res: Response) => {
@@ -39,7 +45,7 @@ export const loginCustomer = async (req: Request, res: Response) => {
         email: user.emailaddress,
         name: `${user.first_name} ${user.last_name}`
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '2h' } // token expiration time
     );
 
@@ -288,8 +294,11 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       [email]
     );
 
+    // Always return success to prevent email enumeration attacks
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'No account found with this email address' });
+      return res.json({ 
+        message: 'If an account with this email exists, you will receive a password reset link shortly.'
+      });
     }
 
     const customer = rows[0];
@@ -340,13 +349,9 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     const resetRecord = rows[0];
 
-    console.log('Reset record customerid:', resetRecord.customerid);
-
     // Hash new password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-    console.log('Hashed password:', hashedPassword);
 
     // Update password
     const updateResult = await pool.query(
@@ -354,16 +359,10 @@ export const resetPassword = async (req: Request, res: Response) => {
       [hashedPassword, resetRecord.customerid.trim()]
     );
 
-    console.log('Update result rowCount:', updateResult.rowCount);
-    console.log('Updating customer with ID:', resetRecord.customerid);
-
-    // Verify the update worked
-    const verifyResult = await pool.query(
-      'SELECT password FROM customers WHERE customerid = $1',
-      [resetRecord.customerid]
-    );
-    
-    console.log('Password in database after update:', verifyResult.rows[0]?.password);
+    if (updateResult.rowCount === 0) {
+      console.error(`Failed to update password for customer ${resetRecord.customerid}`);
+      return res.status(400).json({ message: 'Failed to reset password' });
+    }
 
     // Mark token as used
     await pool.query(

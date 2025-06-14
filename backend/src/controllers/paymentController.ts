@@ -8,18 +8,15 @@ export class PaymentController {
    * Verify payment status
    */
   static async verifyPayment(req: Request, res: Response) {
-    console.error('Received payment verification request:', req.body);
     try {
       const { orderId, paymentId, status } = req.body;
       
-      // Get secret key from environment
-      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
-      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
-
-      console.log('Merchant ID:', merchantId);
-      console.log('Secret Key:', secretKey);
+      // Get credentials from environment - no fallbacks for security
+      const merchantId = process.env.PAYHERE_MERCHANT_ID;
+      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
       
       if (!secretKey || !merchantId) {
+        console.error('Payment gateway credentials not configured');
         return res.status(500).json({ 
           success: false, 
           message: 'Payment gateway configuration error',
@@ -122,7 +119,6 @@ export class PaymentController {
    * Handle PayHere payment notification (webhook)
    */
   static async handlePaymentNotification(req: Request, res: Response) {
-    console.error('Received PayHere notification:', req.body);
     try {
       const {
         merchant_id,
@@ -134,10 +130,11 @@ export class PaymentController {
         md5sig
       } = req.body;
 
-      // Get secret key from environment
-      const secretKey = "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
+      // Get secret key from environment - no hardcoded fallback
+      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
       if (!secretKey) {
-        throw new Error('PayHere secret key not configured');
+        console.error('PayHere secret key not configured');
+        return res.status(500).send('Configuration error');
       }
 
       // Calculate MD5 hash using the correct format
@@ -170,7 +167,7 @@ export class PaymentController {
         [orderStatus, paymentStatus, payment_id, order_id]
       );
 
-      console.error("Updated values");
+      console.log(`Order ${order_id} status updated to ${orderStatus}`);
 
       // Send order receipt email when payment is completed
       if (paymentStatus === 'completed') {
@@ -270,9 +267,9 @@ export class PaymentController {
       const customer = order.customer;
       const shippingAddress = order.shipping_address;
       
-      // Get PayHere credentials from environment
-      const merchantId = process.env.PAYHERE_MERCHANT_ID || 1230460;
-      const secretKey = process.env.PAYHERE_SECRET_KEY || "MTI2MjEwNjQ3MjI4Mjk1NDEyNzUzMjI5MDIxOTIwMjIwNjQwMjA1OA==";
+      // Get PayHere credentials from environment - no fallbacks
+      const merchantId = process.env.PAYHERE_MERCHANT_ID;
+      const secretKey = process.env.PAYHERE_MERCHANT_SECRET;
       
       if (!merchantId || !secretKey) {
         return res.status(500).json({ message: 'Payment gateway configuration error' });
@@ -405,8 +402,8 @@ export class PaymentController {
       const order = orderResult.rows[0];
       const customer = order.customer;
 
-      console.error(order);
-      console.error(customer);
+      // Log order processing (without sensitive data)
+      console.log(`Processing order receipt for order ${orderId}`);
 
       // Get order addresses
       const addressesResult = await pool.query(

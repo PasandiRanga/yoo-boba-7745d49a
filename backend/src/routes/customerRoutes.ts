@@ -10,14 +10,15 @@ import {
   requestPasswordReset,
   resetPassword
 } from '../controllers/customerController';
+import { authRateLimit, passwordResetRateLimit } from '../middleware/security';
 
 const router = Router();
-//Login 
-router.post('/login', loginCustomer);
+//Login with rate limiting
+router.post('/login', authRateLimit, loginCustomer);
 
-// Password reset routes
-router.post('/forgot-password', requestPasswordReset);
-router.post('/reset-password', resetPassword);
+// Password reset routes with rate limiting
+router.post('/forgot-password', passwordResetRateLimit, requestPasswordReset);
+router.post('/reset-password', authRateLimit, resetPassword);
 
 // GET routes
 router.get('/', getAllCustomers);

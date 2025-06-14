@@ -3,6 +3,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { securityHeaders, authRateLimit, passwordResetRateLimit } from './middleware/security';
 
 import productRoutes from './routes/productRoutes';
 import customerRoutes from './routes/customerRoutes';
@@ -19,10 +20,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Security middleware
+app.use(securityHeaders);
+
 // Middleware
-app.use(cors());
-app.use(express.urlencoded({ extended: true })); // ✅ Needed for PayHere
-app.use(express.json());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:8081',
+  credentials: true
+}));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
 
 // Routes
 app.use('/api/products', productRoutes);

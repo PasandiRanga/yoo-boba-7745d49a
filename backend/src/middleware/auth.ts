@@ -27,7 +27,16 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction): voi
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, decoded) => {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    res.status(500).json({
+      success: false,
+      message: 'Server configuration error',
+    });
+    return;
+  }
+
+  jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err || typeof decoded !== 'object' || !decoded) {
       res.status(403).json({
         success: false,
