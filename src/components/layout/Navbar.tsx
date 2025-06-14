@@ -287,7 +287,7 @@ const Navbar = () => {
                         </div>
                       ) : (
                         <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <SignInDialog onDialogOpen={() => setOpen(false)} />
+                          <SignInDialog variant="mobile" onDialogOpen={() => setOpen(false)} />
                         </div>
                       )}
                     </div>

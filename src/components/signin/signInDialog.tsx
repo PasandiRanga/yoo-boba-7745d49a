@@ -74,9 +74,10 @@ const StyledInput: React.FC<StyledInputProps> = ({
 
 interface SignInDialogProps {
   onDialogOpen?: () => void;
+  variant?: 'mobile' | 'desktop';
 }
 
-const SignInDialog: React.FC<SignInDialogProps> = ({ onDialogOpen }) => {
+const SignInDialog: React.FC<SignInDialogProps> = ({ onDialogOpen, variant = 'desktop' }) => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -183,17 +184,30 @@ const SignInDialog: React.FC<SignInDialogProps> = ({ onDialogOpen }) => {
 
   return (
     <div className="relative">
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        onClick={() => {
-          setIsOpen(true);
-          onDialogOpen?.();
-        }}
-      >
-        <User className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-      </Button>
+      {variant === 'mobile' ? (
+        <button
+          onClick={() => {
+            setIsOpen(true);
+            onDialogOpen?.();
+          }}
+          className="flex items-center space-x-3 py-4 px-4 text-lg font-medium text-gray-800 dark:text-gray-200 hover:text-yooboba-purple dark:hover:text-yooboba-blue hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 min-h-[56px] w-full text-left"
+        >
+          <User className="h-6 w-6" />
+          <span>Sign In</span>
+        </button>
+      ) : (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          onClick={() => {
+            setIsOpen(true);
+            onDialogOpen?.();
+          }}
+        >
+          <User className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+        </Button>
+      )}
       
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
