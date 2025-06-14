@@ -58,7 +58,7 @@ const Navbar = () => {
                 alt="YooBoba Logo" 
                 className="h-8 w-8 sm:h-10 sm:w-10 mr-2 group-hover:scale-105 transition-transform"
               />
-              <span className="text-lg sm:text-2xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent">
+              <span className="text-lg sm:text-2xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent dark:bg-none dark:text-yooboba-purple">
                 YooBoba
               </span>
             </Link>
@@ -172,7 +172,7 @@ const Navbar = () => {
                         alt="YooBoba Logo" 
                         className="h-8 w-8 mr-3"
                       />
-                      <span className="text-xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent">
+                      <span className="text-xl font-bold font-display bg-yooboba-gradient bg-clip-text text-transparent dark:bg-none dark:text-yooboba-purple">
                         YooBoba
                       </span>
                     </div>
