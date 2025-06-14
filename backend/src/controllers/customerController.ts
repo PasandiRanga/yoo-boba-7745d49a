@@ -340,7 +340,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     const resetRecord = rows[0];
 
-    console.log('Reset record customer_id:', resetRecord.customer_id);
+    console.log('Reset record customerid:', resetRecord.customerid);
 
     // Hash new password
     const saltRounds = 10;
@@ -355,12 +355,12 @@ export const resetPassword = async (req: Request, res: Response) => {
     );
 
     console.log('Update result rowCount:', updateResult.rowCount);
-    console.log('Updating customer with ID:', resetRecord.customer_id);
+    console.log('Updating customer with ID:', resetRecord.customerid);
 
     // Verify the update worked
     const verifyResult = await pool.query(
       'SELECT password FROM customers WHERE customerid = $1',
-      [resetRecord.customer_id]
+      [resetRecord.customerid]
     );
     
     console.log('Password in database after update:', verifyResult.rows[0]?.password);
