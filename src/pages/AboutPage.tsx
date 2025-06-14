@@ -15,7 +15,7 @@ const AboutPage = () => {
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold font-display mb-6 dark:text-white">
-                About YooBoba
+                About YooBoba.
               </h1>
               <p className="text-xl text-gray-700 leading-relaxed dark:text-gray-300">
                 We're passionate about creating the perfect boba pearls for bubble tea shops and enthusiasts around the world.
