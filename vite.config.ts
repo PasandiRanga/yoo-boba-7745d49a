@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 8081,
     allowedHosts: [
       '0854-2402-d000-a400-da2d-7939-f9d5-726c-6d75.ngrok-free.app',
       // Keep any existing allowed hosts
@@ -18,15 +18,6 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-      },
-    },
-    sourcemap: false,
-    target: 'es2020',
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -35,29 +26,9 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     exclude: ['pg'], // Prevent Vite from bundling pg incorrectly
+    // include: ['pg/pg-browser.js'],
   },
   ssr: {
     noExternal: ['pg'], // Ensure pg is processed by Vite for SSR
   },
-  esbuild: {
-    target: 'es2020',
-    logOverride: { 'this-is-undefined-in-esm': 'silent' }
-  },
-  define: {
-    global: 'globalThis',
-  },
-  css: {
-    postcss: {
-      plugins: [],
-    },
-  },
-  // Disable TypeScript checking in development to resolve build conflicts
-  ...(mode === 'development' && {
-    esbuild: {
-      target: 'es2020',
-      logOverride: { 'this-is-undefined-in-esm': 'silent' },
-      loader: 'tsx',
-      include: /\.(ts|tsx)$/,
-    },
-  }),
 }));
