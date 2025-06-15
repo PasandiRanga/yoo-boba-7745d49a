@@ -14,7 +14,6 @@
   "dependencies": {
     "@cloudflare/workers-types": "^4.20250504.0",
     "@hookform/resolvers": "^3.9.0",
-    "@neondatabase/serverless": "^1.0.0",
     "@prisma/client": "^6.7.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
