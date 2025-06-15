@@ -1,0 +1,20 @@
+# Use an appropriate Node version (Node 20 or higher to support all dependencies)
+FROM node:20
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies using `npm install` instead of `npm ci`
+RUN npm install
+
+# Copy rest of the app
+COPY . .
+
+# Expose the port your app runs on (e.g., 4000 or 3000)
+EXPOSE 4000
+
+# Command to run the app
+CMD ["npm", "start"]
